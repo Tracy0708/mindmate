@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/registration_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/forgot_password_screen.dart';
+import 'screens/complete_profile_screen.dart';
 import 'services/auth_service.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
@@ -19,6 +20,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await AuthService.initializeGoogleSignIn();
   runApp(
     MultiProvider(
       providers: [
@@ -71,6 +73,7 @@ class MyApp extends StatelessWidget {
             '/register': (context) => const RegistrationScreen(),
             '/dashboard': (context) => const DashboardScreen(),
             '/forgot-password': (context) => const ForgotPasswordScreen(),
+            '/complete-profile': (context) => const CompleteProfileScreen(),
           },
         );
       },
@@ -290,8 +293,14 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   Future<void> _signInWithGoogle() async {
     try {
       setState(() => _isLoading = true);
-      await _authService.signInWithGoogle();
-      if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
+      final cred = await _authService.signInWithGoogle();
+      if (mounted) {
+        if (cred.additionalUserInfo?.isNewUser == true) {
+          Navigator.pushReplacementNamed(context, '/complete-profile');
+        } else {
+          Navigator.pushReplacementNamed(context, '/dashboard');
+        }
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

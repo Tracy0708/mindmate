@@ -61,24 +61,36 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   Future<void> _register() async {
     try {
+      print('--- Registration Started ---');
       setState(() => _isLoading = true);
+      
+      print('1. Calling registerWithEmailPassword...');
       await _authService.registerWithEmailPassword(
         _emailController.text.trim(),
         _passwordController.text,
       );
+      print('1. Successly finished registerWithEmailPassword');
+
+      print('2. Calling updateUserProfile...');
       // Update profile info
       await _authService.updateUserProfile(
         name: _nameController.text.trim(),
         age: int.tryParse(_ageController.text.trim()),
       );
+      print('2. Successfully finished updateUserProfile');
+
+      print('3. Navigating to dashboard...');
       if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
-    } catch (e) {
+    } catch (e, stacktrace) {
+      print('!!! REGISTRATION ERROR !!!: $e');
+      print(stacktrace);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString()), backgroundColor: AppColors.errorRed),
         );
       }
     } finally {
+      print('--- Registration Block Ended ---');
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -237,8 +249,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               onPressed: () async {
                 try {
                   setState(() => _isLoading = true);
-                  await _authService.signInWithGoogle();
-                  if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
+                  final cred = await _authService.signInWithGoogle();
+                  if (mounted) {
+                    if (cred.additionalUserInfo?.isNewUser == true) {
+                      Navigator.pushReplacementNamed(context, '/complete-profile');
+                    } else {
+                      Navigator.pushReplacementNamed(context, '/dashboard');
+                    }
+                  }
                 } catch (e) {
                   if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
                 } finally {

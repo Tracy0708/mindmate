@@ -5,11 +5,15 @@ import '../models/user_model.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Get current user
   User? get currentUser => _auth.currentUser;
+
+  // Initialize Google Sign-In (call once at app startup)
+  static Future<void> initializeGoogleSignIn() async {
+    await GoogleSignIn.instance.initialize();
+  }
 
   // Sign in with email and password
   Future<UserCredential> signInWithEmailPassword(
@@ -43,18 +47,14 @@ class AuthService {
     }
   }
 
-  // Sign in with Google
+  // Sign in with Google (google_sign_in v7 API)
   Future<UserCredential> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      final GoogleSignInAccount googleUser =
+          await GoogleSignIn.instance.authenticate();
 
-      if (googleUser == null) throw 'Google sign in aborted';
-
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+        idToken: googleUser.authentication.idToken,
       );
 
       UserCredential userCredential =
@@ -76,7 +76,7 @@ class AuthService {
     try {
       await Future.wait([
         _auth.signOut(),
-        _googleSignIn.signOut(),
+        GoogleSignIn.instance.signOut(),
       ]);
     } catch (e) {
       throw _handleAuthException(e);
@@ -101,12 +101,20 @@ class AuthService {
       userEmail: user.email!,
       userPassword: '',
     );
-
-    await userDoc.set(newUser.toJson());
+    
+    try {
+      print('--- Attempting to save user document to Firestore ---');
+      await userDoc.set(newUser.toJson()).timeout(const Duration(seconds: 10));
+      print('--- Successfully saved user document ---');
+    } catch (e) {
+      print('--- Firestore Error: $e ---');
+      // We don't want to break the whole registration if Firestore hangs, 
+      // so we catch and print the error instead of throwing.
+    }
   }
 
   // Update user profile
-  Future<void> updateUserProfile({String? name, int? age}) async {
+  Future<void> updateUserProfile({String? name, int? age, String? gender}) async {
     try {
       final user = currentUser;
       if (user == null) throw 'No user logged in';
@@ -119,9 +127,19 @@ class AuthService {
       if (age != null) {
         updates['age'] = age;
       }
+      if (gender != null) {
+        updates['gender'] = gender;
+      }
 
       if (updates.isNotEmpty) {
-        await _firestore.collection('users').doc(user.uid).update(updates);
+        try {
+          print('--- Attempting to update user profile in Firestore ---');
+          await _firestore.collection('users').doc(user.uid).update(updates).timeout(const Duration(seconds: 10));
+          print('--- Successfully updated user profile ---');
+        } catch (e) {
+          print('--- Firestore Update Error: $e ---');
+          // Catch and ignore timeout/offline errors so user is still allowed to navigate
+        }
       }
     } catch (e) {
       throw _handleAuthException(e);

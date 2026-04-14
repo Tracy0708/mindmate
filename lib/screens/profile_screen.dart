@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../services/auth_service.dart';
 import '../main.dart';
 import '../viewmodels/theme_viewmodel.dart';
 
@@ -9,6 +9,13 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = AuthService().currentUser;
+    final String displayName = user?.displayName ?? 'New User';
+    final String email = user?.email ?? 'No email';
+    final String initials = displayName.isNotEmpty 
+        ? displayName.trim().split(RegExp(r'\s+')).map((e) => e.isNotEmpty ? e[0] : '').take(2).join().toUpperCase()
+        : 'U';
+
     return Scaffold(
       backgroundColor: AppColors.creamLight,
       body: SafeArea(
@@ -25,7 +32,7 @@ class ProfileScreen extends StatelessWidget {
                     width: 100, height: 100,
                     decoration: const BoxDecoration(color: Color(0xFFFFE0A0), shape: BoxShape.circle),
                     alignment: Alignment.center,
-                    child: const Text('JD', style: TextStyle(fontSize: 40, fontWeight: FontWeight.w800, color: AppColors.golden)),
+                    child: Text(initials, style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w800, color: AppColors.golden)),
                   ),
                   Container(
                     padding: const EdgeInsets.all(4),
@@ -39,9 +46,9 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              const Text('Jane Doe', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
+              Text(displayName, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
               const SizedBox(height: 4),
-              const Text('jane.doe@example.com', style: TextStyle(fontSize: 14, color: AppColors.brownMedium)),
+              Text(email, style: const TextStyle(fontSize: 14, color: AppColors.brownMedium)),
               const SizedBox(height: 32),
 
               // Horizontal Stats
@@ -127,9 +134,11 @@ class ProfileScreen extends StatelessWidget {
                       icon: Icons.logout,
                       label: 'Logout',
                       isDestructive: true,
-                      onTap: () {
-                        FirebaseAuth.instance.signOut();
-                        Navigator.pushReplacementNamed(context, '/login');
+                      onTap: () async {
+                        await AuthService().signOut();
+                        if (context.mounted) {
+                          Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+                        }
                       },
                     ),
                   ],
@@ -177,15 +186,15 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
             const Text('Full Name', style: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
-            const _EditField(hint: 'Jane Doe', icon: Icons.person),
+            _EditField(hint: AuthService().currentUser?.displayName ?? 'Your Name', icon: Icons.person),
             const SizedBox(height: 16),
             const Text('Email Address', style: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
-            const _EditField(hint: 'jane.doe@example.com', icon: Icons.email),
+            _EditField(hint: AuthService().currentUser?.email ?? 'Your Email', icon: Icons.email),
             const SizedBox(height: 16),
             const Text('Age', style: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
-            const _EditField(hint: '22', icon: Icons.cake),
+            const _EditField(hint: 'Age', icon: Icons.cake),
             const SizedBox(height: 32),
             Row(
               children: [
