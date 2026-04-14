@@ -165,8 +165,9 @@ class ProfileScreen extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         contentPadding: const EdgeInsets.all(32),
         backgroundColor: Colors.white,
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Center(
@@ -196,35 +197,37 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 8),
             const _EditField(hint: 'Age', icon: Icons.cake),
             const SizedBox(height: 32),
-            Row(
+            Column(
               children: [
-                Expanded(
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(ctx),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.golden,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('✓ Save Changes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                    child: const Text('Save Changes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: TextButton(
                     onPressed: () => Navigator.pop(ctx),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.fieldBorder),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    style: TextButton.styleFrom(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('× Cancel', style: TextStyle(color: AppColors.brownMedium, fontWeight: FontWeight.w700)),
+                    child: const Text('Cancel', style: TextStyle(color: AppColors.brownMedium, fontWeight: FontWeight.w700)),
                   ),
                 ),
               ],
             )
           ],
         ),
+      ),
       ),
     );
   }

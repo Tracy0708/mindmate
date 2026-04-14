@@ -335,20 +335,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             onChanged: (v) => setState(() => _selectedGender = v),
           ),
           const SizedBox(height: 32),
-          Row(
+          Column(
             children: [
-              Expanded(
-                child: SizedBox(
-                  height: 52,
-                  child: OutlinedButton(onPressed: _prevStep, child: const Text('Back')),
-                ),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(onPressed: _nextStep, child: const Text('Continue')),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: SizedBox(
-                  height: 52,
-                  child: ElevatedButton(onPressed: _nextStep, child: const Text('Continue')),
-                ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: TextButton(onPressed: _prevStep, child: const Text('Back')),
               ),
             ],
           ),
@@ -403,26 +401,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           ),
         ),
         const SizedBox(height: 28),
-        Row(
+        Column(
           children: [
-            Expanded(
-              child: SizedBox(
-                height: 52,
-                child: OutlinedButton(onPressed: _prevStep, child: const Text('Back')),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _register,
+                child: _isLoading
+                    ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                    : const Text('Create Account'),
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              flex: 2,
-              child: SizedBox(
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _register,
-                  child: _isLoading
-                      ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
-                      : const Text('Create Account'),
-                ),
-              ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: TextButton(onPressed: _prevStep, child: const Text('Back')),
             ),
           ],
         ),
