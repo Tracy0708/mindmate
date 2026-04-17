@@ -35,13 +35,19 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      userID: json['userID'],
-      userName: json['userName'],
-      userEmail: json['userEmail'],
-      userPassword: '', // We don't store or retrieve password
+      userID: json['userID'] ?? '',
+      userName: json['userName'] ?? json['name'] ?? 'User',
+      userEmail: json['userEmail'] ?? json['email'] ?? '',
+      userPassword: '',
       age: json['age'],
       gender: json['gender'],
-      settings: Map<String, dynamic>.from(json['settings'] ?? {}),
+      settings: json['settings'] != null
+          ? Map<String, dynamic>.from(json['settings'])
+          : {
+              'darkMode': false,
+              'language': 'en',
+              'notificationPrefs': <String, bool>{},
+            },
     );
   }
 }

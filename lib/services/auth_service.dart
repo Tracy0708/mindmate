@@ -146,6 +146,60 @@ class AuthService {
     }
   }
 
+  // Get user profile from Firestore
+  Future<UserModel?> getUserProfile() async {
+    try {
+      final user = currentUser;
+      if (user == null) return null;
+
+      final doc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .get()
+          .timeout(const Duration(seconds: 10));
+
+      if (doc.exists && doc.data() != null) {
+        return UserModel.fromJson(doc.data()!);
+      }
+      return null;
+    } catch (e) {
+      print('--- getUserProfile Error: $e ---');
+      return null;
+    }
+  }
+
+  // Update notification preferences in Firestore
+  Future<void> updateNotificationPrefs(Map<String, bool> prefs) async {
+    try {
+      final user = currentUser;
+      if (user == null) throw 'No user logged in';
+
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .update({'settings.notificationPrefs': prefs})
+          .timeout(const Duration(seconds: 10));
+    } catch (e) {
+      print('--- Notification Prefs Update Error: $e ---');
+    }
+  }
+
+  // Update reminder time in Firestore
+  Future<void> updateReminderTime(String time) async {
+    try {
+      final user = currentUser;
+      if (user == null) throw 'No user logged in';
+
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .update({'settings.reminderTime': time})
+          .timeout(const Duration(seconds: 10));
+    } catch (e) {
+      print('--- Reminder Time Update Error: $e ---');
+    }
+  }
+
   // Handle authentication exceptions
   String _handleAuthException(dynamic e) {
     if (e is FirebaseAuthException) {

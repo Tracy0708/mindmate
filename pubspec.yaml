@@ -18,6 +18,9 @@ dependencies:
   intl: ^0.18.1
   fl_chart: ^0.63.0
   shared_preferences: ^2.1.1
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.9.4
+  flutter_timezone: ^3.0.0
   js: ^0.6.7
 
 dev_dependencies:

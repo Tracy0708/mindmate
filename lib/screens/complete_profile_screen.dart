@@ -100,7 +100,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
-                      value: _selectedGender,
+                      initialValue: _selectedGender,
                       decoration: const InputDecoration(hintText: 'Gender', prefixIcon: Icon(Icons.people_outline)),
                       items: ['Male', 'Female', 'Other', 'Prefer not to say']
                           .map((g) => DropdownMenuItem(value: g, child: Text(g)))

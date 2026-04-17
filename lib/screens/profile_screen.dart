@@ -1,152 +1,483 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
+import '../models/user_model.dart';
 import '../main.dart';
 import '../viewmodels/theme_viewmodel.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final user = AuthService().currentUser;
-    final String displayName = user?.displayName ?? 'New User';
-    final String email = user?.email ?? 'No email';
-    final String initials = displayName.isNotEmpty 
-        ? displayName.trim().split(RegExp(r'\s+')).map((e) => e.isNotEmpty ? e[0] : '').take(2).join().toUpperCase()
-        : 'U';
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
 
+class _ProfileScreenState extends State<ProfileScreen> {
+  final AuthService _authService = AuthService();
+  UserModel? _userProfile;
+  bool _isLoadingProfile = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() => _isLoadingProfile = true);
+    final profile = await _authService.getUserProfile();
+    if (mounted) {
+      setState(() {
+        _userProfile = profile;
+        _isLoadingProfile = false;
+      });
+    }
+  }
+
+  String get _displayName =>
+      _userProfile?.userName ??
+      _authService.currentUser?.displayName ??
+      'New User';
+
+  String get _email =>
+      _userProfile?.userEmail ??
+      _authService.currentUser?.email ??
+      'No email';
+
+  String get _initials {
+    final name = _displayName;
+    if (name.isEmpty) return 'U';
+    return name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .map((e) => e.isNotEmpty ? e[0] : '')
+        .take(2)
+        .join()
+        .toUpperCase();
+  }
+
+  bool get _notificationsEnabled {
+    final prefs = _userProfile?.settings['notificationPrefs'] as Map<String, dynamic>?;
+    if (prefs == null || prefs.isEmpty) return true; // default on
+    return prefs.values.any((v) => v == true);
+  }
+
+  // ─── Edit Profile Dialog ───
+  void _showEditProfile(BuildContext context) {
+    final nameController = TextEditingController(text: _displayName);
+    final ageController = TextEditingController(
+        text: _userProfile?.age != null ? _userProfile!.age.toString() : '');
+    String? selectedGender = _userProfile?.gender;
+    bool isSaving = false;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          contentPadding: const EdgeInsets.all(28),
+          backgroundColor: Colors.white,
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Center(
+                  child: Text(
+                    'Edit Profile',
+                    style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.golden),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Center(
+                  child: Text(
+                    _email,
+                    style: const TextStyle(
+                        color: AppColors.brownMedium, fontSize: 13),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Center(
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFE0A0),
+                      shape: BoxShape.circle,
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      _initials,
+                      style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.golden),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text('Full Name',
+                    style: TextStyle(
+                        color: AppColors.brownDark,
+                        fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    prefixIcon:
+                        const Icon(Icons.person_outline, color: AppColors.brownLight),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: AppColors.fieldBorder)),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: AppColors.fieldBorder)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: AppColors.golden, width: 2)),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Age',
+                    style: TextStyle(
+                        color: AppColors.brownDark,
+                        fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: ageController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    prefixIcon:
+                        const Icon(Icons.cake_outlined, color: AppColors.brownLight),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: AppColors.fieldBorder)),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: AppColors.fieldBorder)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: AppColors.golden, width: 2)),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Gender',
+                    style: TextStyle(
+                        color: AppColors.brownDark,
+                        fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  value: selectedGender,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(Icons.people_outline,
+                        color: AppColors.brownLight),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: AppColors.fieldBorder)),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: AppColors.fieldBorder)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            const BorderSide(color: AppColors.golden, width: 2)),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
+                  ),
+                  items: ['Male', 'Female', 'Other', 'Prefer not to say']
+                      .map((g) => DropdownMenuItem(value: g, child: Text(g)))
+                      .toList(),
+                  onChanged: (v) =>
+                      setDialogState(() => selectedGender = v),
+                ),
+                const SizedBox(height: 28),
+                Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: isSaving
+                            ? null
+                            : () async {
+                                setDialogState(() => isSaving = true);
+                                await _authService.updateUserProfile(
+                                  name: nameController.text.trim(),
+                                  age: int.tryParse(ageController.text.trim()),
+                                  gender: selectedGender,
+                                );
+                                if (ctx.mounted) Navigator.pop(ctx);
+                                _loadProfile(); // refresh parent
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Profile updated!'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.golden,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: isSaving
+                            ? const SizedBox(
+                                height: 22,
+                                width: 22,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2.5, color: Colors.white))
+                            : const Text('Save Changes',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        style: TextButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text('Cancel',
+                            style: TextStyle(
+                                color: AppColors.brownMedium,
+                                fontWeight: FontWeight.w700)),
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.creamLight,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 40),
-          child: Column(
-            children: [
-              const SizedBox(height: 32),
-              // Profile Header
-              Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  Container(
-                    width: 100, height: 100,
-                    decoration: const BoxDecoration(color: Color(0xFFFFE0A0), shape: BoxShape.circle),
-                    alignment: Alignment.center,
-                    child: Text(initials, style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w800, color: AppColors.golden)),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
-                      child: const Icon(Icons.check, color: Colors.white, size: 14),
-                    ),
-                  )
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(displayName, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
-              const SizedBox(height: 4),
-              Text(email, style: const TextStyle(fontSize: 14, color: AppColors.brownMedium)),
-              const SizedBox(height: 32),
-
-              // Horizontal Stats
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _ProfileStatBox(value: '45', label: 'Streak Days'),
-                    _ProfileStatBox(value: '12', label: 'Badges'),
-                    _ProfileStatBox(value: '89%', label: 'Complete'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 40),
-
-              // Recent Achievements header
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: AppColors.golden.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
-                      child: const Icon(Icons.emoji_events, color: AppColors.golden, size: 20),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text('Recent Achievements', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              // Recent achievements boxes
-              SizedBox(
-                height: 120,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  children: const [
-                    _AchievementBox(icon: Icons.ads_click, color: Color(0xFFE91E63)),
-                    _AchievementBox(icon: Icons.star, color: Color(0xFFFFB300)),
-                    _AchievementBox(icon: Icons.local_fire_department, color: Color(0xFFFF5722)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 40),
-
-              // Settings Header
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: AppColors.golden.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
-                      child: const Icon(Icons.settings, color: AppColors.golden, size: 20),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text('Settings', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              
-              // Settings List
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: _isLoadingProfile
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.golden))
+            : SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 40),
                 child: Column(
                   children: [
-                    const _SettingsItem(icon: Icons.notifications_none, label: 'Notifications', trailingLabel: 'On'),
-                    Consumer<ThemeViewModel>(
-                      builder: (context, vm, _) => _SettingsItem(
-                        icon: Icons.nightlight_round,
-                        label: 'Dark Mode',
-                        trailingLabel: vm.isDarkMode ? 'On' : 'Off',
-                        onTap: () => vm.toggleDarkMode(!vm.isDarkMode),
+                    const SizedBox(height: 32),
+                    // Profile Header
+                    Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: const BoxDecoration(
+                              color: Color(0xFFFFE0A0),
+                              shape: BoxShape.circle),
+                          alignment: Alignment.center,
+                          child: Text(_initials,
+                              style: const TextStyle(
+                                  fontSize: 40,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.golden)),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                              color: Colors.white, shape: BoxShape.circle),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                                color: Colors.green, shape: BoxShape.circle),
+                            child: const Icon(Icons.check,
+                                color: Colors.white, size: 14),
+                          ),
+                        )
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(_displayName,
+                        style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.brownDark)),
+                    const SizedBox(height: 4),
+                    Text(_email,
+                        style: const TextStyle(
+                            fontSize: 14, color: AppColors.brownMedium)),
+                    if (_userProfile?.age != null ||
+                        _userProfile?.gender != null) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        [
+                          if (_userProfile?.age != null)
+                            '${_userProfile!.age} years old',
+                          if (_userProfile?.gender != null)
+                            _userProfile!.gender!,
+                        ].join(' • '),
+                        style: const TextStyle(
+                            fontSize: 13, color: AppColors.brownLight),
+                      ),
+                    ],
+                    const SizedBox(height: 32),
+
+                    // Horizontal Stats
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _ProfileStatBox(value: '—', label: 'Streak Days'),
+                          _ProfileStatBox(value: '—', label: 'Badges'),
+                          _ProfileStatBox(value: '—', label: 'Complete'),
+                        ],
                       ),
                     ),
-                    const _SettingsItem(icon: Icons.language, label: 'Language', trailingLabel: 'English'),
-                    const _SettingsItem(icon: Icons.shield_outlined, label: 'Privacy'),
-                    const _SettingsItem(icon: Icons.help_outline, label: 'Help & Support'),
-                    _SettingsItem(
-                      icon: Icons.logout,
-                      label: 'Logout',
-                      isDestructive: true,
-                      onTap: () async {
-                        await AuthService().signOut();
-                        if (context.mounted) {
-                          Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-                        }
-                      },
+                    const SizedBox(height: 40),
+
+                    // Recent Achievements header
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                                color: AppColors.golden.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(10)),
+                            child: const Icon(Icons.emoji_events,
+                                color: AppColors.golden, size: 20),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text('Recent Achievements',
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.brownDark)),
+                        ],
+                      ),
                     ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 120,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        children: const [
+                          _AchievementBox(
+                              icon: Icons.ads_click,
+                              color: Color(0xFFE91E63)),
+                          _AchievementBox(
+                              icon: Icons.star, color: Color(0xFFFFB300)),
+                          _AchievementBox(
+                              icon: Icons.local_fire_department,
+                              color: Color(0xFFFF5722)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+
+                    // Settings Header
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                                color: AppColors.golden.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(10)),
+                            child: const Icon(Icons.settings,
+                                color: AppColors.golden, size: 20),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text('Settings',
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.brownDark)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Settings List
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        children: [
+                          _SettingsItem(
+                            icon: Icons.notifications_none,
+                            label: 'Notifications',
+                            trailingLabel:
+                                _notificationsEnabled ? 'On' : 'Off',
+                            onTap: () async {
+                              await Navigator.pushNamed(
+                                  context, '/notifications-settings');
+                              _loadProfile(); // refresh after returning
+                            },
+                          ),
+                          Consumer<ThemeViewModel>(
+                            builder: (context, vm, _) => _SettingsItem(
+                              icon: Icons.nightlight_round,
+                              label: 'Dark Mode',
+                              trailingLabel: vm.isDarkMode ? 'On' : 'Off',
+                              onTap: () =>
+                                  vm.toggleDarkMode(!vm.isDarkMode),
+                            ),
+                          ),
+                          const _SettingsItem(
+                              icon: Icons.language,
+                              label: 'Language',
+                              trailingLabel: 'English'),
+                          const _SettingsItem(
+                              icon: Icons.shield_outlined,
+                              label: 'Privacy'),
+                          const _SettingsItem(
+                              icon: Icons.help_outline,
+                              label: 'Help & Support'),
+                          _SettingsItem(
+                            icon: Icons.logout,
+                            label: 'Logout',
+                            isDestructive: true,
+                            onTap: () async {
+                              await AuthService().signOut();
+                              if (context.mounted) {
+                                Navigator.pushNamedAndRemoveUntil(
+                                    context, '/', (route) => false);
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    )
                   ],
                 ),
-              )
-            ],
-          ),
-        ),
+              ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showEditProfile(context),
@@ -154,100 +485,6 @@ class ProfileScreen extends StatelessWidget {
         foregroundColor: Colors.white,
         elevation: 4,
         child: const Icon(Icons.edit),
-      ),
-    );
-  }
-
-  void _showEditProfile(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        contentPadding: const EdgeInsets.all(32),
-        backgroundColor: Colors.white,
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Center(
-              child: Text(
-                'Edit Profile',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.golden, decoration: TextDecoration.underline, decorationColor: AppColors.golden, decorationThickness: 2),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Center(
-              child: Container(
-                width: 80, height: 80,
-                decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.golden, width: 2)),
-                child: const Icon(Icons.face, size: 40, color: AppColors.brownMedium),
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text('Full Name', style: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            _EditField(hint: AuthService().currentUser?.displayName ?? 'Your Name', icon: Icons.person),
-            const SizedBox(height: 16),
-            const Text('Email Address', style: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            _EditField(hint: AuthService().currentUser?.email ?? 'Your Email', icon: Icons.email),
-            const SizedBox(height: 16),
-            const Text('Age', style: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            const _EditField(hint: 'Age', icon: Icons.cake),
-            const SizedBox(height: 32),
-            Column(
-              children: [
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.golden,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('Save Changes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    style: TextButton.styleFrom(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('Cancel', style: TextStyle(color: AppColors.brownMedium, fontWeight: FontWeight.w700)),
-                  ),
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
-      ),
-    );
-  }
-}
-
-class _EditField extends StatelessWidget {
-  final String hint;
-  final IconData icon;
-  const _EditField({required this.hint, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: hint,
-        prefixIcon: Icon(icon, color: AppColors.brownLight),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.fieldBorder)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.fieldBorder)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.golden)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
     );
   }
@@ -269,9 +506,15 @@ class _ProfileStatBox extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.golden)),
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.golden)),
           const SizedBox(height: 8),
-          Text(label, style: const TextStyle(fontSize: 12, color: AppColors.brownMedium)),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 12, color: AppColors.brownMedium)),
         ],
       ),
     );
@@ -307,30 +550,49 @@ class _SettingsItem extends StatelessWidget {
   final bool isDestructive;
   final VoidCallback? onTap;
 
-  const _SettingsItem({required this.icon, required this.label, this.trailingLabel, this.isDestructive = false, this.onTap});
+  const _SettingsItem(
+      {required this.icon,
+      required this.label,
+      this.trailingLabel,
+      this.isDestructive = false,
+      this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final color = isDestructive ? AppColors.errorRed : AppColors.brownDark;
-    
+
     return InkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Row(
           children: [
-            Icon(icon, color: isDestructive ? color : AppColors.brownMedium, size: 22),
+            Icon(icon,
+                color: isDestructive ? color : AppColors.brownMedium,
+                size: 22),
             const SizedBox(width: 16),
-            Expanded(child: Text(label, style: TextStyle(color: color, fontSize: 15, fontWeight: FontWeight.w500))),
+            Expanded(
+                child: Text(label,
+                    style: TextStyle(
+                        color: color,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500))),
             if (trailingLabel != null)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.golden.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(trailingLabel!, style: const TextStyle(color: AppColors.golden, fontWeight: FontWeight.w600, fontSize: 13)),
+                child: Text(trailingLabel!,
+                    style: const TextStyle(
+                        color: AppColors.golden,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13)),
               ),
+            if (!isDestructive && trailingLabel == null)
+              const Icon(Icons.chevron_right, color: AppColors.brownLight, size: 20),
           ],
         ),
       ),

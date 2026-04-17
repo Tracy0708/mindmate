@@ -5,6 +5,7 @@ import 'screens/registration_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/complete_profile_screen.dart';
+import 'screens/notification_settings_screen.dart';
 import 'services/auth_service.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
@@ -14,6 +15,7 @@ import 'viewmodels/insights_viewmodel.dart';
 import 'viewmodels/gamification_viewmodel.dart';
 import 'viewmodels/admin_viewmodel.dart';
 import 'viewmodels/theme_viewmodel.dart';
+import 'services/local_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +23,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await AuthService.initializeGoogleSignIn();
+  await LocalNotificationService().initialize();
   runApp(
     MultiProvider(
       providers: [
@@ -74,6 +77,7 @@ class MyApp extends StatelessWidget {
             '/dashboard': (context) => const DashboardScreen(),
             '/forgot-password': (context) => const ForgotPasswordScreen(),
             '/complete-profile': (context) => const CompleteProfileScreen(),
+            '/notifications-settings': (context) => const NotificationSettingsScreen(),
           },
         );
       },
