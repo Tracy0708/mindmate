@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../main.dart';
 import '../models/emotion_log.dart';
+import '../services/interactive_message_service.dart';
 
 class EmotionTrackingScreen extends StatefulWidget {
   const EmotionTrackingScreen({super.key});
@@ -30,8 +31,10 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen> {
 
   void _saveMood() {
     if (_selectedMood == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a mood first!'), backgroundColor: AppColors.errorRed),
+      InteractiveMessageService.showError(
+        context,
+        title: 'Please select a mood',
+        message: 'Choose how you\'re feeling before saving',
       );
       return;
     }
@@ -51,8 +54,11 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen> {
       timestamp: DateTime.now(),
     );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Saved mood: $_selectedMood!'), backgroundColor: Colors.green),
+    InteractiveMessageService.showSuccess(
+      context,
+      title: 'Mood saved! 😊',
+      message: 'You\'re feeling $_selectedMood',
+      actionLabel: 'View Insights',
     );
     // Clearing for new entry
     setState(() {
@@ -66,7 +72,11 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('How Are You Feeling?', style: TextStyle(color: AppColors.golden, fontWeight: FontWeight.w800, fontSize: 24)),
+        title: const Text('How Are You Feeling?',
+            style: TextStyle(
+                color: AppColors.golden,
+                fontWeight: FontWeight.w800,
+                fontSize: 24)),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -93,9 +103,13 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.golden.withOpacity(0.15) : Colors.white,
+                      color: isSelected
+                          ? AppColors.golden.withOpacity(0.15)
+                          : Colors.white,
                       border: Border.all(
-                        color: isSelected ? AppColors.golden : AppColors.golden.withOpacity(0.3),
+                        color: isSelected
+                            ? AppColors.golden
+                            : AppColors.golden.withOpacity(0.3),
                         width: isSelected ? 2 : 1,
                       ),
                       borderRadius: BorderRadius.circular(16),
@@ -103,13 +117,17 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(mood['emoji']!, style: const TextStyle(fontSize: 32)),
+                        Text(mood['emoji']!,
+                            style: const TextStyle(fontSize: 32)),
                         const SizedBox(height: 8),
                         Text(
                           mood['label']!,
                           style: TextStyle(
-                            color: isSelected ? AppColors.golden : AppColors.brownDark,
-                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                            color: isSelected
+                                ? AppColors.golden
+                                : AppColors.brownDark,
+                            fontWeight:
+                                isSelected ? FontWeight.w800 : FontWeight.w600,
                             fontSize: 13,
                           ),
                         ),
@@ -120,25 +138,33 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen> {
               },
             ),
             const SizedBox(height: 32),
-            const Text('Add a note about your day', style: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w700, fontSize: 16)),
+            const Text('Add a note about your day',
+                style: TextStyle(
+                    color: AppColors.brownDark,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16)),
             const SizedBox(height: 12),
             TextField(
               controller: _noteController,
               maxLines: 5,
               decoration: InputDecoration(
                 hintText: 'What made you feel this way?',
-                hintStyle: TextStyle(color: AppColors.brownMedium.withOpacity(0.6)),
+                hintStyle:
+                    TextStyle(color: AppColors.brownMedium.withOpacity(0.6)),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: AppColors.golden, width: 1),
+                  borderSide:
+                      const BorderSide(color: AppColors.golden, width: 1),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: AppColors.golden.withOpacity(0.5), width: 1),
+                  borderSide: BorderSide(
+                      color: AppColors.golden.withOpacity(0.5), width: 1),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: AppColors.golden, width: 2),
+                  borderSide:
+                      const BorderSide(color: AppColors.golden, width: 2),
                 ),
                 filled: true,
                 fillColor: Colors.white,
@@ -150,10 +176,15 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.golden,
                 padding: const EdgeInsets.symmetric(vertical: 18),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
                 elevation: 0,
               ),
-              child: const Text('Save Mood Entry', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+              child: const Text('Save Mood Entry',
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white)),
             ),
           ],
         ),

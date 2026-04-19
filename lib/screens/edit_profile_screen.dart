@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/interactive_message_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -23,10 +24,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
+      InteractiveMessageService.showSuccess(
+        context,
+        title: 'Profile saved! ✅',
+        message: 'Your changes have been saved',
+        actionLabel: 'Done',
+        onAction: () => Navigator.pop(context),
       );
-      Navigator.pop(context);
     }
   }
 
@@ -49,7 +53,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     const CircleAvatar(
                       radius: 50,
                       backgroundColor: Color(0xFFF7E5D4),
-                      child: Icon(Icons.person, size: 50, color: Color(0xFFE5B589)),
+                      child: Icon(Icons.person,
+                          size: 50, color: Color(0xFFE5B589)),
                     ),
                     Positioned(
                       bottom: 0,
@@ -57,7 +62,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       child: CircleAvatar(
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         radius: 18,
-                        child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                        child: const Icon(Icons.camera_alt,
+                            color: Colors.white, size: 18),
                       ),
                     ),
                   ],
@@ -74,7 +80,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email Address'),
                 validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-                enabled: false, 
+                enabled: false,
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -91,7 +97,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel', style: TextStyle(color: Colors.black54)),
+                child: const Text('Cancel',
+                    style: TextStyle(color: Colors.black54)),
               ),
             ],
           ),

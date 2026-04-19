@@ -16,6 +16,7 @@ import 'viewmodels/gamification_viewmodel.dart';
 import 'viewmodels/admin_viewmodel.dart';
 import 'viewmodels/theme_viewmodel.dart';
 import 'services/local_notification_service.dart';
+import 'services/interactive_message_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -77,7 +78,8 @@ class MyApp extends StatelessWidget {
             '/dashboard': (context) => const DashboardScreen(),
             '/forgot-password': (context) => const ForgotPasswordScreen(),
             '/complete-profile': (context) => const CompleteProfileScreen(),
-            '/notifications-settings': (context) => const NotificationSettingsScreen(),
+            '/notifications-settings': (context) =>
+                const NotificationSettingsScreen(),
           },
         );
       },
@@ -101,11 +103,26 @@ class MyApp extends StatelessWidget {
       ),
       scaffoldBackgroundColor: AppColors.cream,
       textTheme: const TextTheme(
-        headlineLarge: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w800, fontSize: 30),
-        headlineMedium: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w700, fontSize: 24),
-        headlineSmall: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w600, fontSize: 20),
-        titleLarge: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w700, fontSize: 20),
-        titleMedium: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w500, fontSize: 16),
+        headlineLarge: TextStyle(
+            color: AppColors.brownDark,
+            fontWeight: FontWeight.w800,
+            fontSize: 30),
+        headlineMedium: TextStyle(
+            color: AppColors.brownDark,
+            fontWeight: FontWeight.w700,
+            fontSize: 24),
+        headlineSmall: TextStyle(
+            color: AppColors.brownDark,
+            fontWeight: FontWeight.w600,
+            fontSize: 20),
+        titleLarge: TextStyle(
+            color: AppColors.brownDark,
+            fontWeight: FontWeight.w700,
+            fontSize: 20),
+        titleMedium: TextStyle(
+            color: AppColors.brownDark,
+            fontWeight: FontWeight.w500,
+            fontSize: 16),
         bodyLarge: TextStyle(color: AppColors.brownDark, fontSize: 16),
         bodyMedium: TextStyle(color: AppColors.brownMedium, fontSize: 14),
         bodySmall: TextStyle(color: AppColors.brownLight, fontSize: 12),
@@ -113,11 +130,20 @@ class MyApp extends StatelessWidget {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.fieldBorder)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.fieldBorder)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.golden, width: 2)),
-        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.errorRed)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: AppColors.fieldBorder)),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: AppColors.fieldBorder)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: AppColors.golden, width: 2)),
+        errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: AppColors.errorRed)),
         prefixIconColor: AppColors.brownLight,
         labelStyle: const TextStyle(color: AppColors.brownLight),
         hintStyle: const TextStyle(color: AppColors.brownLight),
@@ -128,7 +154,8 @@ class MyApp extends StatelessWidget {
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
       ),
@@ -137,7 +164,8 @@ class MyApp extends StatelessWidget {
           foregroundColor: AppColors.brownDark,
           side: const BorderSide(color: AppColors.fieldBorder),
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 32),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
       ),
       cardTheme: CardThemeData(
@@ -157,10 +185,14 @@ class MyApp extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        titleTextStyle: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w700, fontSize: 20),
+        titleTextStyle: TextStyle(
+            color: AppColors.brownDark,
+            fontWeight: FontWeight.w700,
+            fontSize: 20),
         iconTheme: IconThemeData(color: AppColors.brownDark),
       ),
-      dividerTheme: const DividerThemeData(color: AppColors.fieldBorder, thickness: 1),
+      dividerTheme:
+          const DividerThemeData(color: AppColors.fieldBorder, thickness: 1),
     );
   }
 
@@ -181,11 +213,26 @@ class MyApp extends StatelessWidget {
       ),
       scaffoldBackgroundColor: AppColors.darkBg,
       textTheme: const TextTheme(
-        headlineLarge: TextStyle(color: AppColors.darkText, fontWeight: FontWeight.w800, fontSize: 30),
-        headlineMedium: TextStyle(color: AppColors.darkText, fontWeight: FontWeight.w700, fontSize: 24),
-        headlineSmall: TextStyle(color: AppColors.darkText, fontWeight: FontWeight.w600, fontSize: 20),
-        titleLarge: TextStyle(color: AppColors.darkText, fontWeight: FontWeight.w700, fontSize: 20),
-        titleMedium: TextStyle(color: AppColors.darkText, fontWeight: FontWeight.w500, fontSize: 16),
+        headlineLarge: TextStyle(
+            color: AppColors.darkText,
+            fontWeight: FontWeight.w800,
+            fontSize: 30),
+        headlineMedium: TextStyle(
+            color: AppColors.darkText,
+            fontWeight: FontWeight.w700,
+            fontSize: 24),
+        headlineSmall: TextStyle(
+            color: AppColors.darkText,
+            fontWeight: FontWeight.w600,
+            fontSize: 20),
+        titleLarge: TextStyle(
+            color: AppColors.darkText,
+            fontWeight: FontWeight.w700,
+            fontSize: 20),
+        titleMedium: TextStyle(
+            color: AppColors.darkText,
+            fontWeight: FontWeight.w500,
+            fontSize: 16),
         bodyLarge: TextStyle(color: AppColors.darkText, fontSize: 16),
         bodyMedium: TextStyle(color: Color(0xFFB8AFA8), fontSize: 14),
         bodySmall: TextStyle(color: Color(0xFF8E8E9E), fontSize: 12),
@@ -193,10 +240,17 @@ class MyApp extends StatelessWidget {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.darkCard,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF4A4A5E))),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFF4A4A5E))),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.golden, width: 2)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFF4A4A5E))),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Color(0xFF4A4A5E))),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: AppColors.golden, width: 2)),
         prefixIconColor: const Color(0xFF8E8E9E),
         labelStyle: const TextStyle(color: Color(0xFF8E8E9E)),
       ),
@@ -206,7 +260,8 @@ class MyApp extends StatelessWidget {
           foregroundColor: AppColors.darkBg,
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
       ),
@@ -215,7 +270,8 @@ class MyApp extends StatelessWidget {
           foregroundColor: AppColors.darkText,
           side: const BorderSide(color: Color(0xFF4A4A5E)),
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 32),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
       ),
       cardTheme: CardThemeData(
@@ -235,10 +291,14 @@ class MyApp extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        titleTextStyle: TextStyle(color: AppColors.darkText, fontWeight: FontWeight.w700, fontSize: 20),
+        titleTextStyle: TextStyle(
+            color: AppColors.darkText,
+            fontWeight: FontWeight.w700,
+            fontSize: 20),
         iconTheme: IconThemeData(color: AppColors.darkText),
       ),
-      dividerTheme: const DividerThemeData(color: Color(0xFF353550), thickness: 1),
+      dividerTheme:
+          const DividerThemeData(color: Color(0xFF353550), thickness: 1),
     );
   }
 }
@@ -250,7 +310,8 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
+class _LoginPageState extends State<LoginPage>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -263,7 +324,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
+    _animController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 800));
     _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
     _animController.forward();
   }
@@ -280,13 +342,26 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     if (!_formKey.currentState!.validate()) return;
     try {
       setState(() => _isLoading = true);
-      await _authService.signInWithEmailPassword(_emailController.text.trim(), _passwordController.text);
-      if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
+      await _authService.signInWithEmailPassword(
+          _emailController.text.trim(), _passwordController.text);
+      if (mounted) {
+        InteractiveMessageService.showSuccess(
+          context,
+          title: 'Welcome back! 👋',
+          message: 'You\'re logged in',
+          duration: const Duration(seconds: 1),
+        );
+        Future.delayed(const Duration(milliseconds: 600), () {
+          if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
+        });
+      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: AppColors.errorRed, behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+        InteractiveMessageService.showError(
+          context,
+          title: 'Sign in failed',
+          message: e.toString(),
+          onRetry: _signIn,
         );
       }
     } finally {
@@ -299,16 +374,31 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       setState(() => _isLoading = true);
       final cred = await _authService.signInWithGoogle();
       if (mounted) {
-        if (cred.additionalUserInfo?.isNewUser == true) {
-          Navigator.pushReplacementNamed(context, '/complete-profile');
-        } else {
-          Navigator.pushReplacementNamed(context, '/dashboard');
-        }
+        InteractiveMessageService.showSuccess(
+          context,
+          title: 'Google sign in successful! 🎉',
+          message: cred.additionalUserInfo?.isNewUser == true
+              ? 'Let\'s complete your profile'
+              : 'Welcome back!',
+          duration: const Duration(seconds: 1),
+        );
+        Future.delayed(const Duration(milliseconds: 600), () {
+          if (mounted) {
+            if (cred.additionalUserInfo?.isNewUser == true) {
+              Navigator.pushReplacementNamed(context, '/complete-profile');
+            } else {
+              Navigator.pushReplacementNamed(context, '/dashboard');
+            }
+          }
+        });
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: AppColors.errorRed, behavior: SnackBarBehavior.floating),
+        InteractiveMessageService.showError(
+          context,
+          title: 'Google sign in failed',
+          message: e.toString(),
+          onRetry: _signInWithGoogle,
         );
       }
     } finally {
@@ -326,12 +416,16 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
             child: FadeTransition(
               opacity: _fadeAnim,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 8)),
+                    BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8)),
                   ],
                 ),
                 child: Form(
@@ -340,7 +434,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // Logo
-                      const Icon(Icons.psychology_alt, size: 56, color: AppColors.brownDark),
+                      const Icon(Icons.psychology_alt,
+                          size: 56, color: AppColors.brownDark),
                       const SizedBox(height: 8),
                       const Text(
                         'MINDMATE',
@@ -357,8 +452,12 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(hintText: 'Email address', prefixIcon: Icon(Icons.email_outlined)),
-                        validator: (v) => (v == null || v.isEmpty) ? 'Please enter your email' : null,
+                        decoration: const InputDecoration(
+                            hintText: 'Email address',
+                            prefixIcon: Icon(Icons.email_outlined)),
+                        validator: (v) => (v == null || v.isEmpty)
+                            ? 'Please enter your email'
+                            : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -370,11 +469,18 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                           hintText: 'Password',
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
-                            icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: AppColors.brownLight),
-                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                            icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                                color: AppColors.brownLight),
+                            onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword),
                           ),
                         ),
-                        validator: (v) => (v == null || v.isEmpty) ? 'Please enter your password' : null,
+                        validator: (v) => (v == null || v.isEmpty)
+                            ? 'Please enter your password'
+                            : null,
                       ),
                       const SizedBox(height: 24),
 
@@ -385,7 +491,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _signIn,
                           child: _isLoading
-                              ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                              ? const SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2.5, color: Colors.white))
                               : const Text('Log in'),
                         ),
                       ),
@@ -394,12 +504,20 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       // Divider
                       Row(
                         children: [
-                          Expanded(child: Divider(color: AppColors.fieldBorder.withOpacity(0.6))),
+                          Expanded(
+                              child: Divider(
+                                  color:
+                                      AppColors.fieldBorder.withOpacity(0.6))),
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 16),
-                            child: Text('Or continue with', style: TextStyle(color: AppColors.brownLight, fontSize: 13)),
+                            child: Text('Or continue with',
+                                style: TextStyle(
+                                    color: AppColors.brownLight, fontSize: 13)),
                           ),
-                          Expanded(child: Divider(color: AppColors.fieldBorder.withOpacity(0.6))),
+                          Expanded(
+                              child: Divider(
+                                  color:
+                                      AppColors.fieldBorder.withOpacity(0.6))),
                         ],
                       ),
                       const SizedBox(height: 24),
@@ -410,9 +528,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         height: 52,
                         child: OutlinedButton.icon(
                           onPressed: _isLoading ? null : _signInWithGoogle,
-                          icon: Image.network('https://www.google.com/favicon.ico', height: 20,
-                            errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24)),
-                          label: const Text('Sign in with Google', style: TextStyle(fontWeight: FontWeight.w600)),
+                          icon: Image.network(
+                              'https://www.google.com/favicon.ico',
+                              height: 20,
+                              errorBuilder: (_, __, ___) =>
+                                  const Icon(Icons.g_mobiledata, size: 24)),
+                          label: const Text('Sign in with Google',
+                              style: TextStyle(fontWeight: FontWeight.w600)),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -422,16 +544,27 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           GestureDetector(
-                            onTap: () => Navigator.pushNamed(context, '/forgot-password'),
-                            child: const Text('Forgot Password?', style: TextStyle(color: AppColors.golden, fontWeight: FontWeight.w600, fontSize: 13)),
+                            onTap: () => Navigator.pushNamed(
+                                context, '/forgot-password'),
+                            child: const Text('Forgot Password?',
+                                style: TextStyle(
+                                    color: AppColors.golden,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13)),
                           ),
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 8),
-                            child: Text('•', style: TextStyle(color: AppColors.brownLight)),
+                            child: Text('•',
+                                style: TextStyle(color: AppColors.brownLight)),
                           ),
                           GestureDetector(
-                            onTap: () => Navigator.pushNamed(context, '/register'),
-                            child: const Text('Create Account', style: TextStyle(color: AppColors.golden, fontWeight: FontWeight.w600, fontSize: 13)),
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/register'),
+                            child: const Text('Create Account',
+                                style: TextStyle(
+                                    color: AppColors.golden,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13)),
                           ),
                         ],
                       ),

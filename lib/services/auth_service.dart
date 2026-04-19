@@ -121,8 +121,12 @@ class AuthService {
 
       final updates = <String, dynamic>{};
       if (name != null) {
-        updates['name'] = name;
-        await user.updateDisplayName(name);
+        final trimmedName = name.trim();
+        if (trimmedName.isNotEmpty) {
+          updates['name'] = trimmedName;
+          updates['userName'] = trimmedName;
+          await user.updateDisplayName(trimmedName);
+        }
       }
       if (age != null) {
         updates['age'] = age;

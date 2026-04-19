@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../main.dart';
+import '../widgets/auth_shell.dart';
+import '../services/interactive_message_service.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -13,12 +15,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   int _currentStep = 0;
   bool _isLoading = false;
   bool _obscurePassword = true;
-  final bool _obscureConfirm = true;
+  bool _obscureConfirm = true;
 
   // Step 1
   final _step1Key = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
 
   // Step 2
   final _step2Key = GlobalKey<FormState>();
@@ -29,12 +32,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   // Password validation
   bool get _hasMinLength => _passwordController.text.length >= 8;
   bool get _hasUppercase => _passwordController.text.contains(RegExp(r'[A-Z]'));
-  bool get _hasNumberOrSpecial => _passwordController.text.contains(RegExp(r'[0-9!@#$%^&*(),.?":{}|<>]'));
+  bool get _hasNumberOrSpecial =>
+      _passwordController.text.contains(RegExp(r'[0-9!@#$%^&*(),.?":{}|<>]'));
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _nameController.dispose();
     _ageController.dispose();
     super.dispose();
@@ -44,8 +49,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     if (_currentStep == 0) {
       if (!_step1Key.currentState!.validate()) return;
       if (!_hasMinLength || !_hasUppercase || !_hasNumberOrSpecial) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password does not meet requirements'), backgroundColor: AppColors.errorRed),
+        InteractiveMessageService.showError(
+          context,
+          title: 'Password too weak',
+          message:
+              'Must have 8+ chars, uppercase, and number/special character',
         );
         return;
       }
@@ -63,7 +71,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     try {
       print('--- Registration Started ---');
       setState(() => _isLoading = true);
-      
+
       print('1. Calling registerWithEmailPassword...');
       await _authService.registerWithEmailPassword(
         _emailController.text.trim(),
@@ -76,17 +84,30 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       await _authService.updateUserProfile(
         name: _nameController.text.trim(),
         age: int.tryParse(_ageController.text.trim()),
+        gender: _selectedGender,
       );
       print('2. Successfully finished updateUserProfile');
 
       print('3. Navigating to dashboard...');
-      if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
+      if (mounted) {
+        InteractiveMessageService.showSuccess(
+          context,
+          title: 'Welcome to MindMate! 🎉',
+          message: 'Your account has been created successfully',
+          duration: const Duration(seconds: 2),
+        );
+        Future.delayed(const Duration(milliseconds: 800), () {
+          if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
+        });
+      }
     } catch (e, stacktrace) {
       print('!!! REGISTRATION ERROR !!!: $e');
       print(stacktrace);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: AppColors.errorRed),
+        InteractiveMessageService.showError(
+          context,
+          title: 'Registration failed',
+          message: e.toString(),
         );
       }
     } finally {
@@ -97,48 +118,25 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 8)),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Title
-                  const Text(
-                    'Create Account',
-                    style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.golden),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Step indicator
-                  _buildStepIndicator(),
-                  const SizedBox(height: 28),
-
-                  // Step content
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: _currentStep == 0
-                        ? _buildStep1()
-                        : _currentStep == 1
-                            ? _buildStep2()
-                            : _buildStep3(),
-                  ),
-                ],
-              ),
-            ),
+    return AuthShell(
+      eyebrow: 'MINDMATE',
+      title: 'Create your account',
+      subtitle:
+          'Set up your sign-in details, then add a few profile basics so the app feels personal from the start.',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildStepIndicator(),
+          const SizedBox(height: 28),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            child: _currentStep == 0
+                ? _buildStep1()
+                : _currentStep == 1
+                    ? _buildStep2()
+                    : _buildStep3(),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -146,35 +144,60 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   Widget _buildStepIndicator() {
     return Row(
       children: [
-        _stepCircle(0),
-        Expanded(child: Container(height: 2, color: _currentStep > 0 ? AppColors.golden : AppColors.fieldBorder)),
-        _stepCircle(1),
-        Expanded(child: Container(height: 2, color: _currentStep > 1 ? AppColors.golden : AppColors.fieldBorder)),
-        _stepCircle(2),
+        Expanded(child: _stepCircle(0, 'Account')),
+        Expanded(
+            child: Container(
+                height: 2,
+                color: _currentStep > 0
+                    ? AppColors.golden
+                    : AppColors.fieldBorder)),
+        Expanded(child: _stepCircle(1, 'Profile')),
+        Expanded(
+            child: Container(
+                height: 2,
+                color: _currentStep > 1
+                    ? AppColors.golden
+                    : AppColors.fieldBorder)),
+        Expanded(child: _stepCircle(2, 'Review')),
       ],
     );
   }
 
-  Widget _stepCircle(int step) {
+  Widget _stepCircle(int step, String label) {
     final isActive = _currentStep >= step;
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: isActive ? AppColors.golden : Colors.transparent,
-        shape: BoxShape.circle,
-        border: Border.all(color: isActive ? AppColors.golden : AppColors.fieldBorder, width: 2),
-      ),
-      child: Center(
-        child: Text(
-          '${step + 1}',
-          style: TextStyle(
-            color: isActive ? Colors.white : AppColors.brownLight,
-            fontWeight: FontWeight.w700,
-            fontSize: 14,
+    return Column(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: isActive ? AppColors.golden : Colors.transparent,
+            shape: BoxShape.circle,
+            border: Border.all(
+                color: isActive ? AppColors.golden : AppColors.fieldBorder,
+                width: 2),
+          ),
+          child: Center(
+            child: Text(
+              '${step + 1}',
+              style: TextStyle(
+                color: isActive ? Colors.white : AppColors.brownLight,
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
+            ),
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            color: isActive ? AppColors.brownDark : AppColors.brownLight,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 
@@ -185,10 +208,36 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       child: Column(
         key: const ValueKey('step1'),
         children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.golden.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.shield_outlined, color: AppColors.golden),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Use an email you can access. We will use it for login and password recovery.',
+                    style: TextStyle(
+                        color: AppColors.brownMedium,
+                        fontSize: 13,
+                        height: 1.4),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
           TextFormField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(hintText: 'Email address', prefixIcon: Icon(Icons.email_outlined)),
+            decoration: const InputDecoration(
+                hintText: 'Email address',
+                prefixIcon: Icon(Icons.email_outlined)),
             validator: (v) {
               if (v == null || v.isEmpty) return 'Please enter your email';
               if (!v.contains('@')) return 'Please enter a valid email';
@@ -204,11 +253,41 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               hintText: 'Create password',
               prefixIcon: const Icon(Icons.lock_outline),
               suffixIcon: IconButton(
-                icon: Icon(_obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: AppColors.brownLight),
-                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    color: AppColors.brownLight),
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
               ),
             ),
-            validator: (v) => (v == null || v.isEmpty) ? 'Please create a password' : null,
+            validator: (v) =>
+                (v == null || v.isEmpty) ? 'Please create a password' : null,
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _confirmPasswordController,
+            obscureText: _obscureConfirm,
+            decoration: InputDecoration(
+              hintText: 'Confirm password',
+              prefixIcon: const Icon(Icons.lock_reset_outlined),
+              suffixIcon: IconButton(
+                icon: Icon(
+                    _obscureConfirm
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    color: AppColors.brownLight),
+                onPressed: () =>
+                    setState(() => _obscureConfirm = !_obscureConfirm),
+              ),
+            ),
+            validator: (v) {
+              if (v == null || v.isEmpty) return 'Please confirm your password';
+              if (v != _passwordController.text)
+                return 'Passwords do not match';
+              return null;
+            },
           ),
           const SizedBox(height: 16),
 
@@ -224,19 +303,26 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           SizedBox(
             width: double.infinity,
             height: 52,
-            child: ElevatedButton(onPressed: _nextStep, child: const Text('Continue')),
+            child: ElevatedButton(
+                onPressed: _nextStep, child: const Text('Continue')),
           ),
           const SizedBox(height: 24),
 
           // Divider
           Row(
             children: [
-              Expanded(child: Divider(color: AppColors.fieldBorder.withOpacity(0.6))),
+              Expanded(
+                  child:
+                      Divider(color: AppColors.fieldBorder.withOpacity(0.6))),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text('Or register with', style: TextStyle(color: AppColors.brownLight, fontSize: 13)),
+                child: Text('Or register with',
+                    style:
+                        TextStyle(color: AppColors.brownLight, fontSize: 13)),
               ),
-              Expanded(child: Divider(color: AppColors.fieldBorder.withOpacity(0.6))),
+              Expanded(
+                  child:
+                      Divider(color: AppColors.fieldBorder.withOpacity(0.6))),
             ],
           ),
           const SizedBox(height: 24),
@@ -252,20 +338,26 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   final cred = await _authService.signInWithGoogle();
                   if (mounted) {
                     if (cred.additionalUserInfo?.isNewUser == true) {
-                      Navigator.pushReplacementNamed(context, '/complete-profile');
+                      Navigator.pushReplacementNamed(
+                          context, '/complete-profile');
                     } else {
                       Navigator.pushReplacementNamed(context, '/dashboard');
                     }
                   }
                 } catch (e) {
-                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+                  if (mounted)
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(e.toString())));
                 } finally {
                   if (mounted) setState(() => _isLoading = false);
                 }
               },
-              icon: Image.network('https://www.google.com/favicon.ico', height: 20,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24)),
-              label: const Text('Sign up with Google', style: TextStyle(fontWeight: FontWeight.w600)),
+              icon: Image.network('https://www.google.com/favicon.ico',
+                  height: 20,
+                  errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.g_mobiledata, size: 24)),
+              label: const Text('Sign up with Google',
+                  style: TextStyle(fontWeight: FontWeight.w600)),
             ),
           ),
           const SizedBox(height: 20),
@@ -274,10 +366,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Already have an account? ', style: TextStyle(color: AppColors.brownMedium, fontSize: 13)),
+              const Text('Already have an account? ',
+                  style: TextStyle(color: AppColors.brownMedium, fontSize: 13)),
               GestureDetector(
                 onTap: () => Navigator.pop(context),
-                child: const Text('Log in', style: TextStyle(color: AppColors.golden, fontWeight: FontWeight.w700, fontSize: 13)),
+                child: const Text('Log in',
+                    style: TextStyle(
+                        color: AppColors.golden,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13)),
               ),
             ],
           ),
@@ -293,13 +390,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           width: 18,
           height: 18,
           decoration: BoxDecoration(
-            color: met ? AppColors.golden : AppColors.brownLight.withOpacity(0.3),
+            color:
+                met ? AppColors.golden : AppColors.brownLight.withOpacity(0.3),
             shape: BoxShape.circle,
           ),
-          child: met ? const Icon(Icons.check, size: 12, color: Colors.white) : null,
+          child: met
+              ? const Icon(Icons.check, size: 12, color: Colors.white)
+              : null,
         ),
         const SizedBox(width: 10),
-        Text(text, style: TextStyle(fontSize: 13, color: met ? AppColors.brownDark : AppColors.brownLight)),
+        Text(text,
+            style: TextStyle(
+                fontSize: 13,
+                color: met ? AppColors.brownDark : AppColors.brownLight)),
       ],
     );
   }
@@ -311,24 +414,41 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       child: Column(
         key: const ValueKey('step2'),
         children: [
-          const Text('Tell us about yourself', style: TextStyle(color: AppColors.brownMedium, fontSize: 14)),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.cream,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Text(
+              'These details help personalize your profile and future wellness reminders.',
+              style: TextStyle(
+                  color: AppColors.brownMedium, fontSize: 13, height: 1.4),
+            ),
+          ),
           const SizedBox(height: 24),
           TextFormField(
             controller: _nameController,
-            decoration: const InputDecoration(hintText: 'Full Name', prefixIcon: Icon(Icons.person_outline)),
-            validator: (v) => (v == null || v.isEmpty) ? 'Please enter your name' : null,
+            decoration: const InputDecoration(
+                hintText: 'Full Name', prefixIcon: Icon(Icons.person_outline)),
+            validator: (v) =>
+                (v == null || v.isEmpty) ? 'Please enter your name' : null,
           ),
           const SizedBox(height: 16),
           TextFormField(
             controller: _ageController,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(hintText: 'Age', prefixIcon: Icon(Icons.cake_outlined)),
-            validator: (v) => (v == null || v.isEmpty) ? 'Please enter your age' : null,
+            decoration: const InputDecoration(
+                hintText: 'Age', prefixIcon: Icon(Icons.cake_outlined)),
+            validator: (v) =>
+                (v == null || v.isEmpty) ? 'Please enter your age' : null,
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             initialValue: _selectedGender,
-            decoration: const InputDecoration(hintText: 'Gender', prefixIcon: Icon(Icons.people_outline)),
+            decoration: const InputDecoration(
+                hintText: 'Gender', prefixIcon: Icon(Icons.people_outline)),
             items: ['Male', 'Female', 'Other', 'Prefer not to say']
                 .map((g) => DropdownMenuItem(value: g, child: Text(g)))
                 .toList(),
@@ -340,13 +460,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               SizedBox(
                 width: double.infinity,
                 height: 52,
-                child: ElevatedButton(onPressed: _nextStep, child: const Text('Continue')),
+                child: ElevatedButton(
+                    onPressed: _nextStep, child: const Text('Continue')),
               ),
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 height: 52,
-                child: TextButton(onPressed: _prevStep, child: const Text('Back')),
+                child:
+                    TextButton(onPressed: _prevStep, child: const Text('Back')),
               ),
             ],
           ),
@@ -367,15 +489,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             color: AppColors.golden.withOpacity(0.15),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.check_circle_outline, size: 40, color: AppColors.golden),
+          child: const Icon(Icons.check_circle_outline,
+              size: 40, color: AppColors.golden),
         ),
         const SizedBox(height: 20),
-        const Text('Ready to go!', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.brownDark)),
+        const Text('Ready to go!',
+            style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: AppColors.brownDark)),
         const SizedBox(height: 12),
         Text(
           'Welcome, ${_nameController.text.isNotEmpty ? _nameController.text : "there"}!\nLet\'s start your mental health journey.',
           textAlign: TextAlign.center,
-          style: const TextStyle(color: AppColors.brownMedium, fontSize: 14, height: 1.5),
+          style: const TextStyle(
+              color: AppColors.brownMedium, fontSize: 14, height: 1.5),
         ),
         const SizedBox(height: 12),
         // Summary
@@ -390,9 +518,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             children: [
               _summaryRow(Icons.email_outlined, _emailController.text),
               const SizedBox(height: 8),
-              _summaryRow(Icons.person_outline, _nameController.text.isNotEmpty ? _nameController.text : 'N/A'),
+              _summaryRow(
+                  Icons.person_outline,
+                  _nameController.text.isNotEmpty
+                      ? _nameController.text
+                      : 'N/A'),
               const SizedBox(height: 8),
-              _summaryRow(Icons.cake_outlined, _ageController.text.isNotEmpty ? '${_ageController.text} years' : 'N/A'),
+              _summaryRow(
+                  Icons.cake_outlined,
+                  _ageController.text.isNotEmpty
+                      ? '${_ageController.text} years'
+                      : 'N/A'),
               if (_selectedGender != null) ...[
                 const SizedBox(height: 8),
                 _summaryRow(Icons.people_outline, _selectedGender!),
@@ -409,7 +545,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _register,
                 child: _isLoading
-                    ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2.5, color: Colors.white))
                     : const Text('Create Account'),
               ),
             ),
@@ -417,7 +557,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             SizedBox(
               width: double.infinity,
               height: 52,
-              child: TextButton(onPressed: _prevStep, child: const Text('Back')),
+              child:
+                  TextButton(onPressed: _prevStep, child: const Text('Back')),
             ),
           ],
         ),
@@ -430,7 +571,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       children: [
         Icon(icon, size: 18, color: AppColors.golden),
         const SizedBox(width: 12),
-        Text(text, style: const TextStyle(color: AppColors.brownDark, fontSize: 14)),
+        Text(text,
+            style: const TextStyle(color: AppColors.brownDark, fontSize: 14)),
       ],
     );
   }

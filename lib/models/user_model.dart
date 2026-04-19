@@ -34,9 +34,17 @@ class UserModel {
   }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    final storedUserName = (json['userName'] as String?)?.trim();
+    final storedName = (json['name'] as String?)?.trim();
+    final resolvedName = (storedName != null && storedName.isNotEmpty)
+        ? storedName
+        : (storedUserName != null && storedUserName.isNotEmpty)
+            ? storedUserName
+            : 'User';
+
     return UserModel(
       userID: json['userID'] ?? '',
-      userName: json['userName'] ?? json['name'] ?? 'User',
+      userName: resolvedName,
       userEmail: json['userEmail'] ?? json['email'] ?? '',
       userPassword: '',
       age: json['age'],

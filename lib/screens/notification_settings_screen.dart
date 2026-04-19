@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/local_notification_service.dart';
-import '../models/user_model.dart';
 import '../main.dart';
+import '../services/interactive_message_service.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -124,8 +124,7 @@ class _NotificationSettingsScreenState
   Future<void> _pickReminderTime() async {
     final parts = _reminderTime.split(':');
     final initialTime = TimeOfDay(
-        hour: int.tryParse(parts[0]) ?? 9,
-        minute: int.tryParse(parts[1]) ?? 0);
+        hour: int.tryParse(parts[0]) ?? 9, minute: int.tryParse(parts[1]) ?? 0);
 
     final picked = await showTimePicker(
       context: context,
@@ -165,6 +164,13 @@ class _NotificationSettingsScreenState
     return '$displayHour:${minute.toString().padLeft(2, '0')} $period';
   }
 
+  int get _enabledCount => [
+        _dailyMoodReminder,
+        _breathingReminder,
+        _weeklySummary,
+        _motivationalQuotes,
+      ].where((value) => value).length;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -192,6 +198,59 @@ class _NotificationSettingsScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppColors.fieldBorder.withOpacity(0.45),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.golden.withOpacity(0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.tips_and_updates_outlined,
+                            color: AppColors.golden,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Reminder summary',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.brownDark,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _masterToggle
+                                    ? '$_enabledCount notification types active at $_formattedTime'
+                                    : 'Notifications are currently paused',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.brownMedium,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   // Master Toggle Card
                   Container(
                     padding: const EdgeInsets.all(20),
@@ -237,8 +296,7 @@ class _NotificationSettingsScreenState
                                     ? 'You will receive reminders'
                                     : 'All notifications are off',
                                 style: const TextStyle(
-                                    fontSize: 13,
-                                    color: AppColors.brownMedium),
+                                    fontSize: 13, color: AppColors.brownMedium),
                               ),
                             ],
                           ),
@@ -259,6 +317,15 @@ class _NotificationSettingsScreenState
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
                           color: AppColors.brownDark)),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Choose which reminders are actually helpful so the app stays supportive instead of noisy.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.brownMedium,
+                      height: 1.4,
+                    ),
+                  ),
                   const SizedBox(height: 16),
 
                   Container(
@@ -327,6 +394,15 @@ class _NotificationSettingsScreenState
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
                           color: AppColors.brownDark)),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Your daily mood reminder and breathing reminder follow this time.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.brownMedium,
+                      height: 1.4,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   GestureDetector(
                     onTap: _masterToggle ? _pickReminderTime : null,
@@ -406,11 +482,10 @@ class _NotificationSettingsScreenState
                       onPressed: () async {
                         await LocalNotificationService().showTestNotification();
                         if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Test notification sent! Check your notification bar.'),
-                              backgroundColor: Colors.green,
-                            ),
+                          InteractiveMessageService.showSuccess(
+                            context,
+                            title: 'Test notification sent! 🔔',
+                            message: 'Check your notification bar',
                           );
                         }
                       },

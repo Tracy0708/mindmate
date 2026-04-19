@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
 import '../main.dart';
-import '../viewmodels/theme_viewmodel.dart';
+import '../services/interactive_message_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -34,15 +33,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _refreshProfile() => _loadProfile();
+
   String get _displayName =>
       _userProfile?.userName ??
       _authService.currentUser?.displayName ??
       'New User';
 
   String get _email =>
-      _userProfile?.userEmail ??
-      _authService.currentUser?.email ??
-      'No email';
+      _userProfile?.userEmail ?? _authService.currentUser?.email ?? 'No email';
 
   String get _initials {
     final name = _displayName;
@@ -57,7 +56,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   bool get _notificationsEnabled {
-    final prefs = _userProfile?.settings['notificationPrefs'] as Map<String, dynamic>?;
+    final prefs =
+        _userProfile?.settings['notificationPrefs'] as Map<String, dynamic>?;
     if (prefs == null || prefs.isEmpty) return true; // default on
     return prefs.values.any((v) => v == true);
   }
@@ -74,7 +74,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           contentPadding: const EdgeInsets.all(28),
           backgroundColor: Colors.white,
           content: SingleChildScrollView(
@@ -127,8 +128,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 TextField(
                   controller: nameController,
                   decoration: InputDecoration(
-                    prefixIcon:
-                        const Icon(Icons.person_outline, color: AppColors.brownLight),
+                    prefixIcon: const Icon(Icons.person_outline,
+                        color: AppColors.brownLight),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide:
@@ -139,8 +140,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             const BorderSide(color: AppColors.fieldBorder)),
                     focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                            const BorderSide(color: AppColors.golden, width: 2)),
+                        borderSide: const BorderSide(
+                            color: AppColors.golden, width: 2)),
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 16),
                   ),
@@ -155,8 +156,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   controller: ageController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    prefixIcon:
-                        const Icon(Icons.cake_outlined, color: AppColors.brownLight),
+                    prefixIcon: const Icon(Icons.cake_outlined,
+                        color: AppColors.brownLight),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide:
@@ -167,8 +168,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             const BorderSide(color: AppColors.fieldBorder)),
                     focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                            const BorderSide(color: AppColors.golden, width: 2)),
+                        borderSide: const BorderSide(
+                            color: AppColors.golden, width: 2)),
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 16),
                   ),
@@ -194,16 +195,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             const BorderSide(color: AppColors.fieldBorder)),
                     focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                            const BorderSide(color: AppColors.golden, width: 2)),
+                        borderSide: const BorderSide(
+                            color: AppColors.golden, width: 2)),
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 16),
                   ),
                   items: ['Male', 'Female', 'Other', 'Prefer not to say']
                       .map((g) => DropdownMenuItem(value: g, child: Text(g)))
                       .toList(),
-                  onChanged: (v) =>
-                      setDialogState(() => selectedGender = v),
+                  onChanged: (v) => setDialogState(() => selectedGender = v),
                 ),
                 const SizedBox(height: 28),
                 Column(
@@ -216,20 +216,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ? null
                             : () async {
                                 setDialogState(() => isSaving = true);
-                                await _authService.updateUserProfile(
-                                  name: nameController.text.trim(),
-                                  age: int.tryParse(ageController.text.trim()),
-                                  gender: selectedGender,
-                                );
-                                if (ctx.mounted) Navigator.pop(ctx);
-                                _loadProfile(); // refresh parent
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Profile updated!'),
-                                      backgroundColor: Colors.green,
-                                    ),
+                                try {
+                                  await _authService.updateUserProfile(
+                                    name: nameController.text.trim(),
+                                    age:
+                                        int.tryParse(ageController.text.trim()),
+                                    gender: selectedGender,
                                   );
+                                  if (ctx.mounted) Navigator.pop(ctx);
+                                  _loadProfile(); // refresh parent
+                                  if (mounted) {
+                                    InteractiveMessageService.showSuccess(
+                                      context,
+                                      title: 'Profile updated! ✨',
+                                      message: 'Your changes have been saved',
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (mounted) {
+                                    InteractiveMessageService.showError(
+                                      context,
+                                      title: 'Update failed',
+                                      message: e.toString(),
+                                      onRetry: () {
+                                        // Retry logic
+                                      },
+                                    );
+                                  }
+                                } finally {
+                                  setDialogState(() => isSaving = false);
                                 }
                               },
                         style: ElevatedButton.styleFrom(
@@ -283,208 +298,218 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: _isLoadingProfile
             ? const Center(
                 child: CircularProgressIndicator(color: AppColors.golden))
-            : SingleChildScrollView(
-                padding: const EdgeInsets.only(bottom: 40),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 32),
-                    // Profile Header
-                    Stack(
-                      alignment: Alignment.bottomRight,
-                      children: [
-                        Container(
-                          width: 100,
-                          height: 100,
-                          decoration: const BoxDecoration(
-                              color: Color(0xFFFFE0A0),
-                              shape: BoxShape.circle),
-                          alignment: Alignment.center,
-                          child: Text(_initials,
-                              style: const TextStyle(
-                                  fontSize: 40,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.golden)),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                              color: Colors.white, shape: BoxShape.circle),
-                          child: Container(
+            : RefreshIndicator(
+                color: AppColors.golden,
+                onRefresh: _refreshProfile,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.only(bottom: 120),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 32),
+                      // Profile Header
+                      Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          Container(
+                            width: 100,
+                            height: 100,
+                            decoration: const BoxDecoration(
+                                color: Color(0xFFFFE0A0),
+                                shape: BoxShape.circle),
+                            alignment: Alignment.center,
+                            child: Text(_initials,
+                                style: const TextStyle(
+                                    fontSize: 40,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.golden)),
+                          ),
+                          Container(
                             padding: const EdgeInsets.all(4),
                             decoration: const BoxDecoration(
-                                color: Colors.green, shape: BoxShape.circle),
-                            child: const Icon(Icons.check,
-                                color: Colors.white, size: 14),
-                          ),
-                        )
+                                color: Colors.white, shape: BoxShape.circle),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                  color: Colors.green, shape: BoxShape.circle),
+                              child: const Icon(Icons.check,
+                                  color: Colors.white, size: 14),
+                            ),
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(_displayName,
+                          style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.brownDark)),
+                      const SizedBox(height: 4),
+                      Text(_email,
+                          style: const TextStyle(
+                              fontSize: 14, color: AppColors.brownMedium)),
+                      if (_userProfile?.age != null ||
+                          _userProfile?.gender != null) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          [
+                            if (_userProfile?.age != null)
+                              '${_userProfile!.age} years old',
+                            if (_userProfile?.gender != null)
+                              _userProfile!.gender!,
+                          ].join(' • '),
+                          style: const TextStyle(
+                              fontSize: 13, color: AppColors.brownLight),
+                        ),
                       ],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(_displayName,
-                        style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.brownDark)),
-                    const SizedBox(height: 4),
-                    Text(_email,
-                        style: const TextStyle(
-                            fontSize: 14, color: AppColors.brownMedium)),
-                    if (_userProfile?.age != null ||
-                        _userProfile?.gender != null) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        [
-                          if (_userProfile?.age != null)
-                            '${_userProfile!.age} years old',
-                          if (_userProfile?.gender != null)
-                            _userProfile!.gender!,
-                        ].join(' • '),
-                        style: const TextStyle(
-                            fontSize: 13, color: AppColors.brownLight),
+                      const SizedBox(height: 32),
+
+                      // Horizontal Stats
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 24),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _ProfileStatBox(value: '—', label: 'Streak Days'),
+                            _ProfileStatBox(value: '—', label: 'Badges'),
+                            _ProfileStatBox(value: '—', label: 'Complete'),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+
+                      // Recent Achievements header
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                  color: AppColors.golden.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: const Icon(Icons.emoji_events,
+                                  color: AppColors.golden, size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            const Text('Recent Achievements',
+                                style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.brownDark)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 120,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          children: const [
+                            _AchievementBox(
+                                icon: Icons.ads_click,
+                                color: Color(0xFFE91E63)),
+                            _AchievementBox(
+                                icon: Icons.star, color: Color(0xFFFFB300)),
+                            _AchievementBox(
+                                icon: Icons.local_fire_department,
+                                color: Color(0xFFFF5722)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+
+                      // Settings Header
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                  color: AppColors.golden.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: const Icon(Icons.settings,
+                                  color: AppColors.golden, size: 20),
+                            ),
+                            const SizedBox(width: 12),
+                            const Text('Settings',
+                                style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.brownDark)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Settings List
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.04),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              _SettingsItem(
+                                icon: Icons.notifications_none,
+                                label: 'Notifications',
+                                trailingLabel:
+                                    _notificationsEnabled ? 'On' : 'Off',
+                                onTap: () async {
+                                  await Navigator.pushNamed(
+                                      context, '/notifications-settings');
+                                  _loadProfile(); // refresh after returning
+                                },
+                              ),
+                              const _SettingsItem(
+                                  icon: Icons.shield_outlined,
+                                  label: 'Privacy'),
+                              const _SettingsItem(
+                                  icon: Icons.help_outline,
+                                  label: 'Help & Support'),
+                              _SettingsItem(
+                                icon: Icons.logout,
+                                label: 'Logout',
+                                isDestructive: true,
+                                onTap: () async {
+                                  await AuthService().signOut();
+                                  if (context.mounted) {
+                                    Navigator.pushNamedAndRemoveUntil(
+                                        context, '/', (route) => false);
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
-                    const SizedBox(height: 32),
-
-                    // Horizontal Stats
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _ProfileStatBox(value: '—', label: 'Streak Days'),
-                          _ProfileStatBox(value: '—', label: 'Badges'),
-                          _ProfileStatBox(value: '—', label: 'Complete'),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-
-                    // Recent Achievements header
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                                color: AppColors.golden.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(10)),
-                            child: const Icon(Icons.emoji_events,
-                                color: AppColors.golden, size: 20),
-                          ),
-                          const SizedBox(width: 12),
-                          const Text('Recent Achievements',
-                              style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.brownDark)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      height: 120,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        children: const [
-                          _AchievementBox(
-                              icon: Icons.ads_click,
-                              color: Color(0xFFE91E63)),
-                          _AchievementBox(
-                              icon: Icons.star, color: Color(0xFFFFB300)),
-                          _AchievementBox(
-                              icon: Icons.local_fire_department,
-                              color: Color(0xFFFF5722)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-
-                    // Settings Header
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                                color: AppColors.golden.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(10)),
-                            child: const Icon(Icons.settings,
-                                color: AppColors.golden, size: 20),
-                          ),
-                          const SizedBox(width: 12),
-                          const Text('Settings',
-                              style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.brownDark)),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Settings List
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        children: [
-                          _SettingsItem(
-                            icon: Icons.notifications_none,
-                            label: 'Notifications',
-                            trailingLabel:
-                                _notificationsEnabled ? 'On' : 'Off',
-                            onTap: () async {
-                              await Navigator.pushNamed(
-                                  context, '/notifications-settings');
-                              _loadProfile(); // refresh after returning
-                            },
-                          ),
-                          Consumer<ThemeViewModel>(
-                            builder: (context, vm, _) => _SettingsItem(
-                              icon: Icons.nightlight_round,
-                              label: 'Dark Mode',
-                              trailingLabel: vm.isDarkMode ? 'On' : 'Off',
-                              onTap: () =>
-                                  vm.toggleDarkMode(!vm.isDarkMode),
-                            ),
-                          ),
-                          const _SettingsItem(
-                              icon: Icons.language,
-                              label: 'Language',
-                              trailingLabel: 'English'),
-                          const _SettingsItem(
-                              icon: Icons.shield_outlined,
-                              label: 'Privacy'),
-                          const _SettingsItem(
-                              icon: Icons.help_outline,
-                              label: 'Help & Support'),
-                          _SettingsItem(
-                            icon: Icons.logout,
-                            label: 'Logout',
-                            isDestructive: true,
-                            onTap: () async {
-                              await AuthService().signOut();
-                              if (context.mounted) {
-                                Navigator.pushNamedAndRemoveUntil(
-                                    context, '/', (route) => false);
-                              }
-                            },
-                          ),
-                        ],
-                      ),
-                    )
-                  ],
+                  ),
                 ),
               ),
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showEditProfile(context),
         backgroundColor: AppColors.golden,
         foregroundColor: Colors.white,
         elevation: 4,
-        child: const Icon(Icons.edit),
+        icon: const Icon(Icons.edit),
+        label: const Text('Edit Profile'),
       ),
     );
   }
@@ -513,8 +538,8 @@ class _ProfileStatBox extends StatelessWidget {
                   color: AppColors.golden)),
           const SizedBox(height: 8),
           Text(label,
-              style: const TextStyle(
-                  fontSize: 12, color: AppColors.brownMedium)),
+              style:
+                  const TextStyle(fontSize: 12, color: AppColors.brownMedium)),
         ],
       ),
     );
@@ -568,8 +593,7 @@ class _SettingsItem extends StatelessWidget {
         child: Row(
           children: [
             Icon(icon,
-                color: isDestructive ? color : AppColors.brownMedium,
-                size: 22),
+                color: isDestructive ? color : AppColors.brownMedium, size: 22),
             const SizedBox(width: 16),
             Expanded(
                 child: Text(label,
@@ -592,7 +616,8 @@ class _SettingsItem extends StatelessWidget {
                         fontSize: 13)),
               ),
             if (!isDestructive && trailingLabel == null)
-              const Icon(Icons.chevron_right, color: AppColors.brownLight, size: 20),
+              const Icon(Icons.chevron_right,
+                  color: AppColors.brownLight, size: 20),
           ],
         ),
       ),

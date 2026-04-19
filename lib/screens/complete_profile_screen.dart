@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../widgets/auth_shell.dart';
+import '../services/interactive_message_service.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
   const CompleteProfileScreen({super.key});
@@ -42,11 +44,24 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         age: int.tryParse(_ageController.text.trim()),
         gender: _selectedGender,
       );
-      if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
+      if (mounted) {
+        InteractiveMessageService.showSuccess(
+          context,
+          title: 'Profile complete! 🌟',
+          message: 'Let\'s start your mindfulness journey',
+          duration: const Duration(seconds: 2),
+        );
+        Future.delayed(const Duration(milliseconds: 800), () {
+          if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
+        });
+      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: AppColors.errorRed),
+        InteractiveMessageService.showError(
+          context,
+          title: 'Profile update failed',
+          message: e.toString(),
+          onRetry: _submit,
         );
       }
     } finally {
@@ -56,73 +71,77 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
+    return AuthShell(
+      eyebrow: 'ONE MORE STEP',
+      title: 'Complete your profile',
+      subtitle:
+          'A few details help us personalize your experience and prepare the right reminders for you.',
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 20, offset: const Offset(0, 8)),
-                ],
+                color: AppColors.golden.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(16),
               ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'Complete Your Profile',
-                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.golden),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Just a few more details to personalize your mental health journey.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.brownMedium, fontSize: 14),
-                    ),
-                    const SizedBox(height: 32),
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(hintText: 'Full Name', prefixIcon: Icon(Icons.person_outline)),
-                      validator: (v) => (v == null || v.isEmpty) ? 'Please enter your name' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _ageController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(hintText: 'Age', prefixIcon: Icon(Icons.cake_outlined)),
-                      validator: (v) => (v == null || v.isEmpty) ? 'Please enter your age' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      initialValue: _selectedGender,
-                      decoration: const InputDecoration(hintText: 'Gender', prefixIcon: Icon(Icons.people_outline)),
-                      items: ['Male', 'Female', 'Other', 'Prefer not to say']
-                          .map((g) => DropdownMenuItem(value: g, child: Text(g)))
-                          .toList(),
-                      onChanged: (v) => setState(() => _selectedGender = v),
-                    ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _submit,
-                        child: _isLoading
-                            ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
-                            : const Text('Complete Registration'),
-                      ),
-                    ),
-                  ],
+              child: const Text(
+                'You can update these details again later from your profile settings.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.brownMedium,
+                  fontSize: 13,
+                  height: 1.4,
                 ),
               ),
             ),
-          ),
+            const SizedBox(height: 24),
+            TextFormField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                  hintText: 'Full Name',
+                  prefixIcon: Icon(Icons.person_outline)),
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? 'Please enter your name' : null,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _ageController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                  hintText: 'Age', prefixIcon: Icon(Icons.cake_outlined)),
+              validator: (v) =>
+                  (v == null || v.isEmpty) ? 'Please enter your age' : null,
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              initialValue: _selectedGender,
+              decoration: const InputDecoration(
+                  hintText: 'Gender', prefixIcon: Icon(Icons.people_outline)),
+              items: ['Male', 'Female', 'Other', 'Prefer not to say']
+                  .map((g) => DropdownMenuItem(value: g, child: Text(g)))
+                  .toList(),
+              onChanged: (v) => setState(() => _selectedGender = v),
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _submit,
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2.5, color: Colors.white))
+                    : const Text('Complete Registration'),
+              ),
+            ),
+          ],
         ),
       ),
     );
