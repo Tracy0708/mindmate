@@ -37,7 +37,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         children: [
           const _AdminHomeTab(),
           const UserManagementScreen(),
-          _UsageAnalyticsTab(),
+          const _UsageAnalyticsTab(),
           const _AdminProfileTab(),
         ],
       ),
@@ -163,7 +163,7 @@ class _AdminHomeTab extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 6),
                                   const Text(
-                                    'Live user and activity overview.',
+                                    'Overall platform health and activity overview.',
                                     style: TextStyle(
                                         fontSize: 13,
                                         color: AppColors.brownMedium,
@@ -263,12 +263,166 @@ class _AdminHomeTab extends StatelessWidget {
                           icon: Icons.admin_panel_settings_rounded),
                     ],
                   ),
+                  const SizedBox(height: 18),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 12,
+                            offset: const Offset(0, 5))
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Usage Snapshot',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.brownDark),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Quick overall usage signals for monitoring engagement and data freshness.',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.brownMedium,
+                              height: 1.35),
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFFAEE),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppColors.fieldBorder.withOpacity(0.55),
+                            ),
+                          ),
+                          child: const Text(
+                            'Mood Logs Captured shows the total number of emotion logs submitted by all users. Report Generated indicates when this dashboard summary was last refreshed from Firebase.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.brownMedium,
+                              height: 1.4,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _DashboardInfoTile(
+                                icon: Icons.mood_rounded,
+                                label: 'Mood Logs Captured (All Users)',
+                                value: '${report?['totalLogs'] ?? 0}',
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _DashboardInfoTile(
+                                icon: Icons.schedule_rounded,
+                                label: 'Report Generated',
+                                value:
+                                    _formatReportTime(report?['generatedAt']),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        OutlinedButton.icon(
+                          onPressed: vm.isLoading ? null : vm.generateReport,
+                          icon: const Icon(Icons.refresh_rounded,
+                              color: AppColors.golden),
+                          label: Text(
+                            vm.isLoading
+                                ? 'Refreshing...'
+                                : 'Refresh Dashboard Data',
+                            style: const TextStyle(
+                              color: AppColors.golden,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(
+                                color: AppColors.golden, width: 1.3),
+                            minimumSize: const Size(double.infinity, 48),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 8),
                 ],
               );
             },
           ),
         ),
+      ),
+    );
+  }
+}
+
+String _formatReportTime(dynamic generatedAt) {
+  if (generatedAt is! String) return 'N/A';
+  final parsed = DateTime.tryParse(generatedAt);
+  if (parsed == null) return 'N/A';
+  return '${parsed.month}/${parsed.day} ${parsed.hour.toString().padLeft(2, '0')}:${parsed.minute.toString().padLeft(2, '0')}';
+}
+
+class _DashboardInfoTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _DashboardInfoTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFAEE),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.fieldBorder.withOpacity(0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: AppColors.golden, size: 20),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: AppColors.brownDark,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.brownMedium,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -349,231 +503,642 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _UsageAnalyticsTab extends StatelessWidget {
+class _UsageAnalyticsTab extends StatefulWidget {
+  const _UsageAnalyticsTab();
+
+  @override
+  State<_UsageAnalyticsTab> createState() => _UsageAnalyticsTabState();
+}
+
+class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
+  int _refreshSeed = 0;
+  String _searchQuery = '';
+  String _riskFilter = 'All';
+
+  String _formatDate(dynamic value) {
+    if (value is! DateTime) return 'N/A';
+    return '${value.month}/${value.day}/${value.year}';
+  }
+
+  String _riskLevel(double score) {
+    if (score >= 80) return 'High';
+    if (score >= 60) return 'Moderate';
+    return 'Observe';
+  }
+
+  Color _riskColor(double score) {
+    if (score >= 80) return AppColors.errorRed;
+    if (score >= 60) return const Color(0xFFDD8A00);
+    return AppColors.brownMedium;
+  }
+
+  Future<void> _showUserRiskDetailSheet(Map<String, dynamic> user) async {
+    final userId = (user['userId'] as String?) ?? '';
+    if (userId.isEmpty) return;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: AppColors.creamLight,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+              child: FutureBuilder<Map<String, dynamic>>(
+                future:
+                    context.read<AdminViewModel>().getUserUsageStats(userId),
+                builder: (context, usageSnapshot) {
+                  final riskScore =
+                      (user['riskScore'] as num?)?.toDouble() ?? 0;
+                  final color = _riskColor(riskScore);
+                  final moodLogs =
+                      usageSnapshot.data?['moodLogs'] ?? user['totalLogs'] ?? 0;
+
+                  return SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Center(
+                          child: Container(
+                            width: 46,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: AppColors.fieldBorder,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          (user['name'] as String?)?.isNotEmpty == true
+                              ? user['name'] as String
+                              : 'Unknown User',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.brownDark,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          (user['email'] as String?)?.isNotEmpty == true
+                              ? user['email'] as String
+                              : 'No email',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.brownMedium,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: color.withOpacity(0.10),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: color.withOpacity(0.25)),
+                          ),
+                          child: Text(
+                            'Risk score ${riskScore.toStringAsFixed(0)}% (${_riskLevel(riskScore)}) based on recent mood pattern.',
+                            style: TextStyle(
+                              color: color,
+                              fontWeight: FontWeight.w800,
+                              height: 1.35,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+                            _RiskStatPill(
+                              icon: Icons.insights_rounded,
+                              label:
+                                  '${(((user['negativeRatio'] as num?)?.toDouble() ?? 0) * 100).toStringAsFixed(0)}% negative logs',
+                              color: color,
+                            ),
+                            _RiskStatPill(
+                              icon: Icons.sentiment_dissatisfied_rounded,
+                              label:
+                                  'Dominant: ${((user['dominantNegativeMood'] as String?) ?? 'mixed').toUpperCase()}',
+                              color: const Color(0xFFDD8A00),
+                            ),
+                            _RiskStatPill(
+                              icon: Icons.history_rounded,
+                              label: '$moodLogs logs tracked',
+                              color: AppColors.golden,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          'Last mood entry: ${_formatDate(user['lastMoodAt'])}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.brownMedium,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Last login: ${_formatDate(user['lastLogin'])}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.brownMedium,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        if (usageSnapshot.connectionState ==
+                            ConnectionState.waiting)
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8),
+                              child: CircularProgressIndicator(
+                                color: AppColors.golden,
+                              ),
+                            ),
+                          )
+                        else if (usageSnapshot.hasError)
+                          const Text(
+                            'Could not load additional usage stats.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.errorRed,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  bool _matchesFilter(Map<String, dynamic> user) {
+    final name = ((user['name'] as String?) ?? '').toLowerCase();
+    final email = ((user['email'] as String?) ?? '').toLowerCase();
+    final query = _searchQuery.trim().toLowerCase();
+    final riskScore = (user['riskScore'] as num).toDouble();
+
+    final queryMatch =
+        query.isEmpty || name.contains(query) || email.contains(query);
+    if (!queryMatch) return false;
+
+    if (_riskFilter == 'All') return true;
+    if (_riskFilter == 'High') return riskScore >= 80;
+    if (_riskFilter == 'Moderate') return riskScore >= 60 && riskScore < 80;
+    return riskScore < 60;
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white.withOpacity(0.96),
-                    const Color(0xFFFFF8E7),
-                  ],
+      child: FutureBuilder<List<Map<String, dynamic>>>(
+        key: ValueKey(_refreshSeed),
+        future: context.read<AdminViewModel>().getMoodRiskUsers(
+              lookbackDays: 21,
+              limit: 20,
+            ),
+        builder: (context, snapshot) {
+          final isLoading = snapshot.connectionState == ConnectionState.waiting;
+          final users = snapshot.data ?? const <Map<String, dynamic>>[];
+          final filteredUsers =
+              users.where(_matchesFilter).toList(growable: false);
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.white.withOpacity(0.96),
+                        const Color(0xFFFFF8E7),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                        color: AppColors.fieldBorder.withOpacity(0.45)),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8)),
+                    ],
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Mood Risk Analytics',
+                        style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.brownDark),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        'Per-user analysis to identify who may need real counselling follow-up.',
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.brownMedium,
+                            height: 1.4),
+                      ),
+                    ],
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(24),
-                border:
-                    Border.all(color: AppColors.fieldBorder.withOpacity(0.45)),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 18,
-                      offset: const Offset(0, 8)),
-                ],
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Usage Analytics',
+                const SizedBox(height: 18),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFDF5),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                        color: AppColors.fieldBorder.withOpacity(0.55)),
+                  ),
+                  child: const Text(
+                    'Risk score is based on negative mood ratio, recent negative trend (last 7 days), and logging consistency over the last 21 days.',
                     style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.brownDark),
+                      fontSize: 12,
+                      color: AppColors.brownMedium,
+                      height: 1.4,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  SizedBox(height: 6),
-                  Text(
-                    'A compact summary of the main account and activity signals currently available in Firebase.',
-                    style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.brownMedium,
-                        height: 1.4),
+                ),
+                const SizedBox(height: 18),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4))
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text('Snapshot',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        onChanged: (value) =>
+                            setState(() => _searchQuery = value),
+                        decoration: InputDecoration(
+                          hintText: 'Search user by name or email',
+                          prefixIcon: const Icon(Icons.search_rounded),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 12),
+                          filled: true,
+                          fillColor: const Color(0xFFFFFAEE),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                                color: AppColors.fieldBorder.withOpacity(0.7)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                                color: AppColors.fieldBorder.withOpacity(0.7)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          const Text(
+                            'Risk Level:',
+                            style: TextStyle(
+                                color: AppColors.brownMedium,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              value: _riskFilter,
+                              items: const [
+                                DropdownMenuItem(
+                                    value: 'All', child: Text('All')),
+                                DropdownMenuItem(
+                                    value: 'High', child: Text('High')),
+                                DropdownMenuItem(
+                                    value: 'Moderate', child: Text('Moderate')),
+                                DropdownMenuItem(
+                                    value: 'Observe', child: Text('Observe')),
+                              ],
+                              onChanged: (value) {
+                                if (value == null) return;
+                                setState(() => _riskFilter = value);
+                              },
+                              isDense: true,
+                              decoration: InputDecoration(
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 8),
+                                filled: true,
+                                fillColor: const Color(0xFFFFFAEE),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                      color: AppColors.fieldBorder
+                                          .withOpacity(0.7)),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Showing ${filteredUsers.length} of ${users.length} users',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.brownMedium,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (isLoading)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32),
+                      child: CircularProgressIndicator(color: AppColors.golden),
+                    ),
+                  )
+                else if (snapshot.hasError)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.errorRed.withOpacity(0.07),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color: AppColors.errorRed.withOpacity(0.22)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Could not load mood risk analysis',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.brownDark,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '$snapshot.error',
+                          style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.brownMedium,
+                              height: 1.35),
+                        ),
+                      ],
+                    ),
+                  )
+                else if (filteredUsers.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
+                    ),
+                    child: const Text(
+                      'No users match the current filter. Try adjusting search or risk level.',
                       style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.brownDark)),
-                  SizedBox(height: 16),
-                  _StatMetricCard(
-                    icon: Icons.people,
-                    iconColor: AppColors.golden,
-                    title: 'Total Active Users',
-                    value: '2,847',
-                    trend: '↑ 12.5% vs last month',
-                    isPositiveMatch: true,
-                  ),
-                  _StatMetricCard(
-                    icon: Icons.insights,
-                    iconColor: AppColors.golden,
-                    title: 'Avg. Daily Active Users',
-                    value: '1,234',
-                    trend: '↑ 8.2% vs last month',
-                    isPositiveMatch: true,
-                  ),
-                  _StatMetricCard(
-                    icon: Icons.access_time_filled,
-                    iconColor: AppColors.golden,
-                    title: 'Avg. Session Duration',
-                    value: '12:45',
-                    trend: '↑ 5.2% vs last month',
-                    isPositiveMatch: true,
-                  ),
-                  _StatMetricCard(
-                    icon: Icons.mood,
-                    iconColor: AppColors.golden,
-                    title: 'Mood Log Completion',
-                    value: '89%',
-                    trend: '↓ 2.1% vs last month',
-                    isPositiveMatch: false,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFFDF5),
-                borderRadius: BorderRadius.circular(20),
-                border:
-                    Border.all(color: AppColors.fieldBorder.withOpacity(0.5)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text('Recommended Filters',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.brownDark)),
-                  SizedBox(height: 16),
-                  _FilterDropdown(label: 'Date Range', value: 'Last 30 Days'),
-                  SizedBox(height: 16),
-                  _FilterDropdown(label: 'User Group', value: 'All Users'),
-                  SizedBox(height: 16),
-                  _FilterDropdown(label: 'Key Metric', value: 'Engagement'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4))
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Engagement Trend',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.brownDark)),
-                  const SizedBox(height: 18),
-                  _TrendBar(label: 'Mon', value: 0.65, color: AppColors.golden),
-                  _TrendBar(label: 'Tue', value: 0.82, color: Colors.green),
-                  _TrendBar(label: 'Wed', value: 0.58, color: Colors.blue),
-                  _TrendBar(
-                      label: 'Thu', value: 0.74, color: AppColors.brownDark),
-                  _TrendBar(label: 'Fri', value: 0.90, color: Colors.teal),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            Consumer<AdminViewModel>(
-              builder: (context, vm, _) {
-                return OutlinedButton.icon(
-                  onPressed: vm.isLoading
-                      ? null
-                      : () async {
-                          await vm.generateReport();
-                          if (!context.mounted) return;
+                          color: AppColors.brownMedium,
+                          height: 1.4,
+                          fontWeight: FontWeight.w600),
+                    ),
+                  )
+                else
+                  ...filteredUsers.map((user) {
+                    final riskScore = (user['riskScore'] as num).toDouble();
+                    final color = _riskColor(riskScore);
+                    final negativeRatio =
+                        ((user['negativeRatio'] as num).toDouble() * 100)
+                            .toStringAsFixed(0);
 
-                          if (vm.errorMessage != null) {
-                            InteractiveMessageService.showError(
-                              context,
-                              title: 'Report failed',
-                              message: vm.errorMessage!,
-                            );
-                            return;
-                          }
-
-                          InteractiveMessageService.showSuccess(
-                            context,
-                            title: 'Report refreshed',
-                            message:
-                                'Analytics data was updated from Firebase.',
-                          );
-                        },
+                    return InkWell(
+                        borderRadius: BorderRadius.circular(18),
+                        onTap: () => _showUserRiskDetailSheet(user),
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: color.withOpacity(0.25)),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Colors.black.withOpacity(0.04),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4))
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          (user['name'] as String).isEmpty
+                                              ? 'Unknown User'
+                                              : user['name'] as String,
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w800,
+                                            color: AppColors.brownDark,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          (user['email'] as String?)
+                                                      ?.isNotEmpty ==
+                                                  true
+                                              ? user['email'] as String
+                                              : 'No email',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: AppColors.brownMedium,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: color.withOpacity(0.12),
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Text(
+                                      '${riskScore.toStringAsFixed(0)}% ${_riskLevel(riskScore)}',
+                                      style: TextStyle(
+                                        color: color,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Icon(
+                                    Icons.chevron_right_rounded,
+                                    color: AppColors.brownMedium,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  _RiskStatPill(
+                                    icon: Icons.insights_rounded,
+                                    label: '$negativeRatio% negative logs',
+                                    color: color,
+                                  ),
+                                  _RiskStatPill(
+                                    icon: Icons.sentiment_dissatisfied_rounded,
+                                    label:
+                                        'Dominant: ${(user['dominantNegativeMood'] as String).toUpperCase()}',
+                                    color: const Color(0xFFDD8A00),
+                                  ),
+                                  _RiskStatPill(
+                                    icon: Icons.history_rounded,
+                                    label:
+                                        '${user['totalLogs']} logs (21 days)',
+                                    color: AppColors.golden,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Last mood entry: ${_formatDate(user['lastMoodAt'])}  |  Last login: ${_formatDate(user['lastLogin'])}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.brownMedium,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Tap to view more details',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.brownMedium,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ));
+                  }),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: () => setState(() => _refreshSeed++),
                   icon: const Icon(Icons.refresh_rounded,
                       color: AppColors.golden),
-                  label: Text(
-                    vm.isLoading ? 'Refreshing...' : 'Refresh Report',
-                    style: const TextStyle(
+                  label: const Text(
+                    'Refresh Mood Analysis',
+                    style: TextStyle(
                       color: AppColors.golden,
                       fontWeight: FontWeight.w700,
-                      fontSize: 16,
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.golden, width: 1.5),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    minimumSize: const Size(double.infinity, 50),
+                    side: const BorderSide(color: AppColors.golden, width: 1.4),
+                    minimumSize: const Size(double.infinity, 48),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
                   ),
-                );
-              },
+                ),
+                const SizedBox(height: 24),
+              ],
             ),
-            const SizedBox(height: 12),
-            const Text(
-              'Use the Users tab for account management actions.',
-              style: TextStyle(
-                  color: AppColors.brownMedium, fontSize: 12, height: 1.4),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _RiskStatPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _RiskStatPill({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
             ),
-            const SizedBox(height: 24),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -847,149 +1412,6 @@ class _AdminProfileItem extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FilterDropdown extends StatelessWidget {
-  final String label, value;
-  const _FilterDropdown({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style: const TextStyle(
-                color: AppColors.brownDark, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.fieldBorder),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(value, style: const TextStyle(color: AppColors.brownDark)),
-              const Icon(Icons.keyboard_arrow_down,
-                  color: AppColors.brownMedium),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _StatMetricCard extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String title, value, trend;
-  final bool isPositiveMatch;
-
-  const _StatMetricCard(
-      {required this.icon,
-      required this.iconColor,
-      required this.title,
-      required this.value,
-      required this.trend,
-      required this.isPositiveMatch});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4))
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.brownDark,
-                  fontSize: 13)),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                    color: iconColor.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(10)),
-                child: Icon(icon, color: iconColor, size: 24),
-              ),
-              const SizedBox(width: 16),
-              Text(value,
-                  style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.brownDark)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(trend,
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: isPositiveMatch ? Colors.green : AppColors.errorRed)),
-        ],
-      ),
-    );
-  }
-}
-
-class _TrendBar extends StatelessWidget {
-  final String label;
-  final double value;
-  final Color color;
-
-  const _TrendBar(
-      {required this.label, required this.value, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 34,
-            child: Text(
-              label,
-              style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.brownMedium),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(999),
-              child: LinearProgressIndicator(
-                value: value,
-                minHeight: 10,
-                backgroundColor: AppColors.fieldBorder.withOpacity(0.28),
-                valueColor: AlwaysStoppedAnimation<Color>(color),
-              ),
             ),
           ),
         ],

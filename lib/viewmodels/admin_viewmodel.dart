@@ -27,6 +27,16 @@ class AdminViewModel extends ChangeNotifier {
     return _adminService.getUserUsageStats(userId);
   }
 
+  Future<List<Map<String, dynamic>>> getMoodRiskUsers({
+    int lookbackDays = 21,
+    int limit = 12,
+  }) {
+    return _adminService.getMoodRiskUsers(
+      lookbackDays: lookbackDays,
+      limit: limit,
+    );
+  }
+
   Future<void> generateReport() async {
     _isLoading = true;
     _errorMessage = null;
