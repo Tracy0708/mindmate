@@ -19,6 +19,14 @@ class AdminViewModel extends ChangeNotifier {
     return _adminService.getAllUsers();
   }
 
+  Future<UserModel?> getUserById(String userId) {
+    return _adminService.getUserById(userId);
+  }
+
+  Future<Map<String, dynamic>> getUserUsageStats(String userId) {
+    return _adminService.getUserUsageStats(userId);
+  }
+
   Future<void> generateReport() async {
     _isLoading = true;
     _errorMessage = null;
@@ -39,6 +47,24 @@ class AdminViewModel extends ChangeNotifier {
       await _adminService.deleteUser(userId);
     } catch (e) {
       _errorMessage = "Failed to delete user: $e";
+      notifyListeners();
+    }
+  }
+
+  Future<void> setUserDisabled(String userId, bool isDisabled) async {
+    try {
+      await _adminService.setUserDisabled(userId, isDisabled);
+    } catch (e) {
+      _errorMessage = "Failed to update user status: $e";
+      notifyListeners();
+    }
+  }
+
+  Future<void> resetPasswordForEmail(String email) async {
+    try {
+      await _adminService.resetPasswordForEmail(email);
+    } catch (e) {
+      _errorMessage = "Failed to send reset email: $e";
       notifyListeners();
     }
   }

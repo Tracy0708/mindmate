@@ -1,7 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class UserModel {
   final String userID;
   final String userName;
   final String userEmail;
+  final String role;
+  final bool isDisabled;
+  final DateTime? lastLogin;
   final int? age;
   final String? gender;
   final Map<String, dynamic> settings;
@@ -10,6 +15,9 @@ class UserModel {
     required this.userID,
     required this.userName,
     required this.userEmail,
+    this.role = 'user',
+    this.isDisabled = false,
+    this.lastLogin,
     this.age,
     this.gender,
     Map<String, dynamic>? settings,
@@ -25,6 +33,9 @@ class UserModel {
       'userID': userID,
       'userName': userName,
       'userEmail': userEmail,
+      'role': role,
+      'isDisabled': isDisabled,
+      'lastLogin': lastLogin != null ? Timestamp.fromDate(lastLogin!) : null,
       'age': age,
       'gender': gender,
       'settings': settings,
@@ -41,9 +52,12 @@ class UserModel {
             : 'User';
 
     return UserModel(
-      userID: json['userID'] ?? '',
+      userID: json['userID'] ?? json['id'] ?? '',
       userName: resolvedName,
       userEmail: json['userEmail'] ?? json['email'] ?? '',
+      role: (json['role'] as String?) ?? 'user',
+      isDisabled: (json['isDisabled'] as bool?) ?? false,
+      lastLogin: _parseDateTime(json['lastLogin']),
       age: json['age'],
       gender: json['gender'],
       settings: json['settings'] != null
@@ -54,5 +68,13 @@ class UserModel {
               'notificationPrefs': <String, bool>{},
             },
     );
+  }
+
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is Timestamp) return value.toDate();
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value);
+    return null;
   }
 }

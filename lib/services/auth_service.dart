@@ -21,10 +21,12 @@ class AuthService {
   Future<UserCredential> signInWithEmailPassword(
       String email, String password) async {
     try {
-      return await _auth.signInWithEmailAndPassword(
+      final credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+      await _handlePostLoginState(credential.user!);
+      return credential;
     } catch (e) {
       throw _handleAuthException(e);
     }
@@ -59,13 +61,15 @@ class AuthService {
         idToken: googleUser.authentication.idToken,
       );
 
-      UserCredential userCredential =
+      final UserCredential userCredential =
           await _auth.signInWithCredential(credential);
 
       // Create user document in Firestore if it's a new user
       if (userCredential.additionalUserInfo?.isNewUser ?? false) {
         await _createUserDocument(userCredential.user!);
       }
+
+      await _handlePostLoginState(userCredential.user!);
 
       return userCredential;
     } catch (e) {
@@ -101,6 +105,9 @@ class AuthService {
       userID: user.uid,
       userName: user.displayName ?? 'User',
       userEmail: user.email!,
+      role: 'user',
+      isDisabled: false,
+      lastLogin: DateTime.now(),
     );
 
     try {
@@ -110,6 +117,58 @@ class AuthService {
     } catch (e) {
       developer.log('Firestore error: $e', name: 'AuthService', level: 900);
       rethrow; // Propagate error so caller knows registration had issues
+    }
+  }
+
+  Future<void> _handlePostLoginState(User user) async {
+    final userDoc = _firestore.collection('users').doc(user.uid);
+    final snapshot = await userDoc.get().timeout(const Duration(seconds: 10));
+
+    if (!snapshot.exists || snapshot.data() == null) {
+      await userDoc.set(
+        {
+          'userID': user.uid,
+          'userName': user.displayName ?? 'User',
+          'userEmail': user.email ?? '',
+          'role': 'user',
+          'isDisabled': false,
+          'lastLogin': Timestamp.now(),
+        },
+        SetOptions(merge: true),
+      );
+      return;
+    }
+
+    final profile = UserModel.fromJson(snapshot.data()!);
+    if (profile.isDisabled) {
+      await signOut();
+      throw Exception('This account has been disabled by an administrator.');
+    }
+
+    await userDoc.set(
+      {'lastLogin': Timestamp.now()},
+      SetOptions(merge: true),
+    );
+  }
+
+  Future<UserModel?> getUserProfileById(String userId) async {
+    try {
+      final doc = await _firestore
+          .collection('users')
+          .doc(userId)
+          .get()
+          .timeout(const Duration(seconds: 10));
+
+      if (doc.exists && doc.data() != null) {
+        return UserModel.fromJson(doc.data()!);
+      }
+      return null;
+    } on TimeoutException {
+      return null;
+    } catch (e) {
+      developer.log('getUserProfileById error: $e',
+          name: 'AuthService', level: 900);
+      return null;
     }
   }
 

@@ -7,6 +7,8 @@ import 'screens/dashboard_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/complete_profile_screen.dart';
 import 'screens/notification_settings_screen.dart';
+import 'screens/admin/admin_login_screen.dart';
+import 'screens/admin/admin_dashboard.dart';
 import 'services/auth_service.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
@@ -81,6 +83,8 @@ class MyApp extends StatelessWidget {
             '/complete-profile': (context) => const CompleteProfileScreen(),
             '/notifications-settings': (context) =>
                 const NotificationSettingsScreen(),
+            '/admin-login': (context) => const AdminLoginScreen(),
+            '/admin-dashboard': (context) => const AdminDashboardScreen(),
           },
         );
       },
@@ -568,6 +572,19 @@ class _LoginPageState extends State<LoginPage>
                                     fontSize: 13)),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 12),
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.pushNamed(context, '/admin-login'),
+                        child: const Text(
+                          'Admin Portal',
+                          style: TextStyle(
+                            color: AppColors.brownDark,
+                            fontWeight: FontWeight.w700,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
                       ),
                     ],
                   ),
