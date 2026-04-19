@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
 import '../services/auth_service.dart';
 import '../main.dart';
 import '../widgets/auth_shell.dart';
@@ -40,7 +41,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
+      developer.log('Sending password reset email', name: 'Auth');
       await _authService.resetPassword(_emailController.text.trim());
+      developer.log('Password reset email sent', name: 'Auth');
       if (mounted) {
         setState(() => _emailSent = true);
         InteractiveMessageService.showSuccess(
@@ -51,6 +54,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
         );
       }
     } catch (e) {
+      developer.log('Password reset error: $e', name: 'Auth', level: 900);
       if (mounted) {
         InteractiveMessageService.showError(
           context,

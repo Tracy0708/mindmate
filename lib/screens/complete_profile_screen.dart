@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
 import '../services/auth_service.dart';
 import '../main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -39,11 +40,13 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
     setState(() => _isLoading = true);
 
     try {
+      developer.log('Completing profile setup', name: 'Auth');
       await AuthService().updateUserProfile(
         name: _nameController.text.trim(),
         age: int.tryParse(_ageController.text.trim()),
         gender: _selectedGender,
       );
+      developer.log('Profile setup completed', name: 'Auth');
       if (mounted) {
         InteractiveMessageService.showSuccess(
           context,
@@ -56,6 +59,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
         });
       }
     } catch (e) {
+      developer.log('Profile setup error: $e', name: 'Auth', level: 900);
       if (mounted) {
         InteractiveMessageService.showError(
           context,
@@ -113,8 +117,14 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                   hintText: 'Age', prefixIcon: Icon(Icons.cake_outlined)),
-              validator: (v) =>
-                  (v == null || v.isEmpty) ? 'Please enter your age' : null,
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Please enter your age';
+                final age = int.tryParse(v);
+                if (age == null || age < 1 || age > 150) {
+                  return 'Please enter a valid age between 1 and 150';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(

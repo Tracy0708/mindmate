@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
+import 'dart:developer' as developer;
 import '../models/user_model.dart';
 
 class AuthService {
@@ -99,25 +101,24 @@ class AuthService {
       userID: user.uid,
       userName: user.displayName ?? 'User',
       userEmail: user.email!,
-      userPassword: '',
     );
-    
+
     try {
-      print('--- Attempting to save user document to Firestore ---');
+      developer.log('Saving user document to Firestore', name: 'AuthService');
       await userDoc.set(newUser.toJson()).timeout(const Duration(seconds: 10));
-      print('--- Successfully saved user document ---');
+      developer.log('User document saved successfully', name: 'AuthService');
     } catch (e) {
-      print('--- Firestore Error: $e ---');
-      // We don't want to break the whole registration if Firestore hangs, 
-      // so we catch and print the error instead of throwing.
+      developer.log('Firestore error: $e', name: 'AuthService', level: 900);
+      rethrow; // Propagate error so caller knows registration had issues
     }
   }
 
   // Update user profile
-  Future<void> updateUserProfile({String? name, int? age, String? gender}) async {
+  Future<void> updateUserProfile(
+      {String? name, int? age, String? gender}) async {
     try {
       final user = currentUser;
-      if (user == null) throw 'No user logged in';
+      if (user == null) throw Exception('No user logged in');
 
       final updates = <String, dynamic>{};
       if (name != null) {
@@ -137,12 +138,23 @@ class AuthService {
 
       if (updates.isNotEmpty) {
         try {
-          print('--- Attempting to update user profile in Firestore ---');
-          await _firestore.collection('users').doc(user.uid).update(updates).timeout(const Duration(seconds: 10));
-          print('--- Successfully updated user profile ---');
+          developer.log('Updating user profile in Firestore',
+              name: 'AuthService');
+          await _firestore
+              .collection('users')
+              .doc(user.uid)
+              .update(updates)
+              .timeout(const Duration(seconds: 10));
+          developer.log('User profile updated successfully',
+              name: 'AuthService');
+        } on TimeoutException {
+          developer.log('Firestore update timed out',
+              name: 'AuthService', level: 900);
+          throw Exception('Update timed out. Please try again.');
         } catch (e) {
-          print('--- Firestore Update Error: $e ---');
-          // Catch and ignore timeout/offline errors so user is still allowed to navigate
+          developer.log('Firestore update error: $e',
+              name: 'AuthService', level: 900);
+          throw Exception('Failed to update profile: $e');
         }
       }
     } catch (e) {
@@ -156,6 +168,8 @@ class AuthService {
       final user = currentUser;
       if (user == null) return null;
 
+      developer.log('Fetching user profile from Firestore',
+          name: 'AuthService');
       final doc = await _firestore
           .collection('users')
           .doc(user.uid)
@@ -163,11 +177,17 @@ class AuthService {
           .timeout(const Duration(seconds: 10));
 
       if (doc.exists && doc.data() != null) {
+        developer.log('User profile fetched successfully', name: 'AuthService');
         return UserModel.fromJson(doc.data()!);
       }
       return null;
+    } on TimeoutException {
+      developer.log('getUserProfile timed out',
+          name: 'AuthService', level: 900);
+      return null;
     } catch (e) {
-      print('--- getUserProfile Error: $e ---');
+      developer.log('getUserProfile error: $e',
+          name: 'AuthService', level: 900);
       return null;
     }
   }
@@ -181,8 +201,8 @@ class AuthService {
       await _firestore
           .collection('users')
           .doc(user.uid)
-          .update({'settings.notificationPrefs': prefs})
-          .timeout(const Duration(seconds: 10));
+          .update({'settings.notificationPrefs': prefs}).timeout(
+              const Duration(seconds: 10));
     } catch (e) {
       print('--- Notification Prefs Update Error: $e ---');
     }
@@ -194,11 +214,8 @@ class AuthService {
       final user = currentUser;
       if (user == null) throw 'No user logged in';
 
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .update({'settings.reminderTime': time})
-          .timeout(const Duration(seconds: 10));
+      await _firestore.collection('users').doc(user.uid).update(
+          {'settings.reminderTime': time}).timeout(const Duration(seconds: 10));
     } catch (e) {
       print('--- Reminder Time Update Error: $e ---');
     }

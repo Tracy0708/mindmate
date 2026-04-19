@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
+import 'package:firebase_auth/firebase_auth.dart';
 import '../main.dart';
 import '../models/emotion_log.dart';
 import '../services/interactive_message_service.dart';
@@ -38,6 +40,17 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen> {
       );
       return;
     }
+
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      InteractiveMessageService.showError(
+        context,
+        title: 'Error',
+        message: 'User not authenticated',
+      );
+      return;
+    }
+
     // Simulation mapping...
     int score = 3;
     if (_selectedMood == 'Happy') score = 5;
@@ -47,12 +60,15 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen> {
 
     final log = EmotionLog(
       logID: DateTime.now().millisecondsSinceEpoch.toString(),
-      userID: '123', // mockup
+      userID: currentUser.uid,
       emotionType: _selectedMood!,
       intensityScore: score,
       notes: _noteController.text,
       timestamp: DateTime.now(),
     );
+
+    developer.log('Mood saved: $_selectedMood (score: $score)',
+        name: 'MoodTracking');
 
     InteractiveMessageService.showSuccess(
       context,

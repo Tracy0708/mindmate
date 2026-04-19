@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
 import '../services/auth_service.dart';
 import '../main.dart';
 import '../widgets/auth_shell.dart';
@@ -69,26 +70,38 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   Future<void> _register() async {
     try {
-      print('--- Registration Started ---');
+      developer.log('Registration started', name: 'Auth');
       setState(() => _isLoading = true);
 
-      print('1. Calling registerWithEmailPassword...');
+      // Validate age
+      final ageText = _ageController.text.trim();
+      if (ageText.isNotEmpty) {
+        final age = int.tryParse(ageText);
+        if (age == null || age < 1 || age > 150) {
+          InteractiveMessageService.showError(
+            context,
+            title: 'Invalid age',
+            message: 'Please enter a valid age between 1 and 150',
+          );
+          setState(() => _isLoading = false);
+          return;
+        }
+      }
+
+      developer.log('Creating user account', name: 'Auth');
       await _authService.registerWithEmailPassword(
         _emailController.text.trim(),
         _passwordController.text,
       );
-      print('1. Successly finished registerWithEmailPassword');
 
-      print('2. Calling updateUserProfile...');
-      // Update profile info
+      developer.log('Updating user profile', name: 'Auth');
       await _authService.updateUserProfile(
         name: _nameController.text.trim(),
-        age: int.tryParse(_ageController.text.trim()),
+        age: int.tryParse(ageText),
         gender: _selectedGender,
       );
-      print('2. Successfully finished updateUserProfile');
 
-      print('3. Navigating to dashboard...');
+      developer.log('Registration successful', name: 'Auth');
       if (mounted) {
         InteractiveMessageService.showSuccess(
           context,
@@ -101,8 +114,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         });
       }
     } catch (e, stacktrace) {
-      print('!!! REGISTRATION ERROR !!!: $e');
-      print(stacktrace);
+      developer.log('Registration error: $e',
+          stackTrace: stacktrace, name: 'Auth', level: 1000);
       if (mounted) {
         InteractiveMessageService.showError(
           context,
@@ -111,7 +124,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         );
       }
     } finally {
-      print('--- Registration Block Ended ---');
       if (mounted) setState(() => _isLoading = false);
     }
   }
