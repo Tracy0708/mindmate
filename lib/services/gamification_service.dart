@@ -65,6 +65,9 @@ class GamificationService {
     final achievements = querySnapshot.docs
         .map((doc) => GamificationHistory.fromJson(doc.data()))
         .toList();
+    
+    // Sort by timestamp descending so recentAchievements are actually recent
+    achievements.sort((a, b) => b.achievementTimestamp.compareTo(a.achievementTimestamp));
 
     final stats = {
       'totalPoints': 0,

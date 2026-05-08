@@ -6,6 +6,8 @@ import '../main.dart';
 import '../services/interactive_message_service.dart';
 import '../viewmodels/emotion_viewmodel.dart';
 import '../viewmodels/gamification_viewmodel.dart';
+import 'gamification_screen.dart';
+import 'avatar_store_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -62,6 +64,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         .take(2)
         .join()
         .toUpperCase();
+  }
+
+  String get _avatarEmoji {
+    final avatarId = _userProfile?.settings['equippedAvatar'] as String? ?? 'default';
+    if (avatarId == 'fox') return '🦊';
+    if (avatarId == 'owl') return '🦉';
+    if (avatarId == 'bear') return '🐻';
+    if (avatarId == 'panda') return '🐼';
+    if (avatarId == 'lion') return '🦁';
+    return '';
   }
 
   bool get _notificationsEnabled {
@@ -307,6 +319,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final logCount = emotionVm.logCount;
         final completedActivities = emotionVm.completedActivityCount;
         final totalPoints = gamVm.totalPoints;
+        final recentAch = (gamVm.userStats?['recentAchievements'] as List?) ?? [];
 
         // Determine unlocked badge count from real data
         int unlockedBadges = 0;
@@ -341,22 +354,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     color: Color(0xFFFFE0A0),
                                     shape: BoxShape.circle),
                                 alignment: Alignment.center,
-                                child: Text(_initials,
-                                    style: const TextStyle(
-                                        fontSize: 40,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.golden)),
+                                child: _avatarEmoji.isNotEmpty
+                                    ? Text(_avatarEmoji, style: const TextStyle(fontSize: 50))
+                                    : Text(_initials,
+                                        style: const TextStyle(
+                                            fontSize: 40,
+                                            fontWeight: FontWeight.w800,
+                                            color: AppColors.golden)),
                               ),
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                    color: Colors.white, shape: BoxShape.circle),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(context, MaterialPageRoute(builder: (_) => const AvatarStoreScreen())).then((_) => _loadProfile());
+                                },
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: const BoxDecoration(
-                                      color: Colors.green, shape: BoxShape.circle),
-                                  child: const Icon(Icons.check,
-                                      color: Colors.white, size: 14),
+                                      color: Colors.white, shape: BoxShape.circle),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: const BoxDecoration(
+                                        color: AppColors.golden, shape: BoxShape.circle),
+                                    child: const Icon(Icons.edit,
+                                        color: Colors.white, size: 14),
+                                  ),
                                 ),
                               )
                             ],
@@ -471,44 +491,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       color: AppColors.golden, size: 20),
                                 ),
                                 const SizedBox(width: 12),
-                                const Text('Recent Achievements',
-                                    style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.brownDark)),
+                                const Expanded(
+                                  child: Text('Recent Achievements',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.brownDark)),
+                                ),
+                                GestureDetector(
+                                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GamificationScreen())),
+                                  child: const Text('See All →', style: TextStyle(color: AppColors.golden, fontWeight: FontWeight.w700, fontSize: 13)),
+                                ),
                               ],
                             ),
                           ),
                           const SizedBox(height: 16),
                           SizedBox(
-                            height: 120,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(horizontal: 24),
-                              children: [
-                                _AchievementBox(
-                                  icon: Icons.edit_note,
-                                  color: const Color(0xFF4CAF50),
-                                  label: 'Mood Logger',
-                                  sublabel: '$logCount moods logged',
-                                  unlocked: logCount > 0,
+                            height: 140,
+                            child: recentAch.isEmpty 
+                              ? const Center(child: Text('Complete activities to earn achievements!', style: TextStyle(color: AppColors.brownMedium)))
+                              : ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                                  itemCount: recentAch.length,
+                                  itemBuilder: (context, index) {
+                                    final ach = recentAch[index] as Map<String, dynamic>;
+                                    final title = ach['achievement'] as String;
+                                    final points = ach['points'] as int;
+
+                                    IconData icon = Icons.star;
+                                    Color color = AppColors.golden;
+
+                                    if (title.contains('Streak') || title.contains('Warrior') || title.contains('Master') || title.contains('Champion') || title.contains('Centurion')) {
+                                      icon = Icons.emoji_events;
+                                      color = const Color(0xFFFFB300);
+                                    } else if (title.contains('Activity')) {
+                                      icon = Icons.spa;
+                                      color = const Color(0xFF009688);
+                                    } else if (title.contains('First Step')) {
+                                      icon = Icons.favorite;
+                                      color = const Color(0xFFF44336);
+                                    } else if (title.contains('Mood Logged')) {
+                                      icon = Icons.edit_note;
+                                      color = const Color(0xFF4CAF50);
+                                    }
+
+                                    // Truncate long activity titles
+                                    String displayTitle = title.replaceAll('Activity Completed: ', '');
+                                    if (displayTitle.length > 15) {
+                                      displayTitle = '${displayTitle.substring(0, 13)}...';
+                                    }
+
+                                    return _AchievementBox(
+                                      icon: icon,
+                                      color: color,
+                                      label: displayTitle,
+                                      sublabel: '+$points pts',
+                                      unlocked: true,
+                                    );
+                                  },
                                 ),
-                                _AchievementBox(
-                                  icon: Icons.local_fire_department,
-                                  color: const Color(0xFFFF5722),
-                                  label: 'On Fire',
-                                  sublabel: '$streak day streak',
-                                  unlocked: streak > 0,
-                                ),
-                                _AchievementBox(
-                                  icon: Icons.spa,
-                                  color: const Color(0xFF9C27B0),
-                                  label: 'Self-Care',
-                                  sublabel: '$completedActivities done',
-                                  unlocked: completedActivities > 0,
-                                ),
-                              ],
-                            ),
                           ),
                           const SizedBox(height: 40),
 
@@ -677,13 +719,13 @@ class _AchievementBox extends StatelessWidget {
         children: [
           Icon(icon, size: 36, color: unlocked ? color : Colors.grey.shade400),
           const SizedBox(height: 8),
-          Text(label, style: TextStyle(
+          Text(label, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 13,
             color: unlocked ? AppColors.brownDark : Colors.grey,
           )),
           const SizedBox(height: 4),
-          Text(sublabel, style: TextStyle(
+          Text(sublabel, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(
             fontSize: 11,
             color: unlocked ? AppColors.brownMedium : Colors.grey.shade400,
           )),

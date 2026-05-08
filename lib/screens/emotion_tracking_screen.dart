@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../main.dart';
 import '../viewmodels/emotion_viewmodel.dart';
 import '../services/interactive_message_service.dart';
+import '../viewmodels/gamification_viewmodel.dart';
 import 'activity_screen.dart';
 
 class EmotionTrackingScreen extends StatefulWidget {
@@ -52,12 +53,28 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
     }
 
     final vm = Provider.of<EmotionViewModel>(context, listen: false);
+    final wasLoggedToday = vm.hasLoggedToday;
     final success = await vm.submitEmotion(
       emotionType: _selectedMood!,
       notes: _noteController.text.isNotEmpty ? _noteController.text : null,
     );
 
     if (success && mounted) {
+      if (!wasLoggedToday) {
+        final gamVm = Provider.of<GamificationViewModel>(context, listen: false);
+        await gamVm.awardMoodLogPoints();
+        final streakAch = await gamVm.checkStreakMilestones(vm.streak);
+        final firstAch = await gamVm.checkFirstLogMilestone(vm.logCount);
+        await gamVm.fetchUserStats();
+
+        final allAch = [...streakAch, if (firstAch != null) firstAch];
+        if (allAch.isNotEmpty && mounted) {
+          for (var a in allAch) {
+            InteractiveMessageService.showSuccess(context, title: 'Achievement Unlocked! 🏆', message: 'You earned ${a.achievement} (+${a.pointsEarned} pts)');
+          }
+        }
+      }
+
       InteractiveMessageService.showSuccess(context, title: 'Mood saved! 😊', message: 'You\'re feeling $_selectedMood');
       setState(() => _showRecommendation = true);
       _animController.forward(from: 0);

@@ -77,9 +77,9 @@ class GamificationViewModel extends ChangeNotifier {
   }
 
   /// Check and award streak milestones
-  Future<void> checkStreakMilestones(int currentStreak) async {
+  Future<List<GamificationHistory>> checkStreakMilestones(int currentStreak) async {
     final userId = _currentUserId;
-    if (userId == null) return;
+    if (userId == null) return [];
 
     try {
       final awarded = await _gamificationService.checkAndAwardStreaks(userId, currentStreak);
@@ -89,8 +89,54 @@ class GamificationViewModel extends ChangeNotifier {
         }
         notifyListeners();
       }
+      return awarded;
     } catch (e) {
       developer.log('Failed to check streak milestones: $e', name: 'GamificationVM');
+      return [];
+    }
+  }
+
+  /// Check and award first mood log milestone
+  Future<GamificationHistory?> checkFirstLogMilestone(int logCount) async {
+    if (logCount != 1) return null; // Only for the very first log
+    final userId = _currentUserId;
+    if (userId == null) return null;
+
+    try {
+      final achievement = await _gamificationService.recordAchievement(
+        userID: userId,
+        achievement: 'First Step',
+        points: 50,
+        metadata: {'type': 'milestone', 'milestone': 'first_log'},
+      );
+      _totalPoints += 50;
+      notifyListeners();
+      return achievement;
+    } catch (e) {
+      developer.log('Failed to award first log milestone: $e', name: 'GamificationVM');
+      return null;
+    }
+  }
+
+  /// Spend points on an item
+  Future<bool> spendPoints(String itemName, int cost) async {
+    final userId = _currentUserId;
+    if (userId == null) return false;
+    if (_totalPoints < cost) return false;
+
+    try {
+      await _gamificationService.recordAchievement(
+        userID: userId,
+        achievement: 'Unlocked Avatar: $itemName',
+        points: -cost,
+        metadata: {'type': 'purchase', 'item': itemName},
+      );
+      _totalPoints -= cost;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      developer.log('Failed to spend points: $e', name: 'GamificationVM');
+      return false;
     }
   }
 }

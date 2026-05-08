@@ -58,6 +58,34 @@ class _GamificationScreenState extends State<GamificationScreen> {
             unlocked: streak >= 30,
             progress: '${streak.clamp(0, 30)}/30 days',
           ),
+          _BadgeData(
+            iconType: 'first',
+            title: 'First Step',
+            label: 'Log 1 mood',
+            unlocked: logCount >= 1,
+            progress: '${logCount.clamp(0, 1)}/1 logs',
+          ),
+          _BadgeData(
+            iconType: 'activity',
+            title: 'Beginner',
+            label: '1 activity',
+            unlocked: emotionVm.completedActivityCount >= 1,
+            progress: '${emotionVm.completedActivityCount.clamp(0, 1)}/1 acts',
+          ),
+          _BadgeData(
+            iconType: 'activity',
+            title: 'Pro',
+            label: '10 activities',
+            unlocked: emotionVm.completedActivityCount >= 10,
+            progress: '${emotionVm.completedActivityCount.clamp(0, 10)}/10 acts',
+          ),
+          _BadgeData(
+            iconType: 'zen',
+            title: 'Zen Master',
+            label: '5 breathing',
+            unlocked: emotionVm.breathingSessionCount >= 5,
+            progress: '${emotionVm.breathingSessionCount.clamp(0, 5)}/5 acts',
+          ),
         ];
 
         return Scaffold(
@@ -227,6 +255,15 @@ class _BadgeCard extends StatelessWidget {
       } else if (iconType == 'star') {
         d = Icons.star;
         c = unlocked ? const Color(0xFF4CAF50) : const Color(0xFF9E9E9E);
+      } else if (iconType == 'first') {
+        d = Icons.favorite;
+        c = unlocked ? const Color(0xFFF44336) : const Color(0xFF9E9E9E);
+      } else if (iconType == 'activity') {
+        d = Icons.spa;
+        c = unlocked ? const Color(0xFF009688) : const Color(0xFF9E9E9E);
+      } else if (iconType == 'zen') {
+        d = Icons.air;
+        c = unlocked ? const Color(0xFF03A9F4) : const Color(0xFF9E9E9E);
       } else {
         d = Icons.nightlight_round;
         c = unlocked ? const Color(0xFF7C4DFF) : const Color(0xFF9E9E9E);

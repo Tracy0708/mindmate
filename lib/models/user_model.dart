@@ -26,6 +26,8 @@ class UserModel {
               'darkMode': false,
               'language': 'en',
               'notificationPrefs': <String, bool>{},
+              'equippedAvatar': 'default',
+              'unlockedAvatars': ['default'],
             };
 
   Map<String, dynamic> toJson() {
@@ -66,6 +68,8 @@ class UserModel {
               'darkMode': false,
               'language': 'en',
               'notificationPrefs': <String, bool>{},
+              'equippedAvatar': 'default',
+              'unlockedAvatars': ['default'],
             },
     );
   }

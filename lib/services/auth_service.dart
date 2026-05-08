@@ -280,6 +280,33 @@ class AuthService {
     }
   }
 
+  // Equip avatar
+  Future<void> updateEquippedAvatar(String avatarId) async {
+    try {
+      final user = currentUser;
+      if (user == null) throw 'No user logged in';
+
+      await _firestore.collection('users').doc(user.uid).update(
+          {'settings.equippedAvatar': avatarId}).timeout(const Duration(seconds: 10));
+    } catch (e) {
+      print('--- Avatar Update Error: $e ---');
+    }
+  }
+
+  // Unlock avatar
+  Future<void> unlockAvatar(String avatarId) async {
+    try {
+      final user = currentUser;
+      if (user == null) throw 'No user logged in';
+
+      await _firestore.collection('users').doc(user.uid).update({
+        'settings.unlockedAvatars': FieldValue.arrayUnion([avatarId])
+      }).timeout(const Duration(seconds: 10));
+    } catch (e) {
+      print('--- Avatar Unlock Error: $e ---');
+    }
+  }
+
   // Handle authentication exceptions
   String _handleAuthException(dynamic e) {
     if (e is FirebaseAuthException) {

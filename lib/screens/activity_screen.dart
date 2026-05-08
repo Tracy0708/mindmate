@@ -6,6 +6,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import '../main.dart';
 import '../services/emotion_service.dart';
 import '../viewmodels/emotion_viewmodel.dart';
+import '../viewmodels/gamification_viewmodel.dart';
 import '../services/interactive_message_service.dart';
 
 class ActivityScreen extends StatefulWidget {
@@ -253,7 +254,11 @@ class _ActivityScreenState extends State<ActivityScreen>
       notes: widget.activity.activityType == 'journaling' ? _journalController.text : null,
     );
     if (mounted && success) {
-      InteractiveMessageService.showSuccess(context, title: 'Activity Complete! 🎉', message: 'Great job taking care of yourself.');
+      final gamVm = Provider.of<GamificationViewModel>(context, listen: false);
+      await gamVm.awardActivityPoints(widget.activity.title);
+      await gamVm.fetchUserStats();
+
+      InteractiveMessageService.showSuccess(context, title: 'Activity Complete! 🎉', message: 'Great job taking care of yourself. (+25 pts)');
     }
   }
 

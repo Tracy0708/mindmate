@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../viewmodels/emotion_viewmodel.dart';
+import '../viewmodels/gamification_viewmodel.dart';
 import '../services/interactive_message_service.dart';
 
 /// Bottom sheet dialog shown at app launch when no emotion has been logged today (NF1, NF2)
@@ -51,8 +52,24 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
       return;
     }
     final vm = Provider.of<EmotionViewModel>(context, listen: false);
+    final wasLoggedToday = vm.hasLoggedToday;
     final success = await vm.submitEmotion(emotionType: _selectedMood!, notes: _noteController.text.isNotEmpty ? _noteController.text : null);
     if (mounted && success) {
+      if (!wasLoggedToday) {
+        final gamVm = Provider.of<GamificationViewModel>(context, listen: false);
+        await gamVm.awardMoodLogPoints();
+        final streakAch = await gamVm.checkStreakMilestones(vm.streak);
+        final firstAch = await gamVm.checkFirstLogMilestone(vm.logCount);
+        await gamVm.fetchUserStats();
+
+        final allAch = [...streakAch, if (firstAch != null) firstAch];
+        if (allAch.isNotEmpty && mounted) {
+          for (var a in allAch) {
+            InteractiveMessageService.showSuccess(context, title: 'Achievement Unlocked! 🏆', message: 'You earned ${a.achievement} (+${a.pointsEarned} pts)');
+          }
+        }
+      }
+
       Navigator.pop(context);
       widget.onCompleted?.call();
     }
