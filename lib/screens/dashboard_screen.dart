@@ -10,6 +10,7 @@ import 'chatbot_screen.dart';
 import 'profile_screen.dart';
 import 'calendar_screen.dart';
 import 'activity_screen.dart';
+import 'insights_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -52,7 +53,7 @@ class DashboardScreenState extends State<DashboardScreen> {
         index: _selectedIndex,
         children: [
           _HomeTab(onNavigate: _onNavigate),
-          const EmotionTrackingScreen(),
+          const InsightsScreen(),
           const CalendarScreen(),
           const ChatbotScreen(),
           const ProfileScreen(),
@@ -80,7 +81,7 @@ class DashboardScreenState extends State<DashboardScreen> {
             height: 65,
             destinations: const [
               NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home, color: AppColors.golden), label: 'Home'),
-              NavigationDestination(icon: Icon(Icons.add), selectedIcon: Icon(Icons.add, color: AppColors.golden), label: 'Log Mood'),
+              NavigationDestination(icon: Icon(Icons.insights_outlined), selectedIcon: Icon(Icons.insights, color: AppColors.golden), label: 'Insights'),
               NavigationDestination(icon: Icon(Icons.calendar_today_outlined), selectedIcon: Icon(Icons.calendar_month, color: AppColors.golden), label: 'Calendar'),
               NavigationDestination(icon: Icon(Icons.chat_bubble_outline), selectedIcon: Icon(Icons.chat_bubble, color: AppColors.golden), label: 'Chat'),
               NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person, color: AppColors.golden), label: 'Profile'),
@@ -130,7 +131,7 @@ class _HomeTab extends StatelessWidget {
                 _TodayCard(
                   mood: todaysMood,
                   streak: streak,
-                  onLogMood: () => onNavigate(1),
+                  onLogMood: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmotionTrackingScreen())),
                 ),
                 const SizedBox(height: 28),
 

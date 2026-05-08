@@ -1,138 +1,400 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import '../main.dart';
+import '../models/emotion_insight.dart';
+import '../models/emotion_log.dart';
+import '../viewmodels/insights_viewmodel.dart';
+import '../services/emotion_service.dart';
+import 'activity_screen.dart';
 
 class InsightsScreen extends StatefulWidget {
   const InsightsScreen({super.key});
-
   @override
   State<InsightsScreen> createState() => _InsightsScreenState();
 }
 
 class _InsightsScreenState extends State<InsightsScreen> {
-  int _selectedTab = 0;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<InsightsViewModel>(context, listen: false).fetchInsights();
+    });
+  }
+
+  static const _emojiMap = {'Happy':'😊','Sad':'😢','Anxious':'😰','Angry':'😠','Calm':'😌','Tired':'😴'};
+  static const _emotionColors = {
+    'Happy': Color(0xFF4CAF50), 'Sad': Color(0xFF42A5F5), 'Anxious': Color(0xFFFF7043),
+    'Angry': Color(0xFFE53935), 'Calm': Color(0xFF26A69A), 'Tired': Color(0xFF7E57C2),
+  };
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.creamLight,
-      appBar: AppBar(
-        title: const Text('Weekly Insights', style: TextStyle(color: AppColors.golden, fontWeight: FontWeight.w800, fontSize: 24)),
-        centerTitle: true,
+    return Consumer<InsightsViewModel>(builder: (context, vm, _) {
+      return Scaffold(
         backgroundColor: AppColors.creamLight,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            // Tabs
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _TabButton(title: 'This Week', isSelected: _selectedTab == 0, onTap: () => setState(() => _selectedTab = 0)),
-                _TabButton(title: 'Last Week', isSelected: _selectedTab == 1, onTap: () => setState(() => _selectedTab = 1)),
-                _TabButton(title: 'This Month', isSelected: _selectedTab == 2, onTap: () => setState(() => _selectedTab = 2)),
-              ],
-            ),
-            const SizedBox(height: 32),
-
-            // Big Summary Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFE0A0), // specific logic for light yellow
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Column(
-                children: [
-                  Text('😊', style: TextStyle(fontSize: 48)),
-                  SizedBox(height: 24),
-                  Text(
-                    'Your mood has been mostly positive this week!',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.brownDark, height: 1.4),
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'Keep up the great work!',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: AppColors.brownMedium),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // 2x2 Grid of Stats
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: 1.3,
-              children: const [
-                _StatCard(value: '75%', label: 'Positive Moods'),
-                _StatCard(value: '12', label: 'Mood Logs'),
-                _StatCard(value: '8', label: 'Calm Days'),
-                _StatCard(value: '3', label: 'Stress Days'),
-              ],
-            ),
-          ],
+        appBar: AppBar(
+          title: const Text('Mental Health Insights', style: TextStyle(color: AppColors.golden, fontWeight: FontWeight.w800, fontSize: 22)),
+          centerTitle: true,
         ),
+        body: vm.isLoading
+            ? const Center(child: CircularProgressIndicator(color: AppColors.golden))
+            : vm.errorMessage != null
+                ? _errorView(vm)
+                : RefreshIndicator(
+                    color: AppColors.golden,
+                    onRefresh: () => vm.fetchInsights(),
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+                      child: _buildContent(vm),
+                    ),
+                  ),
+      );
+    });
+  }
+
+  Widget _errorView(InsightsViewModel vm) {
+    return Center(child: Padding(padding: const EdgeInsets.all(32), child: Column(
+      mainAxisAlignment: MainAxisAlignment.center, children: [
+        const Icon(Icons.cloud_off, size: 64, color: AppColors.brownLight),
+        const SizedBox(height: 16),
+        Text(vm.errorMessage!, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, color: AppColors.brownMedium)),
+        const SizedBox(height: 24),
+        ElevatedButton(onPressed: () => vm.fetchInsights(), style: ElevatedButton.styleFrom(backgroundColor: AppColors.golden), child: const Text('Retry', style: TextStyle(color: Colors.white))),
+      ],
+    )));
+  }
+
+  Widget _buildContent(InsightsViewModel vm) {
+    final insight = vm.currentInsight;
+    if (insight == null) return const SizedBox.shrink();
+
+    // EF1: No data
+    if (insight.totalLogs == 0 && insight.mostFrequentEmotion == 'None') {
+      return _emptyState();
+    }
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      // 1. Date Range Tabs (AF1)
+      _rangeTabs(vm),
+      const SizedBox(height: 24),
+      // 2. Trend Summary Card (NF3)
+      _trendSummaryCard(insight),
+      const SizedBox(height: 24),
+      // 3. Mood Line Chart (NF4)
+      if (insight.dailyScores.length >= 2) ...[
+        _sectionHeader('Mood Over Time'),
+        const SizedBox(height: 12),
+        _moodLineChart(insight),
+        const SizedBox(height: 24),
+      ],
+      // 4. Emotion Distribution (NF4)
+      if (insight.emotionFrequencies.isNotEmpty) ...[
+        _sectionHeader('Emotion Breakdown'),
+        const SizedBox(height: 12),
+        _emotionPieChart(insight),
+        const SizedBox(height: 24),
+      ],
+      // 5. Stats Grid (NF3)
+      _statsGrid(insight),
+      const SizedBox(height: 24),
+      // 6. Suggestions (NF6)
+      if (insight.suggestions.isNotEmpty) ...[
+        _sectionHeader('Suggestions For You'),
+        const SizedBox(height: 12),
+        ...insight.suggestions.map((s) => _suggestionCard(s)),
+      ],
+      const SizedBox(height: 24),
+      // 7. Mood History Timeline (NF4, NF5)
+      if (vm.logs.isNotEmpty) ...[
+        _sectionHeader('Mood History'),
+        const SizedBox(height: 12),
+        ...vm.logs.take(10).map((log) => _timelineItem(log)),
+      ],
+    ]);
+  }
+
+  // ─── EMPTY STATE (EF1) ───
+  Widget _emptyState() {
+    return Center(child: Padding(padding: const EdgeInsets.symmetric(vertical: 80), child: Column(children: [
+      Container(
+        padding: const EdgeInsets.all(24), decoration: BoxDecoration(color: AppColors.golden.withOpacity(0.12), shape: BoxShape.circle),
+        child: const Icon(Icons.insights, size: 64, color: AppColors.golden),
       ),
+      const SizedBox(height: 24),
+      const Text('No Insights Yet', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
+      const SizedBox(height: 12),
+      const Text('Start tracking your emotions to see\npersonalized insights and trends here.', textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: AppColors.brownMedium, height: 1.5)),
+      const SizedBox(height: 32),
+      ElevatedButton.icon(
+        onPressed: () => Navigator.pop(context),
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Log Your First Mood', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        style: ElevatedButton.styleFrom(backgroundColor: AppColors.golden, padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+      ),
+    ])));
+  }
+
+  // ─── RANGE TABS (AF1) ───
+  Widget _rangeTabs(InsightsViewModel vm) {
+    const tabs = [('week', 'Week'), ('month', 'Month'), ('3months', '3 Months')];
+    return Row(children: tabs.map((t) {
+      final isSelected = vm.selectedRange == t.$1;
+      return Expanded(child: GestureDetector(
+        onTap: () => vm.setRange(t.$1),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.golden : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: isSelected ? AppColors.golden : AppColors.golden.withOpacity(0.3)),
+          ),
+          child: Center(child: Text(t.$2, style: TextStyle(color: isSelected ? Colors.white : AppColors.brownDark, fontWeight: FontWeight.w700, fontSize: 14))),
+        ),
+      ));
+    }).toList());
+  }
+
+  // ─── TREND SUMMARY (NF3) ───
+  Widget _trendSummaryCard(EmotionInsight insight) {
+    final emoji = _emojiMap[insight.mostFrequentEmotion] ?? '📊';
+    IconData trendIcon; Color trendColor; String trendLabel;
+    switch (insight.trendDirection) {
+      case 'improving': trendIcon = Icons.trending_up; trendColor = const Color(0xFF4CAF50); trendLabel = 'Improving'; break;
+      case 'declining': trendIcon = Icons.trending_down; trendColor = const Color(0xFFE53935); trendLabel = 'Declining'; break;
+      default: trendIcon = Icons.trending_flat; trendColor = AppColors.golden; trendLabel = 'Stable';
+    }
+
+    return Container(
+      width: double.infinity, padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [AppColors.golden.withOpacity(0.15), AppColors.golden.withOpacity(0.05)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(24), border: Border.all(color: AppColors.golden.withOpacity(0.2)),
+      ),
+      child: Column(children: [
+        Text(emoji, style: const TextStyle(fontSize: 48)),
+        const SizedBox(height: 12),
+        if (insight.mostFrequentEmotion != 'None')
+          Text('Most frequent: ${insight.mostFrequentEmotion}', style: const TextStyle(fontSize: 13, color: AppColors.brownMedium, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 12),
+        Text(insight.trendSummary, textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.brownDark, height: 1.4)),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(color: trendColor.withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(trendIcon, size: 18, color: trendColor),
+            const SizedBox(width: 6),
+            Text(trendLabel, style: TextStyle(color: trendColor, fontWeight: FontWeight.w700, fontSize: 14)),
+          ]),
+        ),
+      ]),
     );
   }
-}
 
-class _TabButton extends StatelessWidget {
-  final String title;
-  final bool isSelected;
-  final VoidCallback onTap;
+  // ─── MOOD LINE CHART (NF4) ───
+  Widget _moodLineChart(EmotionInsight insight) {
+    final scores = insight.dailyScores;
+    final spots = <FlSpot>[];
+    for (int i = 0; i < scores.length; i++) {
+      spots.add(FlSpot(i.toDouble(), scores[i].score));
+    }
 
-  const _TabButton({required this.title, required this.isSelected, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.golden : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
+    return Container(
+      height: 220, padding: const EdgeInsets.fromLTRB(8, 16, 16, 8),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))]),
+      child: LineChart(LineChartData(
+        minY: 0, maxY: 5.5,
+        gridData: FlGridData(
+          show: true, drawVerticalLine: false,
+          horizontalInterval: 1,
+          getDrawingHorizontalLine: (v) => FlLine(color: AppColors.golden.withOpacity(0.1), strokeWidth: 1),
         ),
-        child: Text(
-          title,
-          style: TextStyle(
-            color: isSelected ? Colors.white : AppColors.brownMedium,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-            fontSize: 14,
+        titlesData: FlTitlesData(
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          leftTitles: AxisTitles(sideTitles: SideTitles(
+            showTitles: true, reservedSize: 30, interval: 1,
+            getTitlesWidget: (v, _) {
+              if (v == 1) return const Text('😠', style: TextStyle(fontSize: 12));
+              if (v == 3) return const Text('😐', style: TextStyle(fontSize: 12));
+              if (v == 5) return const Text('😊', style: TextStyle(fontSize: 12));
+              return const SizedBox.shrink();
+            },
+          )),
+          bottomTitles: AxisTitles(sideTitles: SideTitles(
+            showTitles: true, reservedSize: 28, interval: _bottomInterval(scores.length),
+            getTitlesWidget: (v, _) {
+              final i = v.toInt();
+              if (i < 0 || i >= scores.length) return const SizedBox.shrink();
+              return Text(DateFormat('d/M').format(scores[i].date), style: const TextStyle(fontSize: 10, color: AppColors.brownMedium));
+            },
+          )),
+        ),
+        borderData: FlBorderData(show: false),
+        lineBarsData: [
+          LineChartBarData(
+            spots: spots, isCurved: true, curveSmoothness: 0.3,
+            color: AppColors.golden, barWidth: 3, dotData: FlDotData(show: scores.length <= 14),
+            belowBarData: BarAreaData(show: true, color: AppColors.golden.withOpacity(0.08)),
+          ),
+        ],
+        lineTouchData: LineTouchData(
+          touchTooltipData: LineTouchTooltipData(
+            getTooltipItems: (spots) => spots.map((s) {
+              final i = s.spotIndex;
+              final date = i < scores.length ? DateFormat('MMM d').format(scores[i].date) : '';
+              return LineTooltipItem('$date\nScore: ${s.y.toStringAsFixed(1)}', const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12));
+            }).toList(),
           ),
         ),
+      )),
+    );
+  }
+
+  double _bottomInterval(int count) {
+    if (count <= 7) return 1;
+    if (count <= 14) return 2;
+    if (count <= 30) return 5;
+    return 10;
+  }
+
+  // ─── EMOTION PIE CHART (NF4) ───
+  Widget _emotionPieChart(EmotionInsight insight) {
+    final freq = insight.emotionFrequencies;
+    final total = freq.values.fold(0, (a, b) => a + b);
+    final sections = <PieChartSectionData>[];
+    freq.forEach((emotion, count) {
+      final pct = (count / total * 100);
+      sections.add(PieChartSectionData(
+        value: count.toDouble(), title: '${pct.round()}%',
+        color: _emotionColors[emotion] ?? Colors.grey, radius: 50,
+        titleStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
+      ));
+    });
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))]),
+      child: Row(children: [
+        SizedBox(height: 160, width: 160, child: PieChart(PieChartData(sections: sections, centerSpaceRadius: 30, sectionsSpace: 2))),
+        const SizedBox(width: 24),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: freq.entries.map((e) {
+          final color = _emotionColors[e.key] ?? Colors.grey;
+          final emoji = _emojiMap[e.key] ?? '🙂';
+          return Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(children: [
+            Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+            const SizedBox(width: 8),
+            Text('$emoji ${e.key}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.brownDark)),
+            const Spacer(),
+            Text('${e.value}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.brownMedium)),
+          ]));
+        }).toList())),
+      ]),
+    );
+  }
+
+  // ─── STATS GRID (NF3) ───
+  Widget _statsGrid(EmotionInsight insight) {
+    return GridView.count(
+      shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2, mainAxisSpacing: 12, crossAxisSpacing: 12, childAspectRatio: 1.5,
+      children: [
+        _statCard('${insight.totalLogs}', 'Total Logs', Icons.edit_note, const Color(0xFF42A5F5)),
+        _statCard('${insight.positiveDays}', 'Positive Days', Icons.sentiment_satisfied, const Color(0xFF4CAF50)),
+        _statCard(insight.averageIntensity.toStringAsFixed(1), 'Avg Score', Icons.speed, AppColors.golden),
+        _statCard('${insight.negativeDays}', 'Tough Days', Icons.sentiment_dissatisfied, const Color(0xFFE53935)),
+      ],
+    );
+  }
+
+  Widget _statCard(String value, String label, IconData icon, Color color) {
+    return Container(
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 3))]),
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Icon(icon, color: color, size: 22),
+        const SizedBox(height: 6),
+        Text(value, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: color)),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.brownMedium)),
+      ]),
+    );
+  }
+
+  // ─── SUGGESTIONS (NF6) ───
+  Widget _suggestionCard(InsightSuggestion s) {
+    return GestureDetector(
+      onTap: () => _launchSuggestion(s),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12), padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.golden.withOpacity(0.2))),
+        child: Row(children: [
+          Text(s.icon, style: const TextStyle(fontSize: 32)),
+          const SizedBox(width: 16),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(s.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.brownDark)),
+            const SizedBox(height: 4),
+            Text(s.description, style: const TextStyle(fontSize: 13, color: AppColors.brownMedium, height: 1.4)),
+          ])),
+          const Icon(Icons.chevron_right, color: AppColors.golden),
+        ]),
       ),
     );
   }
-}
 
-class _StatCard extends StatelessWidget {
-  final String value, label;
-  const _StatCard({required this.value, required this.label});
+  void _launchSuggestion(InsightSuggestion s) {
+    if (s.actionType == 'chatbot') {
+      Navigator.pop(context); // go back, user can tap Chat tab
+      return;
+    }
+    if (s.actionType == 'none') return;
 
-  @override
-  Widget build(BuildContext context) {
+    final activityMap = {
+      'breathing': const RecommendedActivity(title: 'Box Breathing', activityType: 'breathing', emoji: '🌬️', durationMinutes: 5, description: 'Inhale 4s, hold 4s, exhale 4s, hold 4s.'),
+      'journaling': const RecommendedActivity(title: 'Guided Journaling', activityType: 'journaling', emoji: '📝', durationMinutes: 10, description: 'Write about 3 things you\'re grateful for.'),
+      'meditation': const RecommendedActivity(title: 'Mindful Body Scan', activityType: 'meditation', emoji: '🧘', durationMinutes: 5, description: 'A gentle meditation to check in with your body.'),
+      'relaxation': const RecommendedActivity(title: 'Progressive Relaxation', activityType: 'relaxation', emoji: '💆', durationMinutes: 5, description: 'Tense and release muscle groups to melt away stress.'),
+      'affirmations': const RecommendedActivity(title: 'Positive Affirmations', activityType: 'affirmations', emoji: '✨', durationMinutes: 5, description: 'Reinforce your well-being with uplifting statements.'),
+    };
+
+    final activity = activityMap[s.actionType];
+    if (activity != null) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => ActivityScreen(activity: activity)));
+    }
+  }
+
+  // ─── MOOD HISTORY TIMELINE (NF5) ───
+  Widget _timelineItem(EmotionLog log) {
+    final emoji = _emojiMap[log.emotionType] ?? '🙂';
+    final color = _emotionColors[log.emotionType] ?? Colors.grey;
+    final time = DateFormat('MMM d, h:mm a').format(log.timestamp);
+
     return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF7E6), // very light yellow/cream
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(value, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.golden)),
-          const SizedBox(height: 8),
-          Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.brownDark)),
-        ],
-      ),
+      margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+      child: Row(children: [
+        Container(
+          width: 44, height: 44,
+          decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
+          child: Center(child: Text(emoji, style: const TextStyle(fontSize: 22))),
+        ),
+        const SizedBox(width: 14),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(log.emotionType, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.brownDark)),
+          if (log.notes != null && log.notes!.isNotEmpty)
+            Text(log.notes!, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: AppColors.brownMedium)),
+        ])),
+        Text(time, style: const TextStyle(fontSize: 11, color: AppColors.brownLight)),
+      ]),
     );
+  }
+
+  Widget _sectionHeader(String title) {
+    return Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.brownDark));
   }
 }
