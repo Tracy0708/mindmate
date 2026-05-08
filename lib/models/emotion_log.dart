@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class EmotionLog {
   final String logID;
   final String userID;
@@ -15,6 +17,12 @@ class EmotionLog {
     required this.timestamp,
   });
 
+  /// Whether this emotion is considered negative for trend detection
+  bool get isNegative =>
+      emotionType == 'Sad' ||
+      emotionType == 'Anxious' ||
+      emotionType == 'Angry';
+
   Map<String, dynamic> toMap() {
     return {
       'logID': logID,
@@ -22,7 +30,7 @@ class EmotionLog {
       'emotionType': emotionType,
       'intensityScore': intensityScore,
       'notes': notes,
-      'timestamp': timestamp.toIso8601String(),
+      'timestamp': Timestamp.fromDate(timestamp),
     };
   }
 
@@ -33,7 +41,31 @@ class EmotionLog {
       emotionType: map['emotionType'] ?? 'Unknown',
       intensityScore: map['intensityScore']?.toInt() ?? 3,
       notes: map['notes'],
-      timestamp: map['timestamp'] != null ? DateTime.parse(map['timestamp']) : DateTime.now(),
+      timestamp: map['timestamp'] is Timestamp
+          ? (map['timestamp'] as Timestamp).toDate()
+          : (map['timestamp'] != null
+              ? DateTime.parse(map['timestamp'])
+              : DateTime.now()),
     );
+  }
+
+  /// Map emotion label to a numeric score (1 = worst, 5 = best)
+  static int emotionToScore(String emotion) {
+    switch (emotion) {
+      case 'Happy':
+        return 5;
+      case 'Calm':
+        return 4;
+      case 'Tired':
+        return 2;
+      case 'Anxious':
+        return 2;
+      case 'Sad':
+        return 1;
+      case 'Angry':
+        return 1;
+      default:
+        return 3;
+    }
   }
 }

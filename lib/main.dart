@@ -18,6 +18,7 @@ import 'viewmodels/insights_viewmodel.dart';
 import 'viewmodels/gamification_viewmodel.dart';
 import 'viewmodels/admin_viewmodel.dart';
 import 'viewmodels/theme_viewmodel.dart';
+import 'viewmodels/emotion_viewmodel.dart';
 import 'services/local_notification_service.dart';
 import 'services/interactive_message_service.dart';
 
@@ -37,6 +38,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => InsightsViewModel()),
         ChangeNotifierProvider(create: (_) => GamificationViewModel()),
         ChangeNotifierProvider(create: (_) => AdminViewModel()),
+        ChangeNotifierProvider(create: (_) => EmotionViewModel()),
       ],
       child: const MyApp(),
     ),

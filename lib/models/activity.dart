@@ -1,6 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Activity {
   final String activityID;
+  final String userID;
+  final String? linkedEmotionLogID;
   final String title;
+  final String description;
   final String activityType;
   final String activityStatus;
   final String activityNotes;
@@ -9,7 +14,10 @@ class Activity {
 
   Activity({
     required this.activityID,
+    required this.userID,
+    this.linkedEmotionLogID,
     required this.title,
+    this.description = '',
     required this.activityType,
     String? activityStatus,
     this.activityNotes = '',
@@ -19,27 +27,55 @@ class Activity {
         completionTime = completionTime ?? DateTime.now(),
         duration = duration ?? const Duration();
 
-  Map<String, dynamic> toJson() {
+  Activity copyWith({
+    String? activityStatus,
+    String? activityNotes,
+    DateTime? completionTime,
+    Duration? duration,
+  }) {
+    return Activity(
+      activityID: activityID,
+      userID: userID,
+      linkedEmotionLogID: linkedEmotionLogID,
+      title: title,
+      description: description,
+      activityType: activityType,
+      activityStatus: activityStatus ?? this.activityStatus,
+      activityNotes: activityNotes ?? this.activityNotes,
+      completionTime: completionTime ?? this.completionTime,
+      duration: duration ?? this.duration,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
     return {
       'activityID': activityID,
+      'userID': userID,
+      'linkedEmotionLogID': linkedEmotionLogID,
       'title': title,
+      'description': description,
       'activityType': activityType,
       'activityStatus': activityStatus,
       'activityNotes': activityNotes,
-      'completionTime': completionTime.toIso8601String(),
+      'completionTime': Timestamp.fromDate(completionTime),
       'duration': duration.inSeconds,
     };
   }
 
-  factory Activity.fromJson(Map<String, dynamic> json) {
+  factory Activity.fromMap(Map<String, dynamic> map, String id) {
     return Activity(
-      activityID: json['activityID'],
-      title: json['title'],
-      activityType: json['activityType'],
-      activityStatus: json['activityStatus'],
-      activityNotes: json['activityNotes'] ?? '',
-      completionTime: DateTime.parse(json['completionTime']),
-      duration: Duration(seconds: json['duration'] ?? 0),
+      activityID: id,
+      userID: map['userID'] ?? '',
+      linkedEmotionLogID: map['linkedEmotionLogID'],
+      title: map['title'] ?? '',
+      description: map['description'] ?? '',
+      activityType: map['activityType'] ?? '',
+      activityStatus: map['activityStatus'],
+      activityNotes: map['activityNotes'] ?? '',
+      completionTime: map['completionTime'] is Timestamp
+          ? (map['completionTime'] as Timestamp).toDate()
+          : DateTime.now(),
+      duration: Duration(seconds: map['duration'] ?? 0),
     );
   }
 }

@@ -77,11 +77,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       final ageText = _ageController.text.trim();
       if (ageText.isNotEmpty) {
         final age = int.tryParse(ageText);
-        if (age == null || age < 1 || age > 150) {
+        if (age == null || age < 18 || age > 99) {
           InteractiveMessageService.showError(
             context,
             title: 'Invalid age',
-            message: 'Please enter a valid age between 1 and 150',
+            message: 'Please enter a valid age between 18 and 99',
           );
           setState(() => _isLoading = false);
           return;

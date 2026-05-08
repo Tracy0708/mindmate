@@ -1,116 +1,230 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/emotion_entry.dart';
-import '../models/emotion_insight.dart';
+import '../models/emotion_log.dart';
+import '../models/activity.dart';
+
+/// Recommended activity data for a given emotion
+class RecommendedActivity {
+  final String title;
+  final String description;
+  final String activityType;
+  final String emoji;
+  final int durationMinutes;
+
+  const RecommendedActivity({
+    required this.title,
+    required this.description,
+    required this.activityType,
+    required this.emoji,
+    required this.durationMinutes,
+  });
+}
 
 class EmotionService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final String _collection = 'emotions';
 
-  // Create a new emotion log
-  Future<EmotionLog> createEmotionLog({
-    required String sessionID,
-    required String emotionType,
-    required int intensity,
-    String? notes,
-  }) async {
-    final docRef = _firestore.collection(_collection).doc();
+  // ─── Collection references ───
+  CollectionReference<Map<String, dynamic>> _emotionLogsRef(String userId) =>
+      _firestore.collection('users').doc(userId).collection('emotion_logs');
 
-    final emotionLog = EmotionLog(
-      emotionLogID: docRef.id,
-      sessionID: sessionID,
-      emotionType: emotionType,
-      intensity: intensity,
-      emotionLogNotes: notes,
-    );
+  CollectionReference<Map<String, dynamic>> _activitiesRef(String userId) =>
+      _firestore.collection('users').doc(userId).collection('activities');
 
-    await docRef.set(emotionLog.toJson());
-    return emotionLog;
+  // ─── Log an emotion to Firestore (NF5, NF6) ───
+  Future<EmotionLog> logEmotion(EmotionLog log) async {
+    final docRef = _emotionLogsRef(log.userID).doc(log.logID);
+    await docRef.set(log.toMap());
+    return log;
   }
 
-  // Get emotion logs for a specific session
-  Stream<List<EmotionLog>> getEmotionLogsForSession(String sessionID) {
-    return _firestore
-        .collection(_collection)
-        .where('sessionID', isEqualTo: sessionID)
-        .orderBy('emotionLogTimestamp', descending: true)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => EmotionLog.fromJson(doc.data()))
-          .toList();
-    });
-  }
+  // ─── Check if the user already logged today (NF1) ───
+  Future<bool> hasLoggedToday(String userId) async {
+    final todayStart = _startOfDay(DateTime.now());
+    final todayEnd = _endOfDay(DateTime.now());
 
-  // Get emotion logs for a date range
-  Stream<List<EmotionLog>> getEmotionLogsForDateRange(
-    DateTime startDate,
-    DateTime endDate,
-  ) {
-    return _firestore
-        .collection(_collection)
-        .where('emotionLogTimestamp',
-            isGreaterThanOrEqualTo: startDate, isLessThan: endDate)
-        .orderBy('emotionLogTimestamp', descending: true)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => EmotionLog.fromJson(doc.data()))
-          .toList();
-    });
-  }
-
-  // Get emotion summary for a time period
-  Future<EmotionInsight> getEmotionSummary(
-    DateTime startDate,
-    DateTime endDate,
-  ) async {
-    final querySnapshot = await _firestore
-        .collection(_collection)
-        .where('emotionLogTimestamp',
-            isGreaterThanOrEqualTo: startDate.toIso8601String(), isLessThan: endDate.toIso8601String())
+    final snapshot = await _emotionLogsRef(userId)
+        .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(todayStart))
+        .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(todayEnd))
+        .limit(1)
         .get();
 
-    final emotions = querySnapshot.docs
-        .map((doc) => EmotionLog.fromJson(doc.data()))
+    return snapshot.docs.isNotEmpty;
+  }
+
+  // ─── Get today's log if it exists ───
+  Future<EmotionLog?> getTodaysLog(String userId) async {
+    final todayStart = _startOfDay(DateTime.now());
+    final todayEnd = _endOfDay(DateTime.now());
+
+    final snapshot = await _emotionLogsRef(userId)
+        .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(todayStart))
+        .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(todayEnd))
+        .orderBy('timestamp', descending: true)
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isEmpty) return null;
+    final doc = snapshot.docs.first;
+    return EmotionLog.fromMap(doc.data(), doc.id);
+  }
+
+  // ─── Get recent logs for trend analysis (NF7) ───
+  Future<List<EmotionLog>> getRecentLogs(String userId, {int days = 7}) async {
+    final startDate = DateTime.now().subtract(Duration(days: days));
+
+    final snapshot = await _emotionLogsRef(userId)
+        .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+        .orderBy('timestamp', descending: true)
+        .get();
+
+    return snapshot.docs
+        .map((doc) => EmotionLog.fromMap(doc.data(), doc.id))
         .toList();
+  }
 
-    if (emotions.isEmpty) {
-      return EmotionInsight(mostFrequentEmotion: 'None', emotionFrequencies: {}, averageIntensity: 0.0, trendSummary: 'No data to show.');
+  // ─── Get the current logging streak ───
+  Future<int> getStreak(String userId) async {
+    final logs = await getRecentLogs(userId, days: 30);
+    if (logs.isEmpty) return 0;
+
+    int streak = 0;
+    DateTime checkDate = _startOfDay(DateTime.now());
+
+    // Build a set of dates with logs
+    final loggedDates = <String>{};
+    for (final log in logs) {
+      loggedDates.add(_dateKey(log.timestamp));
     }
 
-    final freq = <String, int>{};
-    double totalIntensity = 0;
-    String mostFrequent = '';
-    int maxCount = 0;
-
-    for (var emotion in emotions) {
-      freq[emotion.emotionType] = (freq[emotion.emotionType] ?? 0) + 1;
-      totalIntensity += emotion.intensity;
-      
-      if (freq[emotion.emotionType]! > maxCount) {
-        maxCount = freq[emotion.emotionType]!;
-        mostFrequent = emotion.emotionType;
-      }
+    // Count consecutive days backwards from today
+    while (loggedDates.contains(_dateKey(checkDate))) {
+      streak++;
+      checkDate = checkDate.subtract(const Duration(days: 1));
     }
 
-    return EmotionInsight(
-      mostFrequentEmotion: mostFrequent,
-      emotionFrequencies: freq,
-      averageIntensity: totalIntensity / emotions.length,
-      trendSummary: 'Your mood has mostly been $mostFrequent recently. Keep up the tracking!',
-    );
+    return streak;
   }
 
-  // Update an emotion log
-  Future<void> updateEmotionLog(EmotionLog emotionLog) async {
-    await _firestore
-        .collection(_collection)
-        .doc(emotionLog.emotionLogID)
-        .update(emotionLog.toJson());
+  // ─── Get total log count for a period ───
+  Future<int> getLogCount(String userId, {int days = 30}) async {
+    final logs = await getRecentLogs(userId, days: days);
+    return logs.length;
   }
 
-  // Delete an emotion log
-  Future<void> deleteEmotionLog(String emotionLogID) async {
-    await _firestore.collection(_collection).doc(emotionLogID).delete();
+  // ─── Detect negative mood trend (NF7, AF4) ───
+  /// Returns true if 3+ of the last 5 entries are negative (Sad, Anxious, Angry)
+  bool detectNegativeTrend(List<EmotionLog> recentLogs) {
+    if (recentLogs.length < 3) return false;
+    final lastFive = recentLogs.take(5).toList();
+    final negativeCount = lastFive.where((log) => log.isNegative).length;
+    return negativeCount >= 3;
   }
+
+  // ─── Get recommended activity based on emotion (NF8) ───
+  RecommendedActivity getRecommendedActivity(String emotionType) {
+    switch (emotionType) {
+      case 'Sad':
+        return const RecommendedActivity(
+          title: 'Guided Journaling',
+          description:
+              'Write about 3 things you\'re grateful for today. Reflecting on positives can shift your perspective and brighten your mood.',
+          activityType: 'journaling',
+          emoji: '📝',
+          durationMinutes: 10,
+        );
+      case 'Anxious':
+        return const RecommendedActivity(
+          title: 'Box Breathing',
+          description:
+              'A calming breathing technique: Inhale for 4 seconds, hold for 4, exhale for 4, hold for 4. Repeat to calm your nervous system.',
+          activityType: 'breathing',
+          emoji: '🌬️',
+          durationMinutes: 5,
+        );
+      case 'Angry':
+        return const RecommendedActivity(
+          title: 'Progressive Muscle Relaxation',
+          description:
+              'Tense and release each muscle group to let go of physical tension. Start from your toes and work up to your head.',
+          activityType: 'relaxation',
+          emoji: '💆',
+          durationMinutes: 8,
+        );
+      case 'Tired':
+        return const RecommendedActivity(
+          title: 'Mindful Body Scan',
+          description:
+              'A gentle 5-minute meditation to check in with each part of your body, release tension, and restore energy.',
+          activityType: 'meditation',
+          emoji: '🧘',
+          durationMinutes: 5,
+        );
+      case 'Calm':
+        return const RecommendedActivity(
+          title: 'Gratitude Reflection',
+          description:
+              'You\'re in a wonderful state of calm. Take a moment to appreciate this feeling and note what contributed to it.',
+          activityType: 'gratitude',
+          emoji: '🙏',
+          durationMinutes: 5,
+        );
+      case 'Happy':
+        return const RecommendedActivity(
+          title: 'Positive Affirmations',
+          description:
+              'Reinforce your good mood! Read through uplifting affirmations and internalize the positive energy.',
+          activityType: 'affirmations',
+          emoji: '✨',
+          durationMinutes: 3,
+        );
+      default:
+        return const RecommendedActivity(
+          title: 'Mindful Breathing',
+          description:
+              'Take a few minutes to focus on your breath. Inhale deeply, exhale slowly.',
+          activityType: 'breathing',
+          emoji: '🌬️',
+          durationMinutes: 5,
+        );
+    }
+  }
+
+  // ─── Log a completed activity to Firestore (NF10) ───
+  Future<void> logActivity(Activity activity) async {
+    final docRef = _activitiesRef(activity.userID).doc(activity.activityID);
+    await docRef.set(activity.toMap());
+  }
+
+  // ─── Count completed activities ───
+  Future<int> getCompletedActivityCount(String userId) async {
+    final snapshot = await _activitiesRef(userId)
+        .where('activityStatus', isEqualTo: 'completed')
+        .get();
+    return snapshot.docs.length;
+  }
+
+  // ─── Count breathing sessions ───
+  Future<int> getBreathingSessionCount(String userId) async {
+    final snapshot = await _activitiesRef(userId)
+        .where('activityType', isEqualTo: 'breathing')
+        .where('activityStatus', isEqualTo: 'completed')
+        .get();
+    return snapshot.docs.length;
+  }
+
+  // ─── Delete an emotion log ───
+  Future<void> deleteEmotionLog(String userId, String logId) async {
+    await _emotionLogsRef(userId).doc(logId).delete();
+  }
+
+  // ─── Helper: start of day ───
+  DateTime _startOfDay(DateTime date) =>
+      DateTime(date.year, date.month, date.day);
+
+  // ─── Helper: end of day ───
+  DateTime _endOfDay(DateTime date) =>
+      DateTime(date.year, date.month, date.day, 23, 59, 59, 999);
+
+  // ─── Helper: date key for streak ───
+  String _dateKey(DateTime date) =>
+      '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
 import '../main.dart';
 import '../services/interactive_message_service.dart';
+import '../viewmodels/emotion_viewmodel.dart';
+import '../viewmodels/gamification_viewmodel.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -33,7 +36,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _refreshProfile() => _loadProfile();
+  Future<void> _refreshProfile() async {
+    await _loadProfile();
+    if (mounted) {
+      Provider.of<GamificationViewModel>(context, listen: false).fetchUserStats();
+      Provider.of<EmotionViewModel>(context, listen: false).checkTodaysLog();
+    }
+  }
 
   String get _displayName =>
       _userProfile?.userName ??
@@ -105,8 +114,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Container(
                     width: 80,
                     height: 80,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFE0A0),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFFE0A0),
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
@@ -292,255 +301,345 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.creamLight,
-      body: SafeArea(
-        child: _isLoadingProfile
-            ? const Center(
-                child: CircularProgressIndicator(color: AppColors.golden))
-            : RefreshIndicator(
-                color: AppColors.golden,
-                onRefresh: _refreshProfile,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.only(bottom: 120),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 32),
-                      // Profile Header
-                      Stack(
-                        alignment: Alignment.bottomRight,
+    return Consumer2<EmotionViewModel, GamificationViewModel>(
+      builder: (context, emotionVm, gamVm, _) {
+        final streak = emotionVm.streak;
+        final logCount = emotionVm.logCount;
+        final completedActivities = emotionVm.completedActivityCount;
+        final totalPoints = gamVm.totalPoints;
+
+        // Determine unlocked badge count from real data
+        int unlockedBadges = 0;
+        if (streak >= 7) unlockedBadges++;
+        if (logCount >= 10) unlockedBadges++;
+        if (logCount >= 30) unlockedBadges++;
+        if (streak >= 30) unlockedBadges++;
+
+        return Scaffold(
+          backgroundColor: AppColors.creamLight,
+          body: SafeArea(
+            child: _isLoadingProfile
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.golden))
+                : RefreshIndicator(
+                    color: AppColors.golden,
+                    onRefresh: _refreshProfile,
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.only(bottom: 120),
+                      child: Column(
                         children: [
-                          Container(
-                            width: 100,
-                            height: 100,
-                            decoration: const BoxDecoration(
-                                color: Color(0xFFFFE0A0),
-                                shape: BoxShape.circle),
-                            alignment: Alignment.center,
-                            child: Text(_initials,
-                                style: const TextStyle(
-                                    fontSize: 40,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.golden)),
+                          const SizedBox(height: 32),
+                          // Profile Header
+                          Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              Container(
+                                width: 100,
+                                height: 100,
+                                decoration: const BoxDecoration(
+                                    color: Color(0xFFFFE0A0),
+                                    shape: BoxShape.circle),
+                                alignment: Alignment.center,
+                                child: Text(_initials,
+                                    style: const TextStyle(
+                                        fontSize: 40,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.golden)),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                    color: Colors.white, shape: BoxShape.circle),
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                      color: Colors.green, shape: BoxShape.circle),
+                                  child: const Icon(Icons.check,
+                                      color: Colors.white, size: 14),
+                                ),
+                              )
+                            ],
                           ),
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                                color: Colors.white, shape: BoxShape.circle),
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                  color: Colors.green, shape: BoxShape.circle),
-                              child: const Icon(Icons.check,
-                                  color: Colors.white, size: 14),
+                          const SizedBox(height: 16),
+                          Text(_displayName,
+                              style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.brownDark)),
+                          const SizedBox(height: 4),
+                          Text(_email,
+                              style: const TextStyle(
+                                  fontSize: 14, color: AppColors.brownMedium)),
+                          if (_userProfile?.age != null ||
+                              _userProfile?.gender != null) ...[
+                            const SizedBox(height: 6),
+                            Text(
+                              [
+                                if (_userProfile?.age != null)
+                                  '${_userProfile!.age} years old',
+                                if (_userProfile?.gender != null)
+                                  _userProfile!.gender!,
+                              ].join(' • '),
+                              style: const TextStyle(
+                                  fontSize: 13, color: AppColors.brownLight),
                             ),
-                          )
+                          ],
+                          const SizedBox(height: 32),
+
+                          // Horizontal Stats — now real data
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _ProfileStatBox(
+                                  value: streak > 0 ? '$streak' : '0',
+                                  label: 'Streak Days',
+                                  icon: Icons.local_fire_department,
+                                ),
+                                _ProfileStatBox(
+                                  value: '$unlockedBadges',
+                                  label: 'Badges',
+                                  icon: Icons.workspace_premium,
+                                ),
+                                _ProfileStatBox(
+                                  value: '$completedActivities',
+                                  label: 'Activities',
+                                  icon: Icons.check_circle_outline,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Points card
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [AppColors.golden, Color(0xFFFF8F00)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [BoxShadow(color: AppColors.golden.withOpacity(0.25), blurRadius: 12, offset: const Offset(0, 4))],
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
+                                    child: const Icon(Icons.star, color: Colors.white, size: 28),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('$totalPoints', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.white)),
+                                        const Text('Achievement Points', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white70)),
+                                      ],
+                                    ),
+                                  ),
+                                  // Mood log count chip
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                                    child: Text('$logCount logs', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+
+                          // Recent Achievements header
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                      color: AppColors.golden.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(10)),
+                                  child: const Icon(Icons.emoji_events,
+                                      color: AppColors.golden, size: 20),
+                                ),
+                                const SizedBox(width: 12),
+                                const Text('Recent Achievements',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.brownDark)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            height: 120,
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(horizontal: 24),
+                              children: [
+                                _AchievementBox(
+                                  icon: Icons.edit_note,
+                                  color: const Color(0xFF4CAF50),
+                                  label: 'Mood Logger',
+                                  sublabel: '$logCount moods logged',
+                                  unlocked: logCount > 0,
+                                ),
+                                _AchievementBox(
+                                  icon: Icons.local_fire_department,
+                                  color: const Color(0xFFFF5722),
+                                  label: 'On Fire',
+                                  sublabel: '$streak day streak',
+                                  unlocked: streak > 0,
+                                ),
+                                _AchievementBox(
+                                  icon: Icons.spa,
+                                  color: const Color(0xFF9C27B0),
+                                  label: 'Self-Care',
+                                  sublabel: '$completedActivities done',
+                                  unlocked: completedActivities > 0,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+
+                          // Settings Header
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                      color: AppColors.golden.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(10)),
+                                  child: const Icon(Icons.settings,
+                                      color: AppColors.golden, size: 20),
+                                ),
+                                const SizedBox(width: 12),
+                                const Text('Settings',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.brownDark)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Settings List
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.04),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  _SettingsItem(
+                                    icon: Icons.notifications_none,
+                                    label: 'Notifications',
+                                    trailingLabel:
+                                        _notificationsEnabled ? 'On' : 'Off',
+                                    onTap: () async {
+                                      await Navigator.pushNamed(
+                                          context, '/notifications-settings');
+                                      _loadProfile(); // refresh after returning
+                                    },
+                                  ),
+                                  const _SettingsItem(
+                                      icon: Icons.shield_outlined,
+                                      label: 'Privacy'),
+                                  const _SettingsItem(
+                                      icon: Icons.help_outline,
+                                      label: 'Help & Support'),
+                                  _SettingsItem(
+                                    icon: Icons.logout,
+                                    label: 'Logout',
+                                    isDestructive: true,
+                                    onTap: () async {
+                                      await AuthService().signOut();
+                                      if (context.mounted) {
+                                        Navigator.pushNamedAndRemoveUntil(
+                                            context, '/', (route) => false);
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      Text(_displayName,
-                          style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.brownDark)),
-                      const SizedBox(height: 4),
-                      Text(_email,
-                          style: const TextStyle(
-                              fontSize: 14, color: AppColors.brownMedium)),
-                      if (_userProfile?.age != null ||
-                          _userProfile?.gender != null) ...[
-                        const SizedBox(height: 6),
-                        Text(
-                          [
-                            if (_userProfile?.age != null)
-                              '${_userProfile!.age} years old',
-                            if (_userProfile?.gender != null)
-                              _userProfile!.gender!,
-                          ].join(' • '),
-                          style: const TextStyle(
-                              fontSize: 13, color: AppColors.brownLight),
-                        ),
-                      ],
-                      const SizedBox(height: 32),
-
-                      // Horizontal Stats
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 24),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _ProfileStatBox(value: '—', label: 'Streak Days'),
-                            _ProfileStatBox(value: '—', label: 'Badges'),
-                            _ProfileStatBox(value: '—', label: 'Complete'),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 40),
-
-                      // Recent Achievements header
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                  color: AppColors.golden.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(10)),
-                              child: const Icon(Icons.emoji_events,
-                                  color: AppColors.golden, size: 20),
-                            ),
-                            const SizedBox(width: 12),
-                            const Text('Recent Achievements',
-                                style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.brownDark)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        height: 120,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          children: const [
-                            _AchievementBox(
-                                icon: Icons.ads_click,
-                                color: Color(0xFFE91E63)),
-                            _AchievementBox(
-                                icon: Icons.star, color: Color(0xFFFFB300)),
-                            _AchievementBox(
-                                icon: Icons.local_fire_department,
-                                color: Color(0xFFFF5722)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 40),
-
-                      // Settings Header
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                  color: AppColors.golden.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(10)),
-                              child: const Icon(Icons.settings,
-                                  color: AppColors.golden, size: 20),
-                            ),
-                            const SizedBox(width: 12),
-                            const Text('Settings',
-                                style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.brownDark)),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Settings List
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(24),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              _SettingsItem(
-                                icon: Icons.notifications_none,
-                                label: 'Notifications',
-                                trailingLabel:
-                                    _notificationsEnabled ? 'On' : 'Off',
-                                onTap: () async {
-                                  await Navigator.pushNamed(
-                                      context, '/notifications-settings');
-                                  _loadProfile(); // refresh after returning
-                                },
-                              ),
-                              const _SettingsItem(
-                                  icon: Icons.shield_outlined,
-                                  label: 'Privacy'),
-                              const _SettingsItem(
-                                  icon: Icons.help_outline,
-                                  label: 'Help & Support'),
-                              _SettingsItem(
-                                icon: Icons.logout,
-                                label: 'Logout',
-                                isDestructive: true,
-                                onTap: () async {
-                                  await AuthService().signOut();
-                                  if (context.mounted) {
-                                    Navigator.pushNamedAndRemoveUntil(
-                                        context, '/', (route) => false);
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showEditProfile(context),
-        backgroundColor: AppColors.golden,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        icon: const Icon(Icons.edit),
-        label: const Text('Edit Profile'),
-      ),
+          ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => _showEditProfile(context),
+            backgroundColor: AppColors.golden,
+            foregroundColor: Colors.white,
+            elevation: 4,
+            icon: const Icon(Icons.edit),
+            label: const Text('Edit Profile'),
+          ),
+        );
+      },
     );
   }
 }
 
 class _ProfileStatBox extends StatelessWidget {
   final String value, label;
-  const _ProfileStatBox({required this.value, required this.label});
+  final IconData icon;
+  const _ProfileStatBox({required this.value, required this.label, required this.icon});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 100,
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFFDF5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.fieldBorder.withOpacity(0.5)),
-      ),
-      child: Column(
-        children: [
-          Text(value,
-              style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.golden)),
-          const SizedBox(height: 8),
-          Text(label,
-              style:
-                  const TextStyle(fontSize: 12, color: AppColors.brownMedium)),
-        ],
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 6),
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFDF5),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.fieldBorder.withOpacity(0.5)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 20, color: AppColors.golden),
+            const SizedBox(height: 8),
+            Text(value,
+                style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.golden)),
+            const SizedBox(height: 4),
+            Text(label,
+                style:
+                    const TextStyle(fontSize: 11, color: AppColors.brownMedium)),
+          ],
+        ),
       ),
     );
   }
@@ -549,20 +648,46 @@ class _ProfileStatBox extends StatelessWidget {
 class _AchievementBox extends StatelessWidget {
   final IconData icon;
   final Color color;
-  const _AchievementBox({required this.icon, required this.color});
+  final String label;
+  final String sublabel;
+  final bool unlocked;
+  const _AchievementBox({
+    required this.icon,
+    required this.color,
+    required this.label,
+    required this.sublabel,
+    required this.unlocked,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 120,
+      width: 130,
       margin: const EdgeInsets.only(right: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFDF5),
+        color: unlocked ? const Color(0xFFFFFDF5) : const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.fieldBorder.withOpacity(0.5)),
+        border: Border.all(
+          color: unlocked ? AppColors.golden.withOpacity(0.3) : Colors.grey.withOpacity(0.15),
+        ),
       ),
-      child: Center(
-        child: Icon(icon, size: 48, color: color),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 36, color: unlocked ? color : Colors.grey.shade400),
+          const SizedBox(height: 8),
+          Text(label, style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 13,
+            color: unlocked ? AppColors.brownDark : Colors.grey,
+          )),
+          const SizedBox(height: 4),
+          Text(sublabel, style: TextStyle(
+            fontSize: 11,
+            color: unlocked ? AppColors.brownMedium : Colors.grey.shade400,
+          )),
+        ],
       ),
     );
   }
