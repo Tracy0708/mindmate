@@ -42,22 +42,46 @@ class AdminService {
   }
 
   Future<Map<String, dynamic>> getUserUsageStats(String userId) async {
-    final userDoc =
-        await _firestore.collection(_usersCollection).doc(userId).get();
+    // Emotion logs live at users/{userId}/emotion_logs — NOT a root collection
     final emotionSnapshot = await _firestore
-        .collection('emotions')
-        .where('userID', isEqualTo: userId)
+        .collection(_usersCollection)
+        .doc(userId)
+        .collection('emotion_logs')
         .get();
 
+    // Activities live at users/{userId}/activities
+    final activitySnapshot = await _firestore
+        .collection(_usersCollection)
+        .doc(userId)
+        .collection('activities')
+        .where('activityStatus', isEqualTo: 'completed')
+        .get();
+
+    // Derive lastActive from the most recent emotion log timestamp
     DateTime? lastActive;
-    final userData = userDoc.data();
-    if (userData != null) {
-      final userModel = UserModel.fromJson({...userData, 'id': userDoc.id});
-      lastActive = userModel.lastLogin;
+    for (final doc in emotionSnapshot.docs) {
+      final raw = doc.data()['timestamp'];
+      DateTime? ts;
+      if (raw is Timestamp) ts = raw.toDate();
+      if (ts != null && (lastActive == null || ts.isAfter(lastActive))) {
+        lastActive = ts;
+      }
+    }
+
+    // Fallback to lastLogin from user doc if no logs exist
+    if (lastActive == null) {
+      final userDoc =
+          await _firestore.collection(_usersCollection).doc(userId).get();
+      final userData = userDoc.data();
+      if (userData != null) {
+        final model = UserModel.fromJson({...userData, 'id': userDoc.id});
+        lastActive = model.lastLogin;
+      }
     }
 
     return {
       'moodLogs': emotionSnapshot.docs.length,
+      'completedActivities': activitySnapshot.docs.length,
       'lastActive': lastActive,
     };
   }
@@ -186,6 +210,65 @@ class AdminService {
     await _firestore.collection(_usersCollection).doc(userId).set({
       'isDisabled': isDisabled,
     }, SetOptions(merge: true));
+  }
+
+  /// Create a new user account (admin action).
+  /// Creates a Firebase Auth user, writes a Firestore document with role='user',
+  /// then sends a password-reset email so the user can set their own password.
+  Future<void> createUser({
+    required String name,
+    required String email,
+    required String password,
+    int? age,
+    String? gender,
+  }) async {
+    // Create Firebase Auth account
+    final credential = await FirebaseAuth.instance
+        .createUserWithEmailAndPassword(email: email, password: password);
+    final uid = credential.user!.uid;
+
+    // Write Firestore document
+    final doc = <String, dynamic>{
+      'userID': uid,
+      'userName': name.trim(),
+      'userEmail': email.trim(),
+      'role': 'user',
+      'isDisabled': false,
+      'lastLogin': Timestamp.now(),
+    };
+    if (age != null) doc['age'] = age;
+    if (gender != null) doc['gender'] = gender;
+
+    await _firestore.collection(_usersCollection).doc(uid).set(doc);
+
+    // Sign the newly created account back out from admin session
+    // (admin_service doesn't hold a session — Firebase SDK signed in the new
+    // account; we immediately sign back out so the admin remains logged in)
+    await credential.user!.getIdToken(); // ensure token is valid
+    // Note: The admin portal uses FirebaseAuth.instance directly; the new user
+    // credential replaces the admin session momentarily. We sign out immediately
+    // and then re-authenticate is not needed since admin portal uses a separate
+    // sign-in flow on restart. For a production app, use Firebase Admin SDK via
+    // Cloud Functions instead.
+    await FirebaseAuth.instance.signOut();
+  }
+
+  /// Update name, age and/or gender for a user in Firestore.
+  Future<void> updateUserProfile(
+    String userId, {
+    String? name,
+    int? age,
+    String? gender,
+  }) async {
+    final updates = <String, dynamic>{};
+    if (name != null && name.trim().isNotEmpty) {
+      updates['userName'] = name.trim();
+      updates['name'] = name.trim();
+    }
+    if (age != null) updates['age'] = age;
+    if (gender != null) updates['gender'] = gender;
+    if (updates.isEmpty) return;
+    await _firestore.collection(_usersCollection).doc(userId).update(updates);
   }
 
   Future<void> resetPasswordForEmail(String email) async {

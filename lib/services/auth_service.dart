@@ -145,6 +145,13 @@ class AuthService {
       throw Exception('This account has been disabled by an administrator.');
     }
 
+    // Admin accounts are not allowed to log in through the user app
+    if (profile.role == 'admin') {
+      await signOut();
+      throw Exception(
+          'Admin accounts cannot sign in here. Please use the Admin Portal.');
+    }
+
     await userDoc.set(
       {'lastLogin': Timestamp.now()},
       SetOptions(merge: true),

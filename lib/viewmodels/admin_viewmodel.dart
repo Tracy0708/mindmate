@@ -78,4 +78,42 @@ class AdminViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> createUser({
+    required String name,
+    required String email,
+    required String password,
+    int? age,
+    String? gender,
+  }) async {
+    try {
+      await _adminService.createUser(
+        name: name,
+        email: email,
+        password: password,
+        age: age,
+        gender: gender,
+      );
+    } catch (e) {
+      _errorMessage = "Failed to create user: $e";
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> updateUserProfile(
+    String userId, {
+    String? name,
+    int? age,
+    String? gender,
+  }) async {
+    try {
+      await _adminService.updateUserProfile(userId,
+          name: name, age: age, gender: gender);
+    } catch (e) {
+      _errorMessage = "Failed to update user: $e";
+      notifyListeners();
+      rethrow;
+    }
+  }
 }
