@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'dart:developer' as developer;
 import 'dart:math' as math;
 import '../models/user_model.dart';
@@ -213,8 +214,8 @@ class AdminService {
   }
 
   /// Create a new user account (admin action).
-  /// Creates a Firebase Auth user, writes a Firestore document with role='user',
-  /// then sends a password-reset email so the user can set their own password.
+  /// Uses a secondary Firebase app so the admin's primary auth session
+  /// is never interrupted — avoiding the permission-denied Firestore error.
   Future<void> createUser({
     required String name,
     required String email,
@@ -222,35 +223,43 @@ class AdminService {
     int? age,
     String? gender,
   }) async {
-    // Create Firebase Auth account
-    final credential = await FirebaseAuth.instance
-        .createUserWithEmailAndPassword(email: email, password: password);
-    final uid = credential.user!.uid;
+    // Create a temporary secondary Firebase app instance
+    final secondaryApp = await Firebase.initializeApp(
+      name: 'adminCreateUser_${DateTime.now().millisecondsSinceEpoch}',
+      options: Firebase.app().options,
+    );
 
-    // Write Firestore document
-    final doc = <String, dynamic>{
-      'userID': uid,
-      'userName': name.trim(),
-      'userEmail': email.trim(),
-      'role': 'user',
-      'isDisabled': false,
-      'lastLogin': Timestamp.now(),
-    };
-    if (age != null) doc['age'] = age;
-    if (gender != null) doc['gender'] = gender;
+    try {
+      // Use secondary auth — does NOT affect the admin's primary session
+      final secondaryAuth = FirebaseAuth.instanceFor(app: secondaryApp);
+      final credential = await secondaryAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final uid = credential.user!.uid;
 
-    await _firestore.collection(_usersCollection).doc(uid).set(doc);
+      // Sign out of secondary app immediately — we only needed it for auth creation
+      await secondaryAuth.signOut();
 
-    // Sign the newly created account back out from admin session
-    // (admin_service doesn't hold a session — Firebase SDK signed in the new
-    // account; we immediately sign back out so the admin remains logged in)
-    await credential.user!.getIdToken(); // ensure token is valid
-    // Note: The admin portal uses FirebaseAuth.instance directly; the new user
-    // credential replaces the admin session momentarily. We sign out immediately
-    // and then re-authenticate is not needed since admin portal uses a separate
-    // sign-in flow on restart. For a production app, use Firebase Admin SDK via
-    // Cloud Functions instead.
-    await FirebaseAuth.instance.signOut();
+      // Write Firestore document using PRIMARY instance (admin still signed in)
+      final doc = <String, dynamic>{
+        'userID': uid,
+        'userName': name.trim(),
+        'userEmail': email.trim(),
+        'role': 'user',
+        'isDisabled': false,
+        'lastLogin': Timestamp.now(),
+      };
+      if (age != null) doc['age'] = age;
+      if (gender != null) doc['gender'] = gender;
+
+      await _firestore.collection(_usersCollection).doc(uid).set(doc);
+
+      developer.log('Admin created user: $email (uid: $uid)', name: 'AdminService');
+    } finally {
+      // Always clean up the secondary app
+      await secondaryApp.delete();
+    }
   }
 
   /// Update name, age and/or gender for a user in Firestore.

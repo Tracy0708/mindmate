@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
+import '../services/auth_service.dart';
 import '../viewmodels/emotion_viewmodel.dart';
 import '../viewmodels/gamification_viewmodel.dart';
 import '../models/gamification_history.dart';
@@ -114,13 +115,33 @@ class _HomeTabState extends State<_HomeTab> {
     'Angry': '😠', 'Calm': '😌', 'Tired': '😴',
   };
 
+  final AuthService _authService = AuthService();
+  String _userName = 'MindMate';
+
   @override
   void initState() {
     super.initState();
+    _fetchUserName();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final gamVm = Provider.of<GamificationViewModel>(context, listen: false);
       gamVm.fetchHistory();
     });
+  }
+
+  Future<void> _fetchUserName() async {
+    // Fast synchronous fallback
+    if (mounted && _authService.currentUser != null) {
+      setState(() {
+        _userName = _authService.currentUser!.displayName ?? 'MindMate';
+      });
+    }
+    // Fetch actual profile for the most up-to-date name
+    final profile = await _authService.getUserProfile();
+    if (mounted && profile != null && profile.userName.isNotEmpty) {
+      setState(() {
+        _userName = profile.userName;
+      });
+    }
   }
 
   String get _greeting {
@@ -164,10 +185,17 @@ class _HomeTabState extends State<_HomeTab> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('$_greeting 👋', style: const TextStyle(fontSize: 14, color: AppColors.brownMedium, fontWeight: FontWeight.w500)),
-                      const Text('MindMate', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: AppColors.brownDark, letterSpacing: 0.5)),
-                    ]),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text('$_greeting 👋', style: const TextStyle(fontSize: 14, color: AppColors.brownMedium, fontWeight: FontWeight.w500)),
+                        Text(_userName, 
+                          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: AppColors.brownDark, letterSpacing: 0.5),
+                          maxLines: 1, 
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ]),
+                    ),
+                    const SizedBox(width: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(color: AppColors.golden.withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
