@@ -74,6 +74,9 @@ class GamificationService {
       'achievementsCount': achievements.length,
       'achievementsByType': <String, int>{},
       'recentAchievements': achievements
+          .where((a) => !a.achievement.contains('Mood Logged') && 
+                        !a.achievement.contains('Activity Completed') && 
+                        !a.achievement.contains('Unlocked Avatar'))
           .take(5)
           .map((a) => {
                 'achievement': a.achievement,

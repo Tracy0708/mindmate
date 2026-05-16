@@ -131,13 +131,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
-                    child: Text(
-                      _initials,
-                      style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.golden),
-                    ),
+                    child: _avatarEmoji.isNotEmpty
+                        ? Text(_avatarEmoji, style: const TextStyle(fontSize: 40))
+                        : Text(
+                            _initials,
+                            style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.golden),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -546,7 +548,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       icon: icon,
                                       color: color,
                                       label: displayTitle,
-                                      sublabel: '+$points pts',
+                                      sublabel: points > 0 ? '+$points pts' : '$points pts',
                                       unlocked: true,
                                     );
                                   },

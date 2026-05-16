@@ -118,6 +118,53 @@ class GamificationViewModel extends ChangeNotifier {
     }
   }
 
+  Future<GamificationHistory?> checkLogMilestones(int logCount) async {
+    final userId = _currentUserId;
+    if (userId == null) return null;
+
+    String? title;
+    int points = 0;
+    if (logCount == 10) { title = 'Goal Setter'; points = 100; }
+    else if (logCount == 30) { title = 'Routine Builder'; points = 250; }
+    else return null;
+
+    try {
+      final achievement = await _gamificationService.recordAchievement(
+        userID: userId,
+        achievement: title,
+        points: points,
+        metadata: {'type': 'milestone', 'milestone': 'logs_$logCount'},
+      );
+      _totalPoints += points;
+      notifyListeners();
+      return achievement;
+    } catch (e) { return null; }
+  }
+
+  Future<GamificationHistory?> checkActivityMilestones(int actCount) async {
+    final userId = _currentUserId;
+    if (userId == null) return null;
+
+    String? title;
+    int points = 0;
+    if (actCount == 1) { title = 'Beginner'; points = 50; }
+    else if (actCount == 5) { title = 'Pro'; points = 150; }
+    else if (actCount == 10) { title = 'Zen Master'; points = 300; }
+    else return null;
+
+    try {
+      final achievement = await _gamificationService.recordAchievement(
+        userID: userId,
+        achievement: title,
+        points: points,
+        metadata: {'type': 'milestone', 'milestone': 'acts_$actCount'},
+      );
+      _totalPoints += points;
+      notifyListeners();
+      return achievement;
+    } catch (e) { return null; }
+  }
+
   /// Spend points on an item
   Future<bool> spendPoints(String itemName, int cost) async {
     final userId = _currentUserId;

@@ -65,9 +65,10 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
         await gamVm.awardMoodLogPoints();
         final streakAch = await gamVm.checkStreakMilestones(vm.streak);
         final firstAch = await gamVm.checkFirstLogMilestone(vm.logCount);
+        final logAch = await gamVm.checkLogMilestones(vm.logCount);
         await gamVm.fetchUserStats();
 
-        final allAch = [...streakAch, if (firstAch != null) firstAch];
+        final allAch = [...streakAch, if (firstAch != null) firstAch, if (logAch != null) logAch];
         if (allAch.isNotEmpty && mounted) {
           for (var a in allAch) {
             InteractiveMessageService.showSuccess(context, title: 'Achievement Unlocked! 🏆', message: 'You earned ${a.achievement} (+${a.pointsEarned} pts)');
