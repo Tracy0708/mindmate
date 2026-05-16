@@ -171,7 +171,13 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                 child: TextButton.icon(
                                   onPressed: _isLoading
                                       ? null
-                                      : () => Navigator.pop(context),
+                                      : () {
+                                          if (Navigator.canPop(context)) {
+                                            Navigator.pop(context);
+                                          } else {
+                                            Navigator.pushReplacementNamed(context, '/');
+                                          }
+                                        },
                                   style: TextButton.styleFrom(
                                     foregroundColor: AppColors.brownMedium,
                                     padding: const EdgeInsets.symmetric(
@@ -399,7 +405,13 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                               TextButton(
                                 onPressed: _isLoading
                                     ? null
-                                    : () => Navigator.pop(context),
+                                    : () {
+                                        if (Navigator.canPop(context)) {
+                                          Navigator.pop(context);
+                                        } else {
+                                          Navigator.pushReplacementNamed(context, '/');
+                                        }
+                                      },
                                 style: TextButton.styleFrom(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 12),
