@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -15,6 +16,12 @@ class LocalNotificationService {
   static const int breathingId = 2;
   static const int weeklySummaryId = 3;
   static const int motivationalId = 4;
+  
+  // Admin Notification IDs
+  static const int adminHighRiskId = 10;
+  static const int adminNewSignupId = 11;
+  static const int adminSystemReportId = 12;
+  static const int adminAbnormalBehaviorId = 13;
 
   /// Initialize the notification plugin — call once at app startup
   Future<void> initialize() async {
@@ -109,8 +116,8 @@ class LocalNotificationService {
   Future<void> showTestNotification() async {
     await _plugin.show(
       99,
-      '🧠 MindMate',
-      'Notifications are working! You will receive your reminders.',
+      '🧠 MindMate Admin',
+      'Alerts are working! You will receive your notifications.',
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'mindmate_reminders',
@@ -119,6 +126,30 @@ class LocalNotificationService {
           importance: Importance.high,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
+        ),
+      ),
+    );
+  }
+
+  /// Show an immediate admin real-time alert
+  Future<void> showAdminRealtimeAlert({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    await _plugin.show(
+      id,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'mindmate_admin_alerts',
+          'MindMate Admin Alerts',
+          channelDescription: 'Critical alerts for MindMate administrators',
+          importance: Importance.max,
+          priority: Priority.max,
+          icon: '@mipmap/ic_launcher',
+          color: Color(0xFFFFB300),
         ),
       ),
     );
@@ -178,6 +209,36 @@ class LocalNotificationService {
         minute: 0,
       );
     }
+  }
+
+  /// Apply admin notification preferences
+  Future<void> applyAdminPreferences({
+    required bool masterEnabled,
+    required bool highRiskAlerts,
+    required bool newSignups,
+    required bool systemReports,
+    required bool abnormalBehavior,
+    required int hour,
+    required int minute,
+  }) async {
+    // Cancel all first
+    await cancelAll();
+
+    if (!masterEnabled) return;
+
+    if (systemReports) {
+      await scheduleDailyNotification(
+        id: adminSystemReportId,
+        title: '📈 Daily System Report',
+        body: 'Your daily overview of platform usage and signals is ready.',
+        hour: hour,
+        minute: minute,
+      );
+    }
+    
+    // Other admin alerts (High Risk, New Signups, Abnormal Behavior) 
+    // are typically triggered dynamically by Cloud Functions or Firestore listeners.
+    // For demonstration of local notification settings, we simulate their setup here.
   }
 
   // ─── Private Helpers ───

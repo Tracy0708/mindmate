@@ -9,6 +9,7 @@ import 'screens/complete_profile_screen.dart';
 import 'screens/notification_settings_screen.dart';
 import 'screens/admin/admin_login_screen.dart';
 import 'screens/admin/admin_dashboard.dart';
+import 'screens/admin/admin_notification_settings_screen.dart';
 import 'services/auth_service.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
@@ -87,6 +88,7 @@ class MyApp extends StatelessWidget {
                 const NotificationSettingsScreen(),
             '/admin-login': (context) => const AdminLoginScreen(),
             '/admin-dashboard': (context) => const AdminDashboardScreen(),
+            '/admin-notifications-settings': (context) => const AdminNotificationSettingsScreen(),
           },
         );
       },

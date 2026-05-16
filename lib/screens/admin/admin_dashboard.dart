@@ -5,6 +5,7 @@ import '../../viewmodels/admin_viewmodel.dart';
 import '../../models/user_model.dart';
 import '../../main.dart';
 import '../../services/interactive_message_service.dart';
+import '../../services/admin_realtime_notification_service.dart';
 import 'user_management_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -22,6 +23,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<AdminViewModel>(context, listen: false).generateReport();
     });
+    AdminRealtimeNotificationService().startListening();
+  }
+
+  @override
+  void dispose() {
+    AdminRealtimeNotificationService().stopListening();
+    super.dispose();
   }
 
   void _navigateToTab(int index) {
@@ -1318,6 +1326,52 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
                                     : '${lastLogin.month}/${lastLogin.day}/${lastLogin.year}',
                               ),
                             ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: InkWell(
+                            onTap: () => Navigator.pushNamed(context, '/admin-notifications-settings'),
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.03),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  )
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.golden.withOpacity(0.14),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(Icons.notifications_active_outlined, color: AppColors.golden, size: 20),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  const Expanded(
+                                    child: Text(
+                                      'Notification Settings',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.brownDark,
+                                      ),
+                                    ),
+                                  ),
+                                  const Icon(Icons.chevron_right_rounded, color: AppColors.brownMedium),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 18),
