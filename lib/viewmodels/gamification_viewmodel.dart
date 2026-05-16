@@ -8,7 +8,7 @@ class GamificationViewModel extends ChangeNotifier {
   final GamificationService _gamificationService = GamificationService();
 
   int _totalPoints = 0;
-  List<GamificationHistory> _achievements = [];
+  final List<GamificationHistory> _achievements = [];
   List<GamificationHistory> _history = [];
   Map<String, dynamic>? _userStats;
   bool _isLoading = false;

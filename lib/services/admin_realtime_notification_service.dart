@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'local_notification_service.dart';
 import 'auth_service.dart';
-import '../models/user_model.dart';
 import 'dart:developer' as developer;
 
 class AdminRealtimeNotificationService {

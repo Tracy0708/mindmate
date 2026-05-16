@@ -303,7 +303,7 @@ class _NotificationSettingsScreenState
                         ),
                         Switch(
                           value: _masterToggle,
-                          activeColor: AppColors.golden,
+                          activeThumbColor: AppColors.golden,
                           onChanged: _onMasterToggle,
                         ),
                       ],
@@ -433,16 +433,16 @@ class _NotificationSettingsScreenState
                                   color: AppColors.golden, size: 28),
                             ),
                             const SizedBox(width: 16),
-                            Expanded(
+                            const Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('Daily Reminder Time',
+                                  Text('Daily Reminder Time',
                                       style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w700,
                                           color: AppColors.brownDark)),
-                                  const SizedBox(height: 4),
+                                  SizedBox(height: 4),
                                   Text(
                                     'Tap to change',
                                     style: TextStyle(
@@ -563,7 +563,7 @@ class _NotificationToggle extends StatelessWidget {
             ),
             Switch(
               value: value,
-              activeColor: AppColors.golden,
+              activeThumbColor: AppColors.golden,
               onChanged: enabled ? onChanged : null,
             ),
           ],

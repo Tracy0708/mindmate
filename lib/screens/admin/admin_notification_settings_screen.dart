@@ -316,7 +316,7 @@ class _AdminNotificationSettingsScreenState
                         ),
                         Switch(
                           value: _masterToggle,
-                          activeColor: AppColors.golden,
+                          activeThumbColor: AppColors.golden,
                           onChanged: _onMasterToggle,
                         ),
                       ],
@@ -446,17 +446,17 @@ class _AdminNotificationSettingsScreenState
                                   color: AppColors.golden, size: 28),
                             ),
                             const SizedBox(width: 16),
-                            Expanded(
+                            const Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('Daily Report Time',
+                                  Text('Daily Report Time',
                                       style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w700,
                                           color: AppColors.brownDark)),
-                                  const SizedBox(height: 4),
-                                  const Text(
+                                  SizedBox(height: 4),
+                                  Text(
                                     'Tap to change',
                                     style: TextStyle(
                                         fontSize: 13,
@@ -576,7 +576,7 @@ class _NotificationToggle extends StatelessWidget {
             ),
             Switch(
               value: value,
-              activeColor: AppColors.golden,
+              activeThumbColor: AppColors.golden,
               onChanged: enabled ? onChanged : null,
             ),
           ],

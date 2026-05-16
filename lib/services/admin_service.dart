@@ -294,7 +294,7 @@ class AdminService {
   Future<Map<String, dynamic>> generateUsageReport() async {
     // Collect aggregated data
     final usersSnapshot = await _firestore.collection(_usersCollection).get();
-    final emotionsSnapshot = await _firestore.collection('emotions').get();
+    final emotionsSnapshot = await _firestore.collectionGroup('emotion_logs').get();
 
     final users = usersSnapshot.docs
         .map((doc) => UserModel.fromJson({...doc.data(), 'id': doc.id}))
@@ -304,12 +304,43 @@ class AdminService {
     final disabledUsers = users.where((u) => u.isDisabled).length;
     final adminUsers = users.where((u) => u.role == 'admin').length;
 
+    int logsToday = 0;
+    int logsThisWeek = 0;
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final weekStart = now.subtract(const Duration(days: 7));
+
+    for (var doc in emotionsSnapshot.docs) {
+      final date = _parseEmotionTimestamp(doc.data());
+      if (date != null) {
+        if (date.isAfter(todayStart)) {
+          logsToday++;
+        }
+        if (date.isAfter(weekStart)) {
+          logsThisWeek++;
+        }
+      }
+    }
+
+    int activeUsersThisWeek = 0;
+    for (var user in users) {
+      if (user.lastLogin != null && user.lastLogin!.isAfter(weekStart)) {
+        activeUsersThisWeek++;
+      }
+    }
+
     return {
       'totalUsers': usersSnapshot.docs.length,
       'activeUsers': activeUsers,
       'disabledUsers': disabledUsers,
       'adminUsers': adminUsers,
       'totalLogs': emotionsSnapshot.docs.length,
+      'logsToday': logsToday,
+      'logsThisWeek': logsThisWeek,
+      'activeUsersThisWeek': activeUsersThisWeek,
+      'avgLogsPerUser': users.isEmpty
+          ? 0.0
+          : (emotionsSnapshot.docs.length / users.length).toStringAsFixed(1),
       'generatedAt': DateTime.now().toIso8601String(),
     };
   }

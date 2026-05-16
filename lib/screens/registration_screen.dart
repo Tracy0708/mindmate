@@ -296,8 +296,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             ),
             validator: (v) {
               if (v == null || v.isEmpty) return 'Please confirm your password';
-              if (v != _passwordController.text)
+              if (v != _passwordController.text) {
                 return 'Passwords do not match';
+              }
               return null;
             },
           ),
@@ -357,9 +358,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     }
                   }
                 } catch (e) {
-                  if (mounted)
+                  if (mounted) {
                     ScaffoldMessenger.of(context)
                         .showSnackBar(SnackBar(content: Text(e.toString())));
+                  }
                 } finally {
                   if (mounted) setState(() => _isLoading = false);
                 }

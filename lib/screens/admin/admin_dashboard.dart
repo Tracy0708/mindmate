@@ -42,11 +42,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       backgroundColor: AppColors.creamLight,
       body: IndexedStack(
         index: _selectedTab,
-        children: [
-          const _AdminHomeTab(),
-          const UserManagementScreen(),
-          const _UsageAnalyticsTab(),
-          const _AdminProfileTab(),
+        children: const [
+          _AdminHomeTab(),
+          UserManagementScreen(),
+          _UsageAnalyticsTab(),
+          _AdminProfileTab(),
         ],
       ),
       bottomNavigationBar: Container(
@@ -108,274 +108,281 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 class _AdminHomeTab extends StatelessWidget {
   const _AdminHomeTab();
 
+  String _greeting() {
+    final h = DateTime.now().hour;
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  String _todayLabel() {
+    final now = DateTime.now();
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return '${days[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFFBF2), Color(0xFFFFF6E6)],
-          ),
-        ),
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.all(20),
-          child: Consumer<AdminViewModel>(
-            builder: (context, vm, _) {
-              final report = vm.usageReport;
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 4),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.white.withOpacity(0.96),
-                          const Color(0xFFFFF8E7),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                          color: AppColors.fieldBorder.withOpacity(0.45)),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 18,
-                            offset: const Offset(0, 8)),
-                      ],
-                    ),
-                    child: Column(
+        color: AppColors.creamLight,
+        child: RefreshIndicator(
+          color: AppColors.golden,
+          onRefresh: () => context.read<AdminViewModel>().generateReport(),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+            child: Consumer<AdminViewModel>(
+              builder: (context, vm, _) {
+                final report = vm.usageReport;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── HEADER ──
+                    const SizedBox(height: 12),
+                    Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Admin Dashboard',
-                                    style: TextStyle(
-                                        fontSize: 26,
-                                        fontWeight: FontWeight.w900,
-                                        color: AppColors.brownDark),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  const Text(
-                                    'Overall platform health and activity overview.',
-                                    style: TextStyle(
-                                        fontSize: 13,
-                                        color: AppColors.brownMedium,
-                                        height: 1.4),
-                                  ),
-                                ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${_greeting()}, Admin 👋',
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.brownDark,
+                                ),
                               ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _todayLabel(),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppColors.brownMedium,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (vm.isLoading)
+                          const SizedBox(
+                            width: 20, height: 20,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2.5, color: AppColors.golden),
+                          )
+                        else
+                          GestureDetector(
+                            onTap: vm.generateReport,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.golden.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(Icons.refresh_rounded,
+                                  color: AppColors.golden, size: 20),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    if (vm.errorMessage != null)
+                      Container(
+                        margin: const EdgeInsets.only(top: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: AppColors.errorRed.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: AppColors.errorRed.withOpacity(0.25)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.cloud_off_rounded,
+                                color: AppColors.errorRed, size: 18),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(vm.errorMessage!,
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.brownMedium)),
+                            ),
+                            TextButton(
+                              onPressed: vm.generateReport,
+                              child: const Text('Retry',
+                                  style: TextStyle(
+                                      color: AppColors.errorRed,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700)),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        if (vm.isLoading) ...[
-                          const SizedBox(height: 14),
-                          const LinearProgressIndicator(minHeight: 3),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Refreshing usage report...',
-                            style: TextStyle(
-                                fontSize: 12, color: AppColors.brownMedium),
-                          ),
-                        ],
-                        if (vm.errorMessage != null) ...[
-                          const SizedBox(height: 14),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: AppColors.errorRed.withOpacity(0.08),
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                  color: AppColors.errorRed.withOpacity(0.18)),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Icon(Icons.cloud_off_rounded,
-                                    color: AppColors.errorRed),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Report sync failed',
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w800,
-                                            color: AppColors.brownDark),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        vm.errorMessage!,
-                                        style: const TextStyle(
-                                            fontSize: 12,
-                                            color: AppColors.brownMedium,
-                                            height: 1.35),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      TextButton(
-                                        onPressed: vm.generateReport,
-                                        child: const Text('Retry'),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ],
+                      ),
+                    const SizedBox(height: 24),
+
+                    // ── KPI GRID ──
+                    const _SectionHeader(
+                      icon: Icons.bar_chart_rounded,
+                      title: 'Platform Overview',
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      _StatCard(
+                    const SizedBox(height: 12),
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 1.1,
+                      children: [
+                        _StatCard(
                           value: '${report?['totalUsers'] ?? 0}',
                           label: 'Total Users',
                           color: AppColors.golden,
-                          icon: Icons.group_rounded),
-                      _StatCard(
+                          icon: Icons.group_rounded,
+                          subtitle: 'All registered accounts',
+                        ),
+                        _StatCard(
                           value: '${report?['activeUsers'] ?? 0}',
-                          label: 'Active Users',
-                          color: AppColors.golden,
-                          icon: Icons.check_circle_rounded),
-                      _StatCard(
+                          label: 'Active',
+                          color: const Color(0xFF26A69A),
+                          icon: Icons.check_circle_rounded,
+                          subtitle: 'Non-disabled users',
+                        ),
+                        _StatCard(
                           value: '${report?['disabledUsers'] ?? 0}',
-                          label: 'Disabled',
-                          color: AppColors.brownDark,
-                          icon: Icons.block_rounded),
-                      _StatCard(
+                          label: 'Suspended',
+                          color: AppColors.errorRed,
+                          icon: Icons.block_rounded,
+                          subtitle: 'Disabled accounts',
+                        ),
+                        _StatCard(
                           value: '${report?['adminUsers'] ?? 0}',
                           label: 'Admins',
-                          color: AppColors.brownDark,
-                          icon: Icons.admin_panel_settings_rounded),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
+                          color: const Color(0xFF7E57C2),
+                          icon: Icons.admin_panel_settings_rounded,
+                          subtitle: 'Admin-role accounts',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // ── USAGE SNAPSHOT ──
+                    const _SectionHeader(
+                      icon: Icons.insights_rounded,
+                      title: 'Usage Snapshot',
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
                             color: Colors.black.withOpacity(0.04),
-                            blurRadius: 12,
-                            offset: const Offset(0, 5))
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Usage Snapshot',
-                          style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.brownDark),
-                        ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'Quick overall usage signals for monitoring engagement and data freshness.',
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.brownMedium,
-                              height: 1.35),
-                        ),
-                        const SizedBox(height: 10),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFFAEE),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: AppColors.fieldBorder.withOpacity(0.55),
-                            ),
-                          ),
-                          child: const Text(
-                            'Mood Logs Captured shows the total number of emotion logs submitted by all users. Report Generated indicates when this dashboard summary was last refreshed from Firebase.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.brownMedium,
-                              height: 1.4,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _DashboardInfoTile(
-                                icon: Icons.mood_rounded,
-                                label: 'Mood Logs Captured (All Users)',
-                                value: '${report?['totalLogs'] ?? 0}',
+                            blurRadius: 14,
+                            offset: const Offset(0, 6),
+                          )
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _DashboardInfoTile(
+                                  icon: Icons.mood_rounded,
+                                  label: 'Total Logs',
+                                  value: '${report?['totalLogs'] ?? 0}',
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: _DashboardInfoTile(
-                                icon: Icons.schedule_rounded,
-                                label: 'Report Generated',
-                                value:
-                                    _formatReportTime(report?['generatedAt']),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _DashboardInfoTile(
+                                  icon: Icons.today_rounded,
+                                  label: 'Logs Today',
+                                  value: '${report?['logsToday'] ?? 0}',
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        OutlinedButton.icon(
-                          onPressed: vm.isLoading ? null : vm.generateReport,
-                          icon: const Icon(Icons.refresh_rounded,
-                              color: AppColors.golden),
-                          label: Text(
-                            vm.isLoading
-                                ? 'Refreshing...'
-                                : 'Refresh Dashboard Data',
-                            style: const TextStyle(
-                              color: AppColors.golden,
-                              fontWeight: FontWeight.w700,
-                            ),
+                            ],
                           ),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(
-                                color: AppColors.golden, width: 1.3),
-                            minimumSize: const Size(double.infinity, 48),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _DashboardInfoTile(
+                                  icon: Icons.date_range_rounded,
+                                  label: 'Logs (7d)',
+                                  value: '${report?['logsThisWeek'] ?? 0}',
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _DashboardInfoTile(
+                                  icon: Icons.person_pin_circle_rounded,
+                                  label: 'Active (7d)',
+                                  value: '${report?['activeUsersThisWeek'] ?? 0}',
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _DashboardInfoTile(
+                                  icon: Icons.pie_chart_rounded,
+                                  label: 'Avg Logs/User',
+                                  value: '${report?['avgLogsPerUser'] ?? '0.0'}',
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _DashboardInfoTile(
+                                  icon: Icons.schedule_rounded,
+                                  label: 'Last Refreshed',
+                                  value: _formatReportTime(report?['generatedAt']),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          const Divider(height: 1, color: AppColors.fieldBorder),
+                          const SizedBox(height: 14),
+                          const Row(
+                            children: [
+                              Icon(Icons.info_outline_rounded,
+                                  size: 14, color: AppColors.brownLight),
+                              SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  'Pull down to refresh, or tap the refresh icon above.',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.brownLight,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-              );
-            },
+                    const SizedBox(height: 8),
+                  ],
+                );
+              },
+            ),
           ),
         ),
+
       ),
     );
   }
@@ -436,75 +443,92 @@ class _DashboardInfoTile extends StatelessWidget {
   }
 }
 
+class _SectionHeader extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  const _SectionHeader({required this.icon, required this.title});
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      Container(
+        padding: const EdgeInsets.all(7),
+        decoration: BoxDecoration(
+          color: AppColors.golden.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: AppColors.golden, size: 17),
+      ),
+      const SizedBox(width: 10),
+      Text(title,
+          style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              color: AppColors.brownDark)),
+    ]);
+  }
+}
+
 class _StatCard extends StatelessWidget {
   final String value;
   final String label;
+  final String subtitle;
   final Color color;
   final IconData icon;
 
-  const _StatCard(
-      {required this.value,
-      required this.label,
-      required this.color,
-      required this.icon});
+  const _StatCard({
+    required this.value,
+    required this.label,
+    required this.color,
+    required this.icon,
+    this.subtitle = '',
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: (MediaQuery.of(context).size.width - 52) / 2,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Colors.white, color.withOpacity(0.10)],
-        ),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: color.withOpacity(0.12)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.15)),
         boxShadow: [
           BoxShadow(
               color: Colors.black.withOpacity(0.04),
-              blurRadius: 14,
-              offset: const Offset(0, 6))
+              blurRadius: 10,
+              offset: const Offset(0, 4))
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.16),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color, size: 22),
-              ),
-              const Spacer(),
-              Icon(Icons.trending_up_rounded,
-                  size: 18, color: color.withOpacity(0.75)),
-            ],
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.14),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 18),
           ),
-          const SizedBox(height: 14),
+          const Spacer(),
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Text(
-              value,
-              style: TextStyle(
-                  fontSize: 30,
-                  height: 1.0,
-                  fontWeight: FontWeight.w900,
-                  color: color),
-            ),
+            child: Text(value,
+                style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    color: color)),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 2),
           Text(label,
               style: const TextStyle(
                   fontSize: 13,
-                  color: AppColors.brownMedium,
-                  fontWeight: FontWeight.w600)),
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.brownDark)),
+          if (subtitle.isNotEmpty)
+            Text(subtitle,
+                style: const TextStyle(
+                    fontSize: 11, color: AppColors.brownMedium)),
         ],
       ),
     );
@@ -727,72 +751,44 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
               users.where(_matchesFilter).toList(growable: false);
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 8),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Colors.white.withOpacity(0.96),
-                        const Color(0xFFFFF8E7),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                        color: AppColors.fieldBorder.withOpacity(0.45)),
-                    boxShadow: [
-                      BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
-                          blurRadius: 18,
-                          offset: const Offset(0, 8)),
-                    ],
-                  ),
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Mood Risk Analytics',
-                        style: TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.brownDark),
-                      ),
-                      SizedBox(height: 6),
-                      Text(
-                        'Per-user analysis to identify who may need real counselling follow-up.',
-                        style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.brownMedium,
-                            height: 1.4),
-                      ),
-                    ],
+                const SizedBox(height: 12),
+                const _SectionHeader(
+                  icon: Icons.monitor_heart_rounded,
+                  title: 'Mood Risk Analytics',
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Per-user mood pattern analysis to identify users who may need counselling follow-up.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.brownMedium,
+                    height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 4),
                 Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(top: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFFDF5),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                        color: AppColors.fieldBorder.withOpacity(0.55)),
+                    color: AppColors.golden.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.golden.withOpacity(0.25)),
                   ),
-                  child: const Text(
-                    'Risk score is based on negative mood ratio, recent negative trend (last 7 days), and logging consistency over the last 21 days.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.brownMedium,
-                      height: 1.4,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.info_outline_rounded, size: 14, color: AppColors.golden),
+                      SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'Score = negative mood ratio (58%) + recent trend (25%) + log volume (10%) + recency (7%)',
+                          style: TextStyle(fontSize: 11, color: AppColors.brownMedium, height: 1.4),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -849,7 +845,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: DropdownButtonFormField<String>(
-                              value: _riskFilter,
+                              initialValue: _riskFilter,
                               items: const [
                                 DropdownMenuItem(
                                     value: 'All', child: Text('All')),
@@ -964,126 +960,146 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                             .toStringAsFixed(0);
 
                     return InkWell(
-                        borderRadius: BorderRadius.circular(18),
-                        onTap: () => _showUserRiskDetailSheet(user),
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: color.withOpacity(0.25)),
-                            boxShadow: [
-                              BoxShadow(
-                                  color: Colors.black.withOpacity(0.04),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4))
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          (user['name'] as String).isEmpty
-                                              ? 'Unknown User'
-                                              : user['name'] as String,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w800,
-                                            color: AppColors.brownDark,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          (user['email'] as String?)
-                                                      ?.isNotEmpty ==
-                                                  true
-                                              ? user['email'] as String
-                                              : 'No email',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: AppColors.brownMedium,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: () => _showUserRiskDetailSheet(user),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: color.withOpacity(0.2)),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.black.withOpacity(0.04),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4))
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 40, height: 40,
+                                  decoration: BoxDecoration(
+                                    color: color.withOpacity(0.12),
+                                    shape: BoxShape.circle,
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: color.withOpacity(0.12),
-                                      borderRadius: BorderRadius.circular(999),
-                                    ),
-                                    child: Text(
-                                      '${riskScore.toStringAsFixed(0)}% ${_riskLevel(riskScore)}',
-                                      style: TextStyle(
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    ((user['name'] as String?) ?? '?').isNotEmpty
+                                        ? (user['name'] as String)[0].toUpperCase()
+                                        : '?',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        color: color,
+                                        fontSize: 16),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        (user['name'] as String?) ?? 'Unknown',
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.brownDark,
+                                        ),
+                                      ),
+                                      Text(
+                                        (user['email'] as String?) ?? '',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.brownMedium,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 5),
+                                  decoration: BoxDecoration(
+                                    color: color.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    _riskLevel(riskScore),
+                                    style: TextStyle(
                                         color: color,
                                         fontSize: 11,
-                                        fontWeight: FontWeight.w800,
-                                      ),
+                                        fontWeight: FontWeight.w800),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            Row(
+                              children: [
+                                Text(
+                                  '${riskScore.toStringAsFixed(0)}%',
+                                  style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w800,
+                                      color: color),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: LinearProgressIndicator(
+                                      value: riskScore / 100,
+                                      minHeight: 6,
+                                      backgroundColor:
+                                          color.withOpacity(0.12),
+                                      valueColor:
+                                          AlwaysStoppedAnimation<Color>(color),
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  const Icon(
-                                    Icons.chevron_right_rounded,
-                                    color: AppColors.brownMedium,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: [
-                                  _RiskStatPill(
-                                    icon: Icons.insights_rounded,
-                                    label: '$negativeRatio% negative logs',
-                                    color: color,
-                                  ),
-                                  _RiskStatPill(
-                                    icon: Icons.sentiment_dissatisfied_rounded,
-                                    label:
-                                        'Dominant: ${(user['dominantNegativeMood'] as String).toUpperCase()}',
-                                    color: const Color(0xFFDD8A00),
-                                  ),
-                                  _RiskStatPill(
-                                    icon: Icons.history_rounded,
-                                    label:
-                                        '${user['totalLogs']} logs (21 days)',
-                                    color: AppColors.golden,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                'Last mood entry: ${_formatDate(user['lastMoodAt'])}  |  Last login: ${_formatDate(user['lastLogin'])}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.brownMedium,
-                                  fontWeight: FontWeight.w600,
                                 ),
-                              ),
-                              const SizedBox(height: 6),
-                              const Text(
-                                'Tap to view more details',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.brownMedium,
-                                  fontWeight: FontWeight.w700,
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 6,
+                              children: [
+                                _RiskStatPill(
+                                  icon: Icons.insights_rounded,
+                                  label: '$negativeRatio% negative',
+                                  color: color,
                                 ),
+                                _RiskStatPill(
+                                  icon: Icons.sentiment_dissatisfied_rounded,
+                                  label: (user['dominantNegativeMood']
+                                              as String)
+                                          .toUpperCase(),
+                                  color: const Color(0xFFDD8A00),
+                                ),
+                                _RiskStatPill(
+                                  icon: Icons.history_rounded,
+                                  label: '${user['totalLogs']} logs',
+                                  color: AppColors.golden,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Last mood: ${_formatDate(user['lastMoodAt'])}  ·  Last login: ${_formatDate(user['lastLogin'])}',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.brownMedium,
                               ),
-                            ],
-                          ),
-                        ));
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
                   }),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
@@ -1180,12 +1196,12 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
       backgroundColor: AppColors.creamLight,
       body: SafeArea(
         child: currentUser == null
-            ? Center(
+            ? const Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: EdgeInsets.all(24),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       Icon(Icons.lock_outline,
                           size: 42, color: AppColors.brownMedium),
                       SizedBox(height: 10),

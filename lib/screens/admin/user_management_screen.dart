@@ -219,7 +219,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               _field('Age (optional)', ageCtrl, hint: 'e.g. 25', icon: Icons.cake_outlined, type: TextInputType.number),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: gender,
+                initialValue: gender,
                 hint: const Text('Gender (optional)'),
                 decoration: _inputDeco(Icons.people_outline),
                 items: ['Male', 'Female', 'Other', 'Prefer not to say']
@@ -306,7 +306,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               _field('Age (optional)', ageCtrl, hint: 'e.g. 25', icon: Icons.cake_outlined, type: TextInputType.number),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: gender,
+                initialValue: gender,
                 hint: const Text('Gender (optional)'),
                 decoration: _inputDeco(Icons.people_outline),
                 items: ['Male', 'Female', 'Other', 'Prefer not to say']
