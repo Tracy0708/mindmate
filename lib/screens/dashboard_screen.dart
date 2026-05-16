@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../main.dart';
 import '../viewmodels/emotion_viewmodel.dart';
 import '../viewmodels/gamification_viewmodel.dart';
+import '../models/gamification_history.dart';
 import '../widgets/daily_checkin_dialog.dart';
 import '../services/emotion_service.dart';
 import 'emotion_tracking_screen.dart';
@@ -11,6 +12,7 @@ import 'profile_screen.dart';
 import 'calendar_screen.dart';
 import 'activity_screen.dart';
 import 'insights_screen.dart';
+import 'gamification_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -30,7 +32,9 @@ class DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkDailyEmotion();
-      Provider.of<GamificationViewModel>(context, listen: false).fetchUserStats();
+      final gamVm = Provider.of<GamificationViewModel>(context, listen: false);
+      gamVm.fetchUserStats();
+      gamVm.fetchHistory();
     });
   }
 
@@ -94,16 +98,37 @@ class DashboardScreenState extends State<DashboardScreen> {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// HOME TAB — redesigned with logical sections
+// HOME TAB
 // ═══════════════════════════════════════════════════════════════════
-class _HomeTab extends StatelessWidget {
+class _HomeTab extends StatefulWidget {
   final Function(int) onNavigate;
   const _HomeTab({required this.onNavigate});
 
+  @override
+  State<_HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<_HomeTab> {
   static const _emojiMap = {
     'Happy': '😊', 'Sad': '😢', 'Anxious': '😰',
     'Angry': '😠', 'Calm': '😌', 'Tired': '😴',
   };
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final gamVm = Provider.of<GamificationViewModel>(context, listen: false);
+      gamVm.fetchHistory();
+    });
+  }
+
+  String get _greeting {
+    final h = DateTime.now().hour;
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,139 +140,104 @@ class _HomeTab extends StatelessWidget {
         final activities = vm.completedActivityCount;
         final points = gamVm.totalPoints;
 
+        // Badge count from real data
+        final unlockedBadges = [
+          streak >= 7, logCount >= 10, logCount >= 30, streak >= 30,
+          logCount >= 1, activities >= 1, activities >= 10,
+          vm.breathingSessionCount >= 5,
+        ].where((b) => b).length;
+
         return SafeArea(
           child: RefreshIndicator(
             color: AppColors.golden,
             onRefresh: () async {
               await vm.checkTodaysLog();
               await gamVm.fetchUserStats();
+              await gamVm.fetchHistory();
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-                // ─── 1. TODAY'S CHECK-IN ───
+                // ── GREETING HEADER ──
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text('$_greeting 👋', style: const TextStyle(fontSize: 14, color: AppColors.brownMedium, fontWeight: FontWeight.w500)),
+                      const Text('MindMate', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: AppColors.brownDark, letterSpacing: 0.5)),
+                    ]),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(color: AppColors.golden.withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
+                      child: Row(children: [
+                        const Icon(Icons.local_fire_department, color: AppColors.golden, size: 16),
+                        const SizedBox(width: 4),
+                        Text('$streak day${streak == 1 ? '' : 's'}', style: const TextStyle(color: AppColors.golden, fontWeight: FontWeight.w700, fontSize: 13)),
+                      ]),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // ── SECTION 1: EMOJI DAILY LOG ──
                 _TodayCard(
                   mood: todaysMood,
                   streak: streak,
+                  emojiMap: _emojiMap,
                   onLogMood: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmotionTrackingScreen())),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
 
-                // ─── 2. QUICK ACTIONS ───
+                // ── SECTION 2: OVERALL GAMIFICATION DISPLAY ──
+                _GamificationHeroCard(
+                  points: points,
+                  streak: streak,
+                  badges: unlockedBadges,
+                  activities: activities,
+                ),
+                const SizedBox(height: 24),
+
+                // ── SECTION 3: BADGE CENTER ──
+                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                  const Text('Badge Center', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
+                  GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GamificationScreen())),
+                    child: const Text('See All →', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.golden)),
+                  ),
+                ]),
+                const SizedBox(height: 14),
+                _BadgeMiniRow(streak: streak, logCount: logCount, activities: activities, breathing: vm.breathingSessionCount),
+                const SizedBox(height: 24),
+
+                // ── SECTION 4: QUICK ACTIONS ──
                 const Text('Quick Actions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
                 const SizedBox(height: 14),
                 Row(children: [
-                  _QuickAction(
-                    icon: Icons.air, label: 'Breathe', color: const Color(0xFF42A5F5),
-                    onTap: () {
-                      const a = RecommendedActivity(
-                        title: 'Box Breathing', activityType: 'breathing', emoji: '🌬️', durationMinutes: 5,
-                        description: 'Inhale 4s, hold 4s, exhale 4s, hold 4s. Repeat to calm your nervous system.',
-                      );
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ActivityScreen(activity: a)));
-                    },
-                  ),
+                  _QuickAction(icon: Icons.air, label: 'Breathe', color: const Color(0xFF42A5F5), onTap: () {
+                    const a = RecommendedActivity(title: 'Box Breathing', activityType: 'breathing', emoji: '🌬️', durationMinutes: 5, description: 'Inhale 4s, hold 4s, exhale 4s, hold 4s. Repeat to calm your nervous system.');
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ActivityScreen(activity: a)));
+                  }),
                   const SizedBox(width: 12),
-                  _QuickAction(
-                    icon: Icons.edit_note, label: 'Journal', color: const Color(0xFF66BB6A),
-                    onTap: () {
-                      const a = RecommendedActivity(
-                        title: 'Guided Journaling', activityType: 'journaling', emoji: '📝', durationMinutes: 10,
-                        description: 'Write about 3 things you\'re grateful for today.',
-                      );
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ActivityScreen(activity: a)));
-                    },
-                  ),
+                  _QuickAction(icon: Icons.edit_note, label: 'Journal', color: const Color(0xFF66BB6A), onTap: () {
+                    const a = RecommendedActivity(title: 'Guided Journaling', activityType: 'journaling', emoji: '📝', durationMinutes: 10, description: 'Write about 3 things you\'re grateful for today.');
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ActivityScreen(activity: a)));
+                  }),
                   const SizedBox(width: 12),
-                  _QuickAction(
-                    icon: Icons.self_improvement, label: 'Meditate', color: const Color(0xFFAB47BC),
-                    onTap: () {
-                      const a = RecommendedActivity(
-                        title: 'Mindful Body Scan', activityType: 'meditation', emoji: '🧘', durationMinutes: 5,
-                        description: 'A gentle meditation to check in with your body and release tension.',
-                      );
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ActivityScreen(activity: a)));
-                    },
-                  ),
+                  _QuickAction(icon: Icons.self_improvement, label: 'Meditate', color: const Color(0xFFAB47BC), onTap: () {
+                    const a = RecommendedActivity(title: 'Mindful Body Scan', activityType: 'meditation', emoji: '🧘', durationMinutes: 5, description: 'A gentle meditation to check in with your body and release tension.');
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ActivityScreen(activity: a)));
+                  }),
                   const SizedBox(width: 12),
-                  _QuickAction(
-                    icon: Icons.chat_bubble_outline, label: 'Chat', color: const Color(0xFFFF7043),
-                    onTap: () => onNavigate(3),
-                  ),
+                  _QuickAction(icon: Icons.chat_bubble_outline, label: 'Chat', color: const Color(0xFFFF7043), onTap: () => widget.onNavigate(3)),
                 ]),
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
 
-                // ─── 3. YOUR PROGRESS ───
-                const Text('Your Progress', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
+                // ── SECTION 5: HISTORY FEED ──
+                const Text('Recent Activity', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
                 const SizedBox(height: 14),
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))],
-                  ),
-                  child: Column(children: [
-                    Row(children: [
-                      _StatTile(icon: Icons.local_fire_department, value: '$streak', label: 'Streak', color: const Color(0xFFFF5722)),
-                      _StatTile(icon: Icons.edit_calendar, value: '$logCount', label: 'Mood Logs', color: AppColors.golden),
-                      _StatTile(icon: Icons.spa, value: '$activities', label: 'Activities', color: const Color(0xFF66BB6A)),
-                      _StatTile(icon: Icons.star, value: '$points', label: 'Points', color: const Color(0xFFAB47BC)),
-                    ]),
-                    const SizedBox(height: 20),
-                    // Combined progress bar — mood logging
-                    _ProgressRow(label: 'Mood Logging', value: logCount, target: 30, unit: 'days'),
-                    const SizedBox(height: 14),
-                    _ProgressRow(label: 'Self-Care Activities', value: activities, target: 10, unit: 'completed'),
-                  ]),
-                ),
-                const SizedBox(height: 28),
-
-                // ─── 4. RECENT MOODS (last 5 days) ───
-                if (vm.recentLogs.isNotEmpty) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Recent Moods', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
-                      GestureDetector(
-                        onTap: () => onNavigate(2),
-                        child: const Text('See Calendar →', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.golden)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  SizedBox(
-                    height: 80,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: vm.recentLogs.length.clamp(0, 7),
-                      separatorBuilder: (_, __) => const SizedBox(width: 10),
-                      itemBuilder: (context, index) {
-                        final log = vm.recentLogs[index];
-                        final emoji = _emojiMap[log.emotionType] ?? '🙂';
-                        final isToday = _isToday(log.timestamp);
-                        return Container(
-                          width: 64, padding: const EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: isToday ? AppColors.golden.withOpacity(0.12) : Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: isToday ? AppColors.golden : AppColors.golden.withOpacity(0.15), width: isToday ? 2 : 1),
-                          ),
-                          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                            Text(emoji, style: const TextStyle(fontSize: 24)),
-                            const SizedBox(height: 4),
-                            Text(
-                              isToday ? 'Today' : _shortDay(log.timestamp),
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isToday ? AppColors.golden : AppColors.brownMedium),
-                            ),
-                          ]),
-                        );
-                      },
-                    ),
-                  ),
-                ],
+                _HistoryFeed(history: gamVm.history, recentLogs: vm.recentLogs, emojiMap: _emojiMap),
               ]),
             ),
           ),
@@ -255,34 +245,139 @@ class _HomeTab extends StatelessWidget {
       },
     );
   }
+}
 
-  static bool _isToday(DateTime date) {
-    final now = DateTime.now();
-    return date.year == now.year && date.month == now.month && date.day == now.day;
-  }
+// ─── GAMIFICATION HERO CARD ───
+class _GamificationHeroCard extends StatelessWidget {
+  final int points, streak, badges, activities;
+  const _GamificationHeroCard({required this.points, required this.streak, required this.badges, required this.activities});
 
-  static String _shortDay(DateTime date) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days[date.weekday - 1];
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFF8F00), AppColors.golden, Color(0xFFFFD54F)],
+          begin: Alignment.topLeft, end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: AppColors.golden.withOpacity(0.35), blurRadius: 20, offset: const Offset(0, 8))],
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
+            child: const Icon(Icons.emoji_events, color: Colors.white, size: 20)),
+          const SizedBox(width: 10),
+          const Text('Your Achievements', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+        ]),
+        const SizedBox(height: 18),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+          _HeroStat(icon: Icons.star_rounded, value: '$points', label: 'Points', iconColor: Colors.white),
+          _VertDivider(),
+          _HeroStat(icon: Icons.local_fire_department, value: '$streak', label: 'Streak', iconColor: const Color(0xFFFFE082)),
+          _VertDivider(),
+          _HeroStat(icon: Icons.workspace_premium, value: '$badges', label: 'Badges', iconColor: const Color(0xFFB3E5FC)),
+          _VertDivider(),
+          _HeroStat(icon: Icons.spa, value: '$activities', label: 'Activities', iconColor: const Color(0xFFC8E6C9)),
+        ]),
+      ]),
+    );
   }
+}
+
+class _VertDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Container(width: 1, height: 40, color: Colors.white.withOpacity(0.3));
+}
+
+class _HeroStat extends StatelessWidget {
+  final IconData icon;
+  final String value, label;
+  final Color iconColor;
+  const _HeroStat({required this.icon, required this.value, required this.label, required this.iconColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      Icon(icon, color: iconColor, size: 22),
+      const SizedBox(height: 4),
+      Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 22)),
+      Text(label, style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 11, fontWeight: FontWeight.w500)),
+    ]);
+  }
+}
+
+// ─── BADGE MINI ROW ───
+class _BadgeMiniRow extends StatelessWidget {
+  final int streak, logCount, activities, breathing;
+  const _BadgeMiniRow({required this.streak, required this.logCount, required this.activities, required this.breathing});
+
+  @override
+  Widget build(BuildContext context) {
+    final badges = [
+      _MiniBadgeData(icon: Icons.emoji_events,    label: 'Streak\nMaster',     unlocked: streak >= 7,      color: const Color(0xFFFFB300)),
+      _MiniBadgeData(icon: Icons.favorite,         label: 'First\nStep',        unlocked: logCount >= 1,    color: const Color(0xFFF44336)),
+      _MiniBadgeData(icon: Icons.ads_click,        label: 'Goal\nSetter',       unlocked: logCount >= 10,   color: const Color(0xFFE91E63)),
+      _MiniBadgeData(icon: Icons.star,             label: 'Consistent',         unlocked: logCount >= 30,   color: const Color(0xFF4CAF50)),
+      _MiniBadgeData(icon: Icons.nightlight_round, label: 'Dedicated',          unlocked: streak >= 30,     color: const Color(0xFF7C4DFF)),
+      _MiniBadgeData(icon: Icons.spa,              label: 'Beginner',           unlocked: activities >= 1,  color: const Color(0xFF009688)),
+      _MiniBadgeData(icon: Icons.spa,              label: 'Pro',                unlocked: activities >= 10, color: const Color(0xFF009688)),
+      _MiniBadgeData(icon: Icons.air,              label: 'Zen\nMaster',        unlocked: breathing >= 5,   color: const Color(0xFF03A9F4)),
+    ];
+
+    return SizedBox(
+      height: 100,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: badges.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (_, i) {
+          final b = badges[i];
+          return Container(
+            width: 76,
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+            decoration: BoxDecoration(
+              color: b.unlocked ? Colors.white : const Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: b.unlocked ? b.color.withOpacity(0.4) : Colors.grey.withOpacity(0.1)),
+              boxShadow: b.unlocked ? [BoxShadow(color: b.color.withOpacity(0.12), blurRadius: 8, offset: const Offset(0, 3))] : [],
+            ),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(b.icon, size: 26, color: b.unlocked ? b.color : Colors.grey.shade400),
+              const SizedBox(height: 6),
+              Text(b.label, textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: b.unlocked ? AppColors.brownDark : Colors.grey, height: 1.2)),
+            ]),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _MiniBadgeData {
+  final IconData icon;
+  final String label;
+  final bool unlocked;
+  final Color color;
+  const _MiniBadgeData({required this.icon, required this.label, required this.unlocked, required this.color});
 }
 
 // ─── TODAY'S CHECK-IN CARD ───
 class _TodayCard extends StatelessWidget {
-  final dynamic mood; // EmotionLog?
+  final dynamic mood;
   final int streak;
+  final Map<String, String> emojiMap;
   final VoidCallback onLogMood;
-
-  const _TodayCard({required this.mood, required this.streak, required this.onLogMood});
+  const _TodayCard({required this.mood, required this.streak, required this.emojiMap, required this.onLogMood});
 
   @override
   Widget build(BuildContext context) {
     final isLogged = mood != null;
-    const emojiMap = {'Happy': '😊', 'Sad': '😢', 'Anxious': '😰', 'Angry': '😠', 'Calm': '😌', 'Tired': '😴'};
-
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isLogged
@@ -296,23 +391,19 @@ class _TodayCard extends StatelessWidget {
       child: isLogged
           ? Row(children: [
               Text(emojiMap[mood.emotionType] ?? '🙂', style: const TextStyle(fontSize: 48)),
-              const SizedBox(width: 20),
+              const SizedBox(width: 16),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text("You're feeling ${mood.emotionType}", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
-                const SizedBox(height: 4),
-                if (mood.notes != null && mood.notes!.isNotEmpty)
+                Text("You're feeling ${mood.emotionType}", style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
+                if (mood.notes != null && mood.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
                   Text('"${mood.notes}"', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, color: AppColors.brownMedium, fontStyle: FontStyle.italic)),
+                ],
                 const SizedBox(height: 10),
-                if (streak > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                    decoration: BoxDecoration(color: AppColors.golden.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      const Icon(Icons.local_fire_department, size: 14, color: AppColors.golden),
-                      const SizedBox(width: 4),
-                      Text('$streak day streak', style: const TextStyle(color: AppColors.golden, fontWeight: FontWeight.w700, fontSize: 12)),
-                    ]),
-                  ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(color: AppColors.golden.withOpacity(0.18), borderRadius: BorderRadius.circular(10)),
+                  child: const Text('✅ Logged today', style: TextStyle(color: AppColors.golden, fontWeight: FontWeight.w700, fontSize: 12)),
+                ),
               ])),
               Container(
                 padding: const EdgeInsets.all(10),
@@ -321,18 +412,16 @@ class _TodayCard extends StatelessWidget {
               ),
             ])
           : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('👋', style: TextStyle(fontSize: 36)),
-              const SizedBox(height: 12),
-              const Text("How are you feeling today?", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
+              const Text('How are you feeling today?', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
               const SizedBox(height: 6),
-              const Text("Take a moment to check in with yourself", style: TextStyle(fontSize: 14, color: AppColors.brownMedium)),
+              const Text('Take a moment to check in with yourself', style: TextStyle(fontSize: 13, color: AppColors.brownMedium)),
               const SizedBox(height: 16),
               SizedBox(
-                width: double.infinity, height: 48,
+                width: double.infinity, height: 46,
                 child: ElevatedButton.icon(
                   onPressed: onLogMood,
-                  icon: const Icon(Icons.add, color: Colors.white),
-                  label: const Text('Log Your Mood', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+                  icon: const Text('😊', style: TextStyle(fontSize: 18)),
+                  label: const Text('Log My Mood', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.golden, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 0),
                 ),
               ),
@@ -358,8 +447,8 @@ class _QuickAction extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 3))],
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
           ),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Container(
@@ -376,56 +465,92 @@ class _QuickAction extends StatelessWidget {
   }
 }
 
-// ─── STAT TILE (inside progress card) ───
-class _StatTile extends StatelessWidget {
-  final IconData icon;
-  final String value, label;
-  final Color color;
-  const _StatTile({required this.icon, required this.value, required this.label, required this.color});
+// ─── HISTORY FEED ───
+class _HistoryFeed extends StatelessWidget {
+  final List<GamificationHistory> history;
+  final List<dynamic> recentLogs;
+  final Map<String, String> emojiMap;
+  const _HistoryFeed({required this.history, required this.recentLogs, required this.emojiMap});
+
+  String _timeAgo(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays == 1) return 'Yesterday';
+    return '${diff.inDays}d ago';
+  }
+
+  _HistoryItemData _buildItem(GamificationHistory h) {
+    final type = h.metadata['type'] as String? ?? '';
+    switch (type) {
+      case 'mood_log':
+        return _HistoryItemData(icon: Icons.mood, color: const Color(0xFF42A5F5), title: 'Mood Logged', subtitle: '+${h.pointsEarned} pts', time: _timeAgo(h.achievementTimestamp));
+      case 'activity':
+        final act = h.metadata['activity'] as String? ?? h.achievement;
+        return _HistoryItemData(icon: Icons.spa, color: const Color(0xFF66BB6A), title: act.replaceAll('Activity Completed: ', ''), subtitle: '+${h.pointsEarned} pts', time: _timeAgo(h.achievementTimestamp));
+      case 'milestone':
+      case 'streak':
+        return _HistoryItemData(icon: Icons.emoji_events, color: const Color(0xFFFFB300), title: h.achievement, subtitle: '+${h.pointsEarned} pts 🏅', time: _timeAgo(h.achievementTimestamp));
+      case 'profile_update':
+        return _HistoryItemData(icon: Icons.person, color: const Color(0xFFAB47BC), title: 'Profile Updated', subtitle: 'Info updated', time: _timeAgo(h.achievementTimestamp));
+      case 'purchase':
+        return _HistoryItemData(icon: Icons.storefront, color: const Color(0xFFFF7043), title: h.achievement, subtitle: '${h.pointsEarned} pts', time: _timeAgo(h.achievementTimestamp));
+      default:
+        return _HistoryItemData(icon: Icons.star, color: AppColors.golden, title: h.achievement, subtitle: h.pointsEarned > 0 ? '+${h.pointsEarned} pts' : '', time: _timeAgo(h.achievementTimestamp));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(children: [
-        Icon(icon, color: color, size: 22),
-        const SizedBox(height: 6),
-        Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
-        const SizedBox(height: 2),
-        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.brownMedium, fontWeight: FontWeight.w500)),
-      ]),
+    if (history.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))]),
+        child: const Center(child: Column(children: [
+          Text('🌱', style: TextStyle(fontSize: 36)),
+          SizedBox(height: 10),
+          Text('Your activity will appear here', style: TextStyle(color: AppColors.brownMedium, fontSize: 14)),
+          Text('Start logging moods or doing activities!', style: TextStyle(color: AppColors.brownLight, fontSize: 12)),
+        ])),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))]),
+      child: ListView.separated(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: history.length > 10 ? 10 : history.length,
+        separatorBuilder: (_, __) => Divider(height: 1, color: AppColors.fieldBorder.withOpacity(0.5), indent: 68),
+        itemBuilder: (_, i) {
+          final item = _buildItem(history[i]);
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(children: [
+              Container(
+                width: 42, height: 42,
+                decoration: BoxDecoration(color: item.color.withOpacity(0.12), shape: BoxShape.circle),
+                child: Icon(item.icon, color: item.color, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(item.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.brownDark)),
+                if (item.subtitle.isNotEmpty) Text(item.subtitle, style: TextStyle(fontSize: 12, color: item.color, fontWeight: FontWeight.w600)),
+              ])),
+              Text(item.time, style: const TextStyle(fontSize: 11, color: AppColors.brownLight)),
+            ]),
+          );
+        },
+      ),
     );
   }
 }
 
-// ─── PROGRESS ROW (label + animated bar + count) ───
-class _ProgressRow extends StatelessWidget {
-  final String label;
-  final int value, target;
-  final String unit;
-  const _ProgressRow({required this.label, required this.value, required this.target, required this.unit});
-
-  @override
-  Widget build(BuildContext context) {
-    final progress = (value / target).clamp(0.0, 1.0);
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.brownDark)),
-        Text('$value/$target $unit', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.brownMedium)),
-      ]),
-      const SizedBox(height: 8),
-      ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: Stack(children: [
-          Container(height: 10, decoration: BoxDecoration(color: AppColors.golden.withOpacity(0.12), borderRadius: BorderRadius.circular(6))),
-          FractionallySizedBox(
-            widthFactor: progress,
-            child: Container(height: 10, decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [AppColors.golden, Color(0xFFFF8F00)]),
-              borderRadius: BorderRadius.circular(6),
-            )),
-          ),
-        ]),
-      ),
-    ]);
-  }
+class _HistoryItemData {
+  final IconData icon;
+  final Color color;
+  final String title, subtitle, time;
+  const _HistoryItemData({required this.icon, required this.color, required this.title, required this.subtitle, required this.time});
 }

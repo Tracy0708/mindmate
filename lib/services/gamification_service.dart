@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:developer' as developer;
 import '../models/gamification_history.dart';
 
 class GamificationService {
@@ -100,7 +101,33 @@ class GamificationService {
     return stats;
   }
 
+  // Get recent gamification history for the Home tab feed
+  // NOTE: No .orderBy() here — avoids needing a composite Firestore index
+  // on the nested metadata.userID field. Sorting is done client-side.
+  Future<List<GamificationHistory>> getRecentHistory(String userID, {int limit = 20}) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection(_collection)
+          .where('metadata.userID', isEqualTo: userID)
+          .get();
+
+      final items = querySnapshot.docs
+          .map((doc) => GamificationHistory.fromJson(doc.data()))
+          .toList();
+
+      // Sort newest first in Dart (no composite index needed)
+      items.sort((a, b) => b.achievementTimestamp.compareTo(a.achievementTimestamp));
+
+      developer.log('getRecentHistory: fetched ${items.length} records for $userID', name: 'GamificationService');
+      return items.take(limit).toList();
+    } catch (e) {
+      developer.log('getRecentHistory error: $e', name: 'GamificationService');
+      return [];
+    }
+  }
+
   // Check and award streak achievements
+
   Future<List<GamificationHistory>> checkAndAwardStreaks(
     String userID,
     int currentStreak,

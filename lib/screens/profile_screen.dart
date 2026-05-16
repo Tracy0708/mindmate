@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import '../models/user_model.dart';
 import '../main.dart';
 import '../services/interactive_message_service.dart';
+import '../services/gamification_service.dart';
 import '../viewmodels/emotion_viewmodel.dart';
 import '../viewmodels/gamification_viewmodel.dart';
 import 'gamification_screen.dart';
@@ -247,6 +248,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     gender: selectedGender,
                                   );
                                   if (ctx.mounted) Navigator.pop(ctx);
+                                  // Record profile update in history feed
+                                  final uid = _authService.currentUser?.uid;
+                                  if (uid != null) {
+                                    try {
+                                      await GamificationService().recordAchievement(
+                                        userID: uid,
+                                        achievement: 'Profile Updated',
+                                        points: 0,
+                                        metadata: {'type': 'profile_update'},
+                                      );
+                                    } catch (_) {}
+                                  }
                                   _loadProfile(); // refresh parent
                                   if (mounted) {
                                     InteractiveMessageService.showSuccess(

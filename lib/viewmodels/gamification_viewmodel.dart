@@ -9,11 +9,13 @@ class GamificationViewModel extends ChangeNotifier {
 
   int _totalPoints = 0;
   List<GamificationHistory> _achievements = [];
+  List<GamificationHistory> _history = [];
   Map<String, dynamic>? _userStats;
   bool _isLoading = false;
 
   int get totalPoints => _totalPoints;
   List<GamificationHistory> get achievements => _achievements;
+  List<GamificationHistory> get history => _history;
   Map<String, dynamic>? get userStats => _userStats;
   bool get isLoading => _isLoading;
 
@@ -35,6 +37,18 @@ class GamificationViewModel extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  /// Fetch recent gamification history (last 20 entries) for the Home feed
+  Future<void> fetchHistory() async {
+    final userId = _currentUserId;
+    if (userId == null) return;
+    try {
+      _history = await _gamificationService.getRecentHistory(userId, limit: 20);
+      notifyListeners();
+    } catch (e) {
+      developer.log('Failed to fetch history: $e', name: 'GamificationVM');
     }
   }
 
