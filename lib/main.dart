@@ -28,6 +28,10 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await AuthService.initializeGoogleSignIn();
+  // Ensure any persisted auth session is cleared on app start (force re-login)
+  try {
+    await AuthService().signOut();
+  } catch (_) {}
   await LocalNotificationService().initialize();
   runApp(
     MultiProvider(
@@ -87,7 +91,8 @@ class MyApp extends StatelessWidget {
                 const NotificationSettingsScreen(),
             '/admin-login': (context) => const AdminLoginScreen(),
             '/admin-dashboard': (context) => const AdminDashboardScreen(),
-            '/admin-notifications-settings': (context) => const AdminNotificationSettingsScreen(),
+            '/admin-notifications-settings': (context) =>
+                const AdminNotificationSettingsScreen(),
           },
         );
       },
