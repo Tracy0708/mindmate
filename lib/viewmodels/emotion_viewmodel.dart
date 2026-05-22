@@ -92,6 +92,9 @@ class EmotionViewModel extends ChangeNotifier {
         intensityScore: EmotionLog.emotionToScore(emotionType),
         notes: notes,
         timestamp: DateTime.now(),
+        noteSentimentScore: notes != null && notes.trim().isNotEmpty
+            ? _scoreNotes(notes)
+            : null,
       );
 
       // NF6: Save to Firestore
@@ -100,18 +103,6 @@ class EmotionViewModel extends ChangeNotifier {
       _hasLoggedToday = true;
 
       developer.log('Emotion saved: $emotionType', name: 'EmotionVM');
-
-      // Award gamification points for mood log
-      try {
-        await _gamificationService.recordAchievement(
-          userID: userId,
-          achievement: 'Mood Logged',
-          points: 10,
-          metadata: {'type': 'mood_log', 'emotion': emotionType},
-        );
-      } catch (e) {
-        developer.log('Gamification award failed (non-critical): $e', name: 'EmotionVM');
-      }
 
       // NF7: Check for recent mood trend
       _recentLogs = await _emotionService.getRecentLogs(userId);
@@ -223,18 +214,6 @@ class EmotionViewModel extends ChangeNotifier {
       await _emotionService.logActivity(activity);
       developer.log('Activity logged: $title', name: 'EmotionVM');
 
-      // Award gamification points for activity completion
-      try {
-        await _gamificationService.recordAchievement(
-          userID: userId,
-          achievement: 'Activity Completed',
-          points: 25,
-          metadata: {'type': 'activity', 'activity': title},
-        );
-      } catch (e) {
-        developer.log('Gamification award failed (non-critical): $e', name: 'EmotionVM');
-      }
-
       // Update local counts so Home tab reflects immediately
       _completedActivityCount++;
       if (activityType == 'breathing') _breathingSessionCount++;
@@ -265,6 +244,31 @@ class EmotionViewModel extends ChangeNotifier {
     _recommendedActivity = null;
     _showChatbotPrompt = false;
     notifyListeners();
+  }
+
+  // Keyword-based note sentiment scorer — returns 1.0 (negative) to 5.0 (positive)
+  double _scoreNotes(String notes) {
+    final lower = notes.toLowerCase();
+    const negativeWords = [
+      'sad', 'down', 'depressed', 'anxious', 'stressed', 'angry', 'lonely',
+      'hopeless', 'overwhelmed', 'tired', 'fearful', 'worried', 'unhappy',
+      'upset', 'miserable', 'terrible', 'awful', 'horrible', 'exhausted',
+      'drained', 'frustrated', 'irritated', 'nervous', 'scared', 'hurt', 'bad',
+    ];
+    const positiveWords = [
+      'happy', 'good', 'great', 'excited', 'calm', 'peaceful', 'grateful',
+      'joy', 'joyful', 'wonderful', 'amazing', 'fantastic', 'love', 'loved',
+      'cheerful', 'content', 'satisfied', 'thankful', 'hopeful', 'relieved',
+      'energized', 'refreshed', 'nice', 'better', 'blessed', 'positive',
+    ];
+    final negHits = negativeWords.where(lower.contains).length;
+    final posHits = positiveWords.where(lower.contains).length;
+    final net = posHits - negHits;
+    if (net <= -2) return 1.0;
+    if (net == -1) return 2.0;
+    if (net == 0) return 3.0;
+    if (net == 1) return 4.0;
+    return 5.0;
   }
 
   String _moodEmoji(String emotion) {

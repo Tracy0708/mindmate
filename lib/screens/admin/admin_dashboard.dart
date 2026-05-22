@@ -696,6 +696,13 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                               label: '$moodLogs logs tracked',
                               color: AppColors.golden,
                             ),
+                            if ((user['mixedMoodCount'] as int? ?? 0) > 0)
+                              _RiskStatPill(
+                                icon: Icons.swap_horiz_rounded,
+                                label:
+                                    '${user['mixedMoodCount']} mixed mood entries',
+                                color: const Color(0xFF7B61FF),
+                              ),
                           ],
                         ),
                         const SizedBox(height: 14),
@@ -1157,6 +1164,12 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                                   label: '${user['totalLogs']} logs',
                                   color: AppColors.golden,
                                 ),
+                                if ((user['mixedMoodCount'] as int? ?? 0) > 0)
+                                  _RiskStatPill(
+                                    icon: Icons.swap_horiz_rounded,
+                                    label: '${user['mixedMoodCount']} mixed mood',
+                                    color: const Color(0xFF7B61FF),
+                                  ),
                               ],
                             ),
                             const SizedBox(height: 8),

@@ -147,6 +147,13 @@ class AdminService {
           }
         } else if (_isPositiveEmotion(emotion)) {
           entry.positiveLogs += 1;
+
+          // Detect mixed mood: positive selection but negative note sentiment
+          final noteSentimentScore =
+              (data['noteSentimentScore'] as num?)?.toDouble();
+          if (noteSentimentScore != null && noteSentimentScore <= 2.0) {
+            entry.mixedMoodLogs += 1;
+          }
         }
       }
 
@@ -192,6 +199,7 @@ class AdminService {
           'totalLogs': value.totalLogs,
           'negativeLogs': value.negativeLogs,
           'positiveLogs': value.positiveLogs,
+          'mixedMoodCount': value.mixedMoodLogs,
           'negativeRatio': negativeRatio,
           'dominantNegativeMood': dominantNegativeMood,
           'riskScore': riskScore.clamp(0, 100),
@@ -462,6 +470,7 @@ class _MoodRiskAccumulator {
   int negativeLogs = 0;
   int positiveLogs = 0;
   int recentNegativeLogs = 0;
+  int mixedMoodLogs = 0;
   DateTime? lastMoodAt;
   final Map<String, int> negativeByType = {};
   final Map<String, int> emotionByType = {};

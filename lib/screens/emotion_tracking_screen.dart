@@ -5,6 +5,7 @@ import '../viewmodels/emotion_viewmodel.dart';
 import '../services/interactive_message_service.dart';
 import '../viewmodels/gamification_viewmodel.dart';
 import 'activity_screen.dart';
+import 'dashboard_screen.dart';
 
 class EmotionTrackingScreen extends StatefulWidget {
   const EmotionTrackingScreen({super.key});
@@ -103,11 +104,9 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
 
   void _openChatbot() {
     Provider.of<EmotionViewModel>(context, listen: false).dismissChatbotPrompt();
-    // Navigate to Chat tab (index 3) via the dashboard
-    final dashState = context.findAncestorStateOfType<State>();
-    // Use a callback approach - navigate to dashboard chat tab
+    final dashState = context.findAncestorStateOfType<DashboardScreenState>();
     Navigator.of(context).popUntil((route) => route.isFirst);
-    // The dashboard will show chat tab
+    dashState?.navigateToTab(3);
   }
 
   @override
@@ -231,6 +230,53 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
                 ])),
               ]),
             ),
+            // Mixed mood nudge — shown when selected emotion and notes diverge
+            if (vm.todaysLog?.isMixedMood == true) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF8E1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFFFB74D).withOpacity(0.5)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('💬', style: TextStyle(fontSize: 24)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'It\'s okay to feel mixed emotions',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.brownDark),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Your note sounds a bit heavier than your selected mood — emotions can be complex. Would you like to talk it through?',
+                            style: TextStyle(fontSize: 13, color: AppColors.brownMedium, height: 1.4),
+                          ),
+                          const SizedBox(height: 12),
+                          TextButton(
+                            onPressed: _openChatbot,
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              backgroundColor: AppColors.golden.withValues(alpha: 0.12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            child: const Text('Talk to AI Assistant', style: TextStyle(color: AppColors.golden, fontWeight: FontWeight.w700, fontSize: 13)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             const SizedBox(height: 24),
 
             // Activity recommendation card
@@ -345,6 +391,33 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
         const Text('✅ You\'ve already checked in today!', style: TextStyle(fontSize: 15, color: AppColors.brownMedium, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         const Text('Come back tomorrow for your next check-in.', style: TextStyle(fontSize: 13, color: AppColors.brownLight)),
+        if (log.isMixedMood) ...[
+          const SizedBox(height: 28),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF8E1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFFFB74D).withValues(alpha: 0.5)),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('💬  It\'s okay to feel mixed emotions', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.brownDark)),
+              const SizedBox(height: 6),
+              const Text('Your note sounds heavier than your selected mood. Would you like to talk it through?', style: TextStyle(fontSize: 13, color: AppColors.brownMedium, height: 1.4)),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: _openChatbot,
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  backgroundColor: AppColors.golden.withValues(alpha: 0.12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('Talk to AI Assistant', style: TextStyle(color: AppColors.golden, fontWeight: FontWeight.w700, fontSize: 13)),
+              ),
+            ]),
+          ),
+        ],
       ]))),
     );
   }

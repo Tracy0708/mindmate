@@ -115,7 +115,7 @@ class EmotionService {
   bool detectNegativeTrend(List<EmotionLog> recentLogs) {
     if (recentLogs.length < 3) return false;
     final lastFive = recentLogs.take(5).toList();
-    final negativeCount = lastFive.where((log) => log.isNegative).length;
+    final negativeCount = lastFive.where((log) => log.isEffectivelyNegative).length;
     return negativeCount >= 3;
   }
 
