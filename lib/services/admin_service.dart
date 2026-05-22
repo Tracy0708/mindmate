@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'dart:developer' as developer;
 import 'dart:math' as math;
 import '../models/user_model.dart';
@@ -9,10 +10,12 @@ class AdminService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String _usersCollection = 'users';
 
-  // Get all users
+  // Get all users (excludes deleted users)
   Stream<List<UserModel>> getAllUsers() {
     return _firestore.collection(_usersCollection).snapshots().map((snapshot) {
-      final users = snapshot.docs.map((doc) {
+      final users = snapshot.docs
+          .where((doc) => doc.data()['isDeleted'] != true)
+          .map((doc) {
         final data = doc.data();
         data['id'] = doc.id;
         return UserModel.fromJson(data);
@@ -34,6 +37,7 @@ class AdminService {
           await _firestore.collection(_usersCollection).doc(userId).get();
       if (!doc.exists || doc.data() == null) return null;
       final data = doc.data()!;
+      if (data['isDeleted'] == true) return null;
       data['id'] = doc.id;
       return UserModel.fromJson(data);
     } catch (e) {
@@ -99,7 +103,8 @@ class AdminService {
 
       final usersById = <String, UserModel>{
         for (final doc in usersSnapshot.docs)
-          doc.id: UserModel.fromJson({...doc.data(), 'id': doc.id})
+          if (doc.data()['isDeleted'] != true)
+            doc.id: UserModel.fromJson({...doc.data(), 'id': doc.id})
       };
 
       final byUser = <String, _MoodRiskAccumulator>{};
@@ -352,10 +357,16 @@ class AdminService {
     await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
   }
 
-  // Delete user (requires appropriate admin rules)
+  // Delete user - calls Cloud Function to delete from both Auth and Firestore
   Future<void> deleteUser(String userId) async {
-    // You would typically handle Authentication deletion in Cloud Functions
-    await _firestore.collection(_usersCollection).doc(userId).delete();
+    try {
+      final callable = FirebaseFunctions.instance.httpsCallable('deleteUser');
+      await callable.call({'uid': userId});
+      developer.log('User deleted: $userId', name: 'AdminService');
+    } catch (e) {
+      developer.log('deleteUser failed: $e', name: 'AdminService', level: 900);
+      rethrow;
+    }
   }
 
   // Generate usage report

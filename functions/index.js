@@ -1,7 +1,10 @@
 const { onDocumentCreated } = require('firebase-functions/v2/firestore');
+const { onCall } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { initializeApp } = require('firebase-admin/app');
 const { FieldValue, getFirestore } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
+const { getAuth } = require('firebase-admin/auth');
 
 initializeApp();
 
@@ -239,3 +242,86 @@ exports.sendPushOnNotification = onDocumentCreated(
     return null;
   }
 );
+
+// Callable function to delete a user from both Firestore and Firebase Auth
+exports.deleteUser = onCall(async (request) => {
+  const uid = request.data?.uid;
+
+  if (!uid || typeof uid !== 'string') {
+    throw new Error('Invalid UID provided');
+  }
+
+  if (!request.auth) {
+    throw new Error('Authentication required');
+  }
+
+  const db = getFirestore();
+  const auth = getAuth();
+
+  try {
+    const userDoc = await db.collection('users').doc(uid).get();
+    if (!userDoc.exists) {
+      throw new Error('User not found in Firestore');
+    }
+
+    const userRole = userDoc.data()?.role;
+    if (userRole === 'admin') {
+      throw new Error('Cannot delete admin users');
+    }
+
+    await Promise.all([
+      auth.deleteUser(uid),
+      db.collection('users').doc(uid).delete(),
+    ]);
+
+    console.log(`User ${uid} deleted successfully from Auth and Firestore`);
+    return { success: true, message: `User ${uid} deleted` };
+  } catch (error) {
+    console.error(`Failed to delete user ${uid}:`, error.message);
+    throw new Error(`Failed to delete user: ${error.message}`);
+  }
+});
+
+// Scheduled function to clean up orphaned Firestore documents
+// Runs daily at 2 AM (UTC) to find and delete users that no longer exist in Firebase Auth
+exports.cleanupOrphanedUsers = onSchedule('every day 02:00', async (context) => {
+  const db = getFirestore();
+  const auth = getAuth();
+
+  try {
+    const usersSnapshot = await db.collection('users').get();
+    let deletedCount = 0;
+    let errorCount = 0;
+
+    for (const userDoc of usersSnapshot.docs) {
+      const uid = userDoc.id;
+      const userData = userDoc.data();
+
+      // Skip if already marked as deleted
+      if (userData.isDeleted === true) continue;
+
+      try {
+        // Try to get the user from Firebase Auth
+        await auth.getUser(uid);
+        // User exists in Auth, keep the Firestore document
+      } catch (error) {
+        // User doesn't exist in Auth, delete the Firestore document
+        if (error.code === 'auth/user-not-found') {
+          await db.collection('users').doc(uid).delete();
+          deletedCount++;
+          console.log(`Cleaned up orphaned user ${uid} (no longer in Firebase Auth)`);
+        } else {
+          // Some other error occurred
+          errorCount++;
+          console.error(`Error checking user ${uid}:`, error.message);
+        }
+      }
+    }
+
+    console.log(`Cleanup completed: deleted ${deletedCount} orphaned users, ${errorCount} errors`);
+    return { success: true, deletedCount, errorCount };
+  } catch (error) {
+    console.error('Cleanup task failed:', error.message);
+    throw error;
+  }
+});
