@@ -4,6 +4,7 @@ import '../main.dart';
 import '../viewmodels/emotion_viewmodel.dart';
 import '../viewmodels/gamification_viewmodel.dart';
 import '../services/interactive_message_service.dart';
+import '../screens/dashboard_screen.dart';
 
 /// Bottom sheet dialog shown at app launch when no emotion has been logged today (NF1, NF2)
 class DailyCheckinDialog extends StatefulWidget {
@@ -30,6 +31,7 @@ class DailyCheckinDialog extends StatefulWidget {
 class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
   String? _selectedMood;
   final TextEditingController _noteController = TextEditingController();
+  bool _showMixedNudge = false;
 
   final List<Map<String, String>> _moods = [
     {'label': 'Happy', 'emoji': '😊'},
@@ -54,22 +56,30 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
     final vm = Provider.of<EmotionViewModel>(context, listen: false);
     final wasLoggedToday = vm.hasLoggedToday;
     final success = await vm.submitEmotion(emotionType: _selectedMood!, notes: _noteController.text.isNotEmpty ? _noteController.text : null);
-    if (mounted && success) {
-      if (!wasLoggedToday) {
-        final gamVm = Provider.of<GamificationViewModel>(context, listen: false);
-        await gamVm.awardMoodLogPoints();
-        final streakAch = await gamVm.checkStreakMilestones(vm.streak);
-        final firstAch = await gamVm.checkFirstLogMilestone(vm.logCount);
-        await gamVm.fetchUserStats();
+    if (!mounted || !success) return;
 
+    // Capture isMixedMood before any further awaits
+    final isMixed = vm.todaysLog?.isMixedMood == true;
+
+    if (!wasLoggedToday) {
+      final gamVm = Provider.of<GamificationViewModel>(context, listen: false);
+      await gamVm.awardMoodLogPoints();
+      final streakAch = await gamVm.checkStreakMilestones(vm.streak);
+      final firstAch = await gamVm.checkFirstLogMilestone(vm.logCount);
+      await gamVm.fetchUserStats();
+
+      if (mounted) {
         final allAch = [...streakAch, if (firstAch != null) firstAch];
-        if (allAch.isNotEmpty && mounted) {
-          for (var a in allAch) {
-            InteractiveMessageService.showSuccess(context, title: 'Achievement Unlocked! 🏆', message: 'You earned ${a.achievement} (+${a.pointsEarned} pts)');
-          }
+        for (var a in allAch) {
+          InteractiveMessageService.showSuccess(context, title: 'Achievement Unlocked! 🏆', message: 'You earned ${a.achievement} (+${a.pointsEarned} pts)');
         }
       }
+    }
 
+    if (!mounted) return;
+    if (isMixed) {
+      setState(() => _showMixedNudge = true);
+    } else {
       Navigator.pop(context);
       widget.onCompleted?.call();
     }
@@ -82,9 +92,78 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
     widget.onSkipped?.call();
   }
 
+  void _dismissNudge() {
+    Navigator.pop(context);
+    widget.onCompleted?.call();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<EmotionViewModel>(builder: (context, vm, _) {
+      if (_showMixedNudge) {
+        return Container(
+          margin: const EdgeInsets.only(top: 80),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                  const SizedBox(height: 24),
+                  const Text('💬', style: TextStyle(fontSize: 48)),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "It's okay to feel mixed emotions",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF3E2723)),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Your note sounds a bit heavier than your selected mood — emotions can be complex. Would you like to talk it through with the AI Assistant?",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Color(0xFF6D4C41), height: 1.5),
+                  ),
+                  const SizedBox(height: 28),
+                  Row(children: [
+                    Expanded(child: OutlinedButton(
+                      onPressed: _dismissNudge,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        side: const BorderSide(color: Color(0xFFBCAAA4)),
+                      ),
+                      child: const Text('No, thanks', style: TextStyle(color: Color(0xFF6D4C41), fontWeight: FontWeight.w600)),
+                    )),
+                    const SizedBox(width: 12),
+                    Expanded(flex: 2, child: ElevatedButton.icon(
+                      onPressed: () {
+                        final dashState = context.findAncestorStateOfType<DashboardScreenState>();
+                        Navigator.pop(context);
+                        widget.onCompleted?.call();
+                        dashState?.navigateToTab(3);
+                      },
+                      icon: const Icon(Icons.chat_bubble_outline, size: 18, color: Colors.white),
+                      label: const Text("Let's talk", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFA000),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                    )),
+                  ]),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+
       return Container(
         margin: const EdgeInsets.only(top: 80),
         decoration: const BoxDecoration(

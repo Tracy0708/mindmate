@@ -7,6 +7,8 @@ class EmotionLog {
   final int intensityScore;
   final String? notes;
   final DateTime timestamp;
+  // Keyword-based sentiment score derived from notes text (1.0–5.0), null if no notes
+  final double? noteSentimentScore;
 
   EmotionLog({
     required this.logID,
@@ -15,13 +17,28 @@ class EmotionLog {
     required this.intensityScore,
     this.notes,
     required this.timestamp,
+    this.noteSentimentScore,
   });
+
+  /// Weighted blend of selected emotion and note sentiment (notes weighted 60%)
+  double get resolvedScore => noteSentimentScore != null
+      ? (intensityScore * 0.4) + (noteSentimentScore! * 0.6)
+      : intensityScore.toDouble();
+
+  /// True when selected emotion and note sentiment diverge by more than 2 points
+  bool get isMixedMood =>
+      noteSentimentScore != null &&
+      (intensityScore - noteSentimentScore!).abs() > 2;
 
   /// Whether this emotion is considered negative for trend detection
   bool get isNegative =>
       emotionType == 'Sad' ||
       emotionType == 'Anxious' ||
       emotionType == 'Angry';
+
+  /// Negative detection that also catches positive selections with negative notes
+  bool get isEffectivelyNegative =>
+      isNegative || (noteSentimentScore != null && resolvedScore < 3.0);
 
   Map<String, dynamic> toMap() {
     return {
@@ -31,6 +48,7 @@ class EmotionLog {
       'intensityScore': intensityScore,
       'notes': notes,
       'timestamp': Timestamp.fromDate(timestamp),
+      'noteSentimentScore': noteSentimentScore,
     };
   }
 
@@ -46,6 +64,7 @@ class EmotionLog {
           : (map['timestamp'] != null
               ? DateTime.parse(map['timestamp'])
               : DateTime.now()),
+      noteSentimentScore: (map['noteSentimentScore'] as num?)?.toDouble(),
     );
   }
 

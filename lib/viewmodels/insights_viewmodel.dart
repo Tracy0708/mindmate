@@ -86,8 +86,8 @@ class InsightsViewModel extends ChangeNotifier {
 
     for (var log in logs) {
       freq[log.emotionType] = (freq[log.emotionType] ?? 0) + 1;
-      totalIntensity += log.intensityScore;
-      if (log.isNegative) {
+      totalIntensity += log.resolvedScore;
+      if (log.isEffectivelyNegative) {
         negativeDays++;
       } else {
         positiveDays++;
@@ -108,7 +108,7 @@ class InsightsViewModel extends ChangeNotifier {
     final dailyMap = <String, List<int>>{};
     for (var log in logs) {
       final key = '${log.timestamp.year}-${log.timestamp.month.toString().padLeft(2, '0')}-${log.timestamp.day.toString().padLeft(2, '0')}';
-      dailyMap.putIfAbsent(key, () => []).add(log.intensityScore);
+      dailyMap.putIfAbsent(key, () => []).add(log.resolvedScore.round());
     }
     final dailyScores = <DailyMoodScore>[];
     dailyMap.forEach((key, scores) {
