@@ -470,8 +470,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 _loadProfile();
                               },
                             ),
-                            const _SettingsItem(icon: Icons.shield_outlined, label: 'Privacy'),
-                            const _SettingsItem(icon: Icons.help_outline, label: 'Help & Support'),
+                            _SettingsItem(
+                              icon: Icons.shield_outlined,
+                              label: 'Privacy',
+                              onTap: () =>
+                                  Navigator.pushNamed(context, '/privacy'),
+                            ),
+                            _SettingsItem(
+                              icon: Icons.help_outline,
+                              label: 'Help & Support',
+                              onTap: () => Navigator.pushNamed(
+                                  context, '/help-support'),
+                            ),
                             _SettingsItem(
                               icon: Icons.logout,
                               label: 'Logout',
@@ -530,7 +540,7 @@ class _SettingsItem extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.golden.withOpacity(0.2),
+                color: AppColors.golden.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(trailingLabel!,

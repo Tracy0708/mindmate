@@ -9,6 +9,8 @@ import 'screens/notification_settings_screen.dart';
 import 'screens/admin/admin_login_screen.dart';
 import 'screens/admin/admin_dashboard.dart';
 import 'screens/admin/admin_notification_settings_screen.dart';
+import 'screens/privacy_screen.dart';
+import 'screens/help_support_screen.dart';
 import 'services/auth_service.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
@@ -93,6 +95,8 @@ class MyApp extends StatelessWidget {
             '/admin-dashboard': (context) => const AdminDashboardScreen(),
             '/admin-notifications-settings': (context) =>
                 const AdminNotificationSettingsScreen(),
+            '/privacy': (context) => const PrivacyScreen(),
+            '/help-support': (context) => const HelpSupportScreen(),
           },
         );
       },
@@ -189,7 +193,7 @@ class MyApp extends StatelessWidget {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: Colors.white,
-        indicatorColor: AppColors.golden.withOpacity(0.12),
+        indicatorColor: AppColors.golden.withValues(alpha: 0.12),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
@@ -295,7 +299,7 @@ class MyApp extends StatelessWidget {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: const Color(0xFF151528),
-        indicatorColor: AppColors.golden.withOpacity(0.12),
+        indicatorColor: AppColors.golden.withValues(alpha: 0.12),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
@@ -436,7 +440,7 @@ class _LoginPageState extends State<LoginPage>
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 20,
                         offset: const Offset(0, 8)),
                   ],
@@ -520,7 +524,7 @@ class _LoginPageState extends State<LoginPage>
                           Expanded(
                               child: Divider(
                                   color:
-                                      AppColors.fieldBorder.withOpacity(0.6))),
+                                      AppColors.fieldBorder.withValues(alpha: 0.6))),
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 16),
                             child: Text('Or continue with',
@@ -530,7 +534,7 @@ class _LoginPageState extends State<LoginPage>
                           Expanded(
                               child: Divider(
                                   color:
-                                      AppColors.fieldBorder.withOpacity(0.6))),
+                                      AppColors.fieldBorder.withValues(alpha: 0.6))),
                         ],
                       ),
                       const SizedBox(height: 24),

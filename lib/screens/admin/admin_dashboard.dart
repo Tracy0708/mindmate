@@ -1344,83 +1344,87 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 24),
+
+                        // ── SETTINGS HEADER ──
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: InkWell(
-                            onTap: () => Navigator.pushNamed(context, '/admin-notifications-settings'),
-                            borderRadius: BorderRadius.circular(16),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          child: Row(children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.03),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  )
-                                ],
+                                color: AppColors.golden.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.golden.withOpacity(0.14),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Icon(Icons.notifications_active_outlined, color: AppColors.golden, size: 20),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  const Expanded(
-                                    child: Text(
-                                      'Notification Settings',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.brownDark,
-                                      ),
-                                    ),
-                                  ),
-                                  const Icon(Icons.chevron_right_rounded, color: AppColors.brownMedium),
-                                ],
-                              ),
+                              child: const Icon(Icons.settings,
+                                  color: AppColors.golden, size: 20),
                             ),
-                          ),
+                            const SizedBox(width: 12),
+                            const Text('Settings',
+                                style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.brownDark)),
+                          ]),
                         ),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 16),
+
+                        // ── SETTINGS LIST ──
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton.icon(
-                              onPressed: () async {
-                                await FirebaseAuth.instance.signOut();
-                                if (!mounted) return;
-                                InteractiveMessageService.showInfo(
-                                  context,
-                                  title: 'Signed out',
-                                  message: 'Admin session ended.',
-                                );
-                                Navigator.pushNamedAndRemoveUntil(
-                                  context,
-                                  '/admin-login',
-                                  (route) => false,
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.errorRed,
-                                foregroundColor: Colors.white,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14)),
-                              ),
-                              icon: const Icon(Icons.logout),
-                              label: const Text('Sign Out'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(24),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
+                            child: Column(children: [
+                              _AdminSettingsItem(
+                                icon: Icons.notifications_active_outlined,
+                                label: 'Notification Settings',
+                                onTap: () => Navigator.pushNamed(
+                                    context, '/admin-notifications-settings'),
+                              ),
+                              _AdminSettingsItem(
+                                icon: Icons.shield_outlined,
+                                label: 'Privacy',
+                                onTap: () =>
+                                    Navigator.pushNamed(context, '/privacy'),
+                              ),
+                              _AdminSettingsItem(
+                                icon: Icons.help_outline,
+                                label: 'Help & Support',
+                                onTap: () => Navigator.pushNamed(
+                                    context, '/help-support'),
+                              ),
+                              _AdminSettingsItem(
+                                icon: Icons.logout,
+                                label: 'Sign Out',
+                                isDestructive: true,
+                                onTap: () async {
+                                  await FirebaseAuth.instance.signOut();
+                                  if (!context.mounted) return;
+                                  InteractiveMessageService.showInfo(
+                                    context,
+                                    title: 'Signed out',
+                                    message: 'Admin session ended.',
+                                  );
+                                  Navigator.pushNamedAndRemoveUntil(
+                                    context,
+                                    '/admin-login',
+                                    (route) => false,
+                                  );
+                                },
+                              ),
+                            ]),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -1429,6 +1433,46 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
                   );
                 },
               ),
+      ),
+    );
+  }
+}
+
+class _AdminSettingsItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isDestructive;
+  final VoidCallback? onTap;
+
+  const _AdminSettingsItem({
+    required this.icon,
+    required this.label,
+    this.isDestructive = false,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isDestructive ? AppColors.errorRed : AppColors.brownDark;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Row(children: [
+          Icon(icon,
+              color: isDestructive ? color : AppColors.brownMedium, size: 22),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(label,
+                style: TextStyle(
+                    color: color,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500)),
+          ),
+          if (!isDestructive)
+            const Icon(Icons.chevron_right,
+                color: AppColors.brownLight, size: 20),
+        ]),
       ),
     );
   }
@@ -1452,7 +1496,7 @@ class _AdminProfileItem extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.golden.withOpacity(0.14),
+              color: AppColors.golden.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: AppColors.golden, size: 20),
