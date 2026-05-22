@@ -39,6 +39,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         appBar: AppBar(
           title: const Text('Mental Health Insights', style: TextStyle(color: AppColors.golden, fontWeight: FontWeight.w800, fontSize: 22)),
           centerTitle: true,
+          automaticallyImplyLeading: false,
         ),
         body: vm.isLoading
             ? const Center(child: CircularProgressIndicator(color: AppColors.golden))
