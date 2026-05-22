@@ -37,6 +37,12 @@ class AdminViewModel extends ChangeNotifier {
     );
   }
 
+  Future<Map<String, dynamic>> getPlatformEmotionStats({
+    int lookbackDays = 21,
+  }) {
+    return _adminService.getPlatformEmotionStats(lookbackDays: lookbackDays);
+  }
+
   Future<void> generateReport() async {
     _isLoading = true;
     _errorMessage = null;

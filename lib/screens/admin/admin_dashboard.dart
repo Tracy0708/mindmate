@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../viewmodels/admin_viewmodel.dart';
 import '../../models/user_model.dart';
 import '../../main.dart';
@@ -573,6 +574,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
   int _refreshSeed = 0;
   String _searchQuery = '';
   String _riskFilter = 'All';
+  int _lookbackDays = 21;
 
   String _formatDate(dynamic value) {
     if (value is! DateTime) return 'N/A';
@@ -715,6 +717,22 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                           ),
                         ),
                         const SizedBox(height: 16),
+                        const Text(
+                          'Emotion Breakdown',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.brownDark,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _EmotionBreakdownChips(
+                          emotionByType: (user['emotionByType'] as Map?)
+                                  ?.map((k, v) => MapEntry(
+                                      k.toString(), (v as num).toInt())) ??
+                              const {},
+                        ),
+                        const SizedBox(height: 16),
                         if (usageSnapshot.connectionState ==
                             ConnectionState.waiting)
                           const Center(
@@ -765,15 +783,25 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: FutureBuilder<List<Map<String, dynamic>>>(
-        key: ValueKey(_refreshSeed),
-        future: context.read<AdminViewModel>().getMoodRiskUsers(
-              lookbackDays: 21,
-              limit: 20,
-            ),
+      child: FutureBuilder<List<dynamic>>(
+        key: ValueKey('$_refreshSeed-$_lookbackDays'),
+        future: Future.wait([
+          context.read<AdminViewModel>().getMoodRiskUsers(
+                lookbackDays: _lookbackDays,
+                limit: 20,
+              ),
+          context.read<AdminViewModel>().getPlatformEmotionStats(
+                lookbackDays: _lookbackDays,
+              ),
+        ]),
         builder: (context, snapshot) {
           final isLoading = snapshot.connectionState == ConnectionState.waiting;
-          final users = snapshot.data ?? const <Map<String, dynamic>>[];
+          final users =
+              (snapshot.data?[0] as List<Map<String, dynamic>>?) ??
+                  const <Map<String, dynamic>>[];
+          final platformStats =
+              (snapshot.data?[1] as Map<String, dynamic>?) ??
+                  const <String, dynamic>{};
           final filteredUsers =
               users.where(_matchesFilter).toList(growable: false);
 
@@ -818,7 +846,12 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 12),
+                _LookbackSelector(
+                  selected: _lookbackDays,
+                  onChanged: (v) => setState(() => _lookbackDays = v),
+                ),
+                const SizedBox(height: 14),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
@@ -916,7 +949,18 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
+                if (!isLoading && !snapshot.hasError) ...[
+                  _RiskSummaryRow(users: users),
+                  const SizedBox(height: 14),
+                  _EmotionBarChart(
+                    platformStats: platformStats,
+                    lookbackDays: _lookbackDays,
+                  ),
+                  const SizedBox(height: 14),
+                  _DailyTrendChart(platformStats: platformStats),
+                  const SizedBox(height: 14),
+                ],
                 if (isLoading)
                   const Center(
                     child: Padding(
@@ -1191,6 +1235,592 @@ class _RiskStatPill extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── Lookback period chip selector ──────────────────────────────────────────
+class _LookbackSelector extends StatelessWidget {
+  final int selected;
+  final ValueChanged<int> onChanged;
+
+  const _LookbackSelector({required this.selected, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    const options = [7, 14, 21, 30];
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: options.map((days) {
+        final isSelected = days == selected;
+        return Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: GestureDetector(
+            onTap: () => onChanged(days),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.golden
+                    : AppColors.golden.withOpacity(0.10),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '${days}D',
+                style: TextStyle(
+                  color: isSelected ? Colors.white : AppColors.brownMedium,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+// ── Risk distribution summary row ───────────────────────────────────────────
+class _RiskSummaryRow extends StatelessWidget {
+  final List<Map<String, dynamic>> users;
+
+  const _RiskSummaryRow({required this.users});
+
+  @override
+  Widget build(BuildContext context) {
+    int high = 0, moderate = 0, observe = 0;
+    for (final u in users) {
+      final score = (u['riskScore'] as num).toDouble();
+      if (score >= 80) {
+        high++;
+      } else if (score >= 60) {
+        moderate++;
+      } else {
+        observe++;
+      }
+    }
+    return Row(
+      children: [
+        Expanded(
+          child: _RiskMiniCard(
+            label: 'High Risk',
+            count: high,
+            color: AppColors.errorRed,
+            icon: Icons.warning_rounded,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _RiskMiniCard(
+            label: 'Moderate',
+            count: moderate,
+            color: const Color(0xFFDD8A00),
+            icon: Icons.info_rounded,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _RiskMiniCard(
+            label: 'Observe',
+            count: observe,
+            color: AppColors.brownMedium,
+            icon: Icons.visibility_rounded,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RiskMiniCard extends StatelessWidget {
+  final String label;
+  final int count;
+  final Color color;
+  final IconData icon;
+
+  const _RiskMiniCard({
+    required this.label,
+    required this.count,
+    required this.color,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.20)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: 6),
+          Text(
+            '$count',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w900,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Emotion distribution bar chart ──────────────────────────────────────────
+class _EmotionBarChart extends StatelessWidget {
+  final Map<String, dynamic> platformStats;
+  final int lookbackDays;
+
+  const _EmotionBarChart({
+    required this.platformStats,
+    required this.lookbackDays,
+  });
+
+  static const _emotions = [
+    'Happy', 'Calm', 'Tired', 'Anxious', 'Sad', 'Angry'
+  ];
+  static const _positiveEmotions = {'Happy', 'Calm'};
+  static const _emojis = ['😊', '😌', '😴', '😰', '😢', '😠'];
+
+  @override
+  Widget build(BuildContext context) {
+    final counts =
+        (platformStats['emotionCounts'] as Map<String, dynamic>?) ?? {};
+
+    final maxY = _emotions
+        .map((e) => (counts[e] as int? ?? 0).toDouble())
+        .fold(0.0, (prev, e) => e > prev ? e : prev);
+    final yMax = maxY < 1 ? 5.0 : (maxY * 1.25).ceilToDouble();
+
+    final barGroups = _emotions.asMap().entries.map((entry) {
+      final idx = entry.key;
+      final emotion = entry.value;
+      final count = (counts[emotion] as int? ?? 0).toDouble();
+      final isPositive = _positiveEmotions.contains(emotion);
+      final barColor =
+          isPositive ? const Color(0xFF66BB6A) : const Color(0xFFEF5350);
+
+      return BarChartGroupData(
+        x: idx,
+        barRods: [
+          BarChartRodData(
+            toY: count,
+            color: barColor,
+            width: 22,
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(6)),
+          ),
+        ],
+      );
+    }).toList();
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Emotion Distribution (last ${lookbackDays}d)',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: AppColors.brownDark,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 160,
+            child: BarChart(
+              BarChartData(
+                maxY: yMax,
+                barGroups: barGroups,
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: yMax / 4,
+                  getDrawingHorizontalLine: (_) => FlLine(
+                    color: AppColors.fieldBorder.withOpacity(0.5),
+                    strokeWidth: 1,
+                  ),
+                ),
+                borderData: FlBorderData(show: false),
+                barTouchData: BarTouchData(
+                  touchTooltipData: BarTouchTooltipData(
+                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                      return BarTooltipItem(
+                        '${_emotions[group.x]}\n${rod.toY.toInt()} logs',
+                        const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 28,
+                      interval: yMax / 4,
+                      getTitlesWidget: (value, meta) => Text(
+                        value.toInt().toString(),
+                        style: const TextStyle(
+                          fontSize: 9,
+                          color: AppColors.brownMedium,
+                        ),
+                      ),
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        final i = value.toInt();
+                        if (i < 0 || i >= _emojis.length) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            _emojis[i],
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _ChartLegendDot(
+                  color: const Color(0xFF66BB6A), label: 'Positive'),
+              const SizedBox(width: 16),
+              _ChartLegendDot(
+                  color: const Color(0xFFEF5350), label: 'Negative'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChartLegendDot extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _ChartLegendDot({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: const TextStyle(
+              fontSize: 11, color: AppColors.brownMedium),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Daily activity trend line chart ─────────────────────────────────────────
+class _DailyTrendChart extends StatelessWidget {
+  final Map<String, dynamic> platformStats;
+
+  const _DailyTrendChart({required this.platformStats});
+
+  @override
+  Widget build(BuildContext context) {
+    final dailyCounts =
+        (platformStats['dailyCounts'] as Map<String, dynamic>?) ?? {};
+
+    final sortedKeys = dailyCounts.keys.toList()..sort();
+    final last7 = sortedKeys.length > 7
+        ? sortedKeys.sublist(sortedKeys.length - 7)
+        : sortedKeys;
+
+    if (last7.isEmpty) return const SizedBox.shrink();
+
+    final spots = last7.asMap().entries.map((entry) {
+      final idx = entry.key;
+      final key = entry.value;
+      return FlSpot(
+          idx.toDouble(), (dailyCounts[key] as int? ?? 0).toDouble());
+    }).toList();
+
+    final maxY =
+        spots.map((s) => s.y).fold(0.0, (prev, y) => y > prev ? y : prev);
+    final yMax = maxY < 1 ? 5.0 : (maxY * 1.25).ceilToDouble();
+
+    const dayAbbr = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final dayLabels = last7.map((key) {
+      final date = DateTime.tryParse(key);
+      if (date == null) return key.substring(8);
+      return dayAbbr[date.weekday - 1];
+    }).toList();
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Daily Activity Trend (last 7d)',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w800,
+              color: AppColors.brownDark,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 140,
+            child: LineChart(
+              LineChartData(
+                minX: 0,
+                maxX: (last7.length - 1).toDouble(),
+                minY: 0,
+                maxY: yMax,
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: spots,
+                    isCurved: true,
+                    curveSmoothness: 0.35,
+                    color: AppColors.golden,
+                    barWidth: 2.5,
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, bar, index) =>
+                          FlDotCirclePainter(
+                        radius: 3.5,
+                        color: AppColors.golden,
+                        strokeColor: Colors.white,
+                        strokeWidth: 1.5,
+                      ),
+                    ),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: AppColors.golden.withOpacity(0.08),
+                    ),
+                  ),
+                ],
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: yMax / 4,
+                  getDrawingHorizontalLine: (_) => FlLine(
+                    color: AppColors.fieldBorder.withOpacity(0.5),
+                    strokeWidth: 1,
+                  ),
+                ),
+                borderData: FlBorderData(show: false),
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipItems: (touchedSpots) {
+                      return touchedSpots.map((spot) {
+                        final i = spot.x.toInt();
+                        final label =
+                            i < dayLabels.length ? dayLabels[i] : '';
+                        return LineTooltipItem(
+                          '$label\n${spot.y.toInt()} logs',
+                          const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 11,
+                          ),
+                        );
+                      }).toList();
+                    },
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        final i = value.toInt();
+                        if (i < 0 || i >= dayLabels.length) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            dayLabels[i],
+                            style: const TextStyle(
+                              fontSize: 9,
+                              color: AppColors.brownMedium,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 28,
+                      interval: yMax / 4,
+                      getTitlesWidget: (value, meta) => Text(
+                        value.toInt().toString(),
+                        style: const TextStyle(
+                          fontSize: 9,
+                          color: AppColors.brownMedium,
+                        ),
+                      ),
+                    ),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Per-user emotion type breakdown chips (used in detail sheet) ─────────────
+class _EmotionBreakdownChips extends StatelessWidget {
+  final Map<String, int> emotionByType;
+
+  const _EmotionBreakdownChips({required this.emotionByType});
+
+  static const _allEmotions = [
+    'Happy', 'Calm', 'Tired', 'Anxious', 'Sad', 'Angry'
+  ];
+  static const _positiveEmotions = {'Happy', 'Calm'};
+  static const _emotionEmoji = {
+    'Happy': '😊',
+    'Calm': '😌',
+    'Tired': '😴',
+    'Anxious': '😰',
+    'Sad': '😢',
+    'Angry': '😠',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: _allEmotions.map((emotion) {
+        final count = emotionByType[emotion] ?? 0;
+        final isPositive = _positiveEmotions.contains(emotion);
+        final color = isPositive
+            ? const Color(0xFF66BB6A)
+            : AppColors.brownMedium;
+        final emoji = _emotionEmoji[emotion] ?? '';
+
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.10),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withOpacity(0.25)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 13)),
+              const SizedBox(width: 5),
+              Text(
+                emotion,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '$count',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 }
