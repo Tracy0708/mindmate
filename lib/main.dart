@@ -80,6 +80,7 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   static final navigatorKey = GlobalKey<NavigatorState>();
+  static final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
   Widget build(BuildContext context) {
@@ -87,6 +88,7 @@ class MyApp extends StatelessWidget {
       builder: (context, themeVM, _) {
         return MaterialApp(
           navigatorKey: MyApp.navigatorKey,
+          scaffoldMessengerKey: MyApp.scaffoldMessengerKey,
           title: 'MindMate',
           debugShowCheckedModeBanner: false,
           theme: _lightTheme(),
