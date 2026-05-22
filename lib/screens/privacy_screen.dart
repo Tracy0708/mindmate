@@ -147,10 +147,10 @@ class PrivacyScreen extends StatelessWidget {
             const SizedBox(height: 16),
 
             // ── PRIVACY POLICY ──
-            _PrivacyCard(
+            const _PrivacyCard(
               icon: Icons.policy_outlined,
               title: 'Privacy Policy',
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _PolicySection(

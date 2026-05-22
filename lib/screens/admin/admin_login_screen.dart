@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../main.dart';
 import '../../services/admin_service.dart';
 import '../../services/interactive_message_service.dart';
+import '../../services/fcm_service.dart';
 
 class AdminLoginScreen extends StatefulWidget {
   const AdminLoginScreen({super.key});
@@ -52,6 +53,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         return;
       }
 
+      await FCMService().initialize();
       if (!mounted) return;
       InteractiveMessageService.showSuccess(
         context,
@@ -119,7 +121,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               height: 180,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.golden.withOpacity(0.10),
+                color: AppColors.golden.withValues(alpha:0.10),
               ),
             ),
           ),
@@ -131,7 +133,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               height: 140,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.brownDark.withOpacity(0.06),
+                color: AppColors.brownDark.withValues(alpha:0.06),
               ),
             ),
           ),
@@ -153,10 +155,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(28),
                             border: Border.all(
-                                color: AppColors.fieldBorder.withOpacity(0.55)),
+                                color: AppColors.fieldBorder.withValues(alpha:0.55)),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.08),
+                                color: Colors.black.withValues(alpha:0.08),
                                 blurRadius: 24,
                                 offset: const Offset(0, 12),
                               ),
@@ -197,13 +199,13 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                     shape: BoxShape.circle,
                                     gradient: LinearGradient(
                                       colors: [
-                                        AppColors.golden.withOpacity(0.20),
-                                        AppColors.golden.withOpacity(0.06),
+                                        AppColors.golden.withValues(alpha:0.20),
+                                        AppColors.golden.withValues(alpha:0.06),
                                       ],
                                     ),
                                     border: Border.all(
                                         color:
-                                            AppColors.golden.withOpacity(0.55),
+                                            AppColors.golden.withValues(alpha:0.55),
                                         width: 2),
                                   ),
                                   child: const Icon(
@@ -254,7 +256,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 12, vertical: 8),
                                   decoration: BoxDecoration(
-                                    color: AppColors.golden.withOpacity(0.10),
+                                    color: AppColors.golden.withValues(alpha:0.10),
                                     borderRadius: BorderRadius.circular(999),
                                   ),
                                   child: const Text(
@@ -387,7 +389,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                   Icon(Icons.security_rounded,
                                       size: 16,
                                       color: AppColors.brownMedium
-                                          .withOpacity(0.9)),
+                                          .withValues(alpha:0.9)),
                                   const SizedBox(width: 8),
                                   const Expanded(
                                     child: Text(

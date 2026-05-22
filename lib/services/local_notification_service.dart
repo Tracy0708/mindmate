@@ -185,8 +185,8 @@ class LocalNotificationService {
         id: breathingId,
         title: '🌿 Time to breathe',
         body: 'A short breathing exercise can help reduce stress.',
-        hour: hour,
-        minute: minute + 30 >= 60 ? (minute + 30) - 60 : minute + 30,
+        hour: (minute + 30 >= 60) ? (hour + 1) % 24 : hour,
+        minute: (minute + 30) % 60,
       );
     }
 

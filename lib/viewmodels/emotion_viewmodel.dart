@@ -5,6 +5,7 @@ import '../models/emotion_log.dart';
 import '../models/activity.dart';
 import '../services/emotion_service.dart';
 import '../services/gamification_service.dart';
+import '../services/notification_service.dart';
 
 class EmotionViewModel extends ChangeNotifier {
   final EmotionService _emotionService = EmotionService();
@@ -131,6 +132,57 @@ class EmotionViewModel extends ChangeNotifier {
         developer.log('Streak milestone check failed (non-critical): $e', name: 'EmotionVM');
       }
 
+      // Write user notifications for mood log and milestones
+      try {
+        final notifService = NotificationService();
+        await notifService.createNotification(
+          userID: userId,
+          title: '${_moodEmoji(emotionType)} Mood Logged',
+          message: 'You tracked your mood as $emotionType today. Keep it up!',
+          type: 'mood_log',
+        );
+        if (_streak == 7) {
+          await notifService.createNotification(
+            userID: userId,
+            title: '🔥 7-Day Streak!',
+            message: 'Amazing! You\'ve logged your mood 7 days in a row.',
+            type: 'milestone',
+          );
+        } else if (_streak == 30) {
+          await notifService.createNotification(
+            userID: userId,
+            title: '🔥 30-Day Streak!',
+            message: 'Incredible! 30 consecutive days of mood tracking.',
+            type: 'milestone',
+          );
+        }
+        final totalLogs = await _emotionService.getLogCount(userId, days: 365);
+        if (totalLogs == 1) {
+          await notifService.createNotification(
+            userID: userId,
+            title: '🎉 First Step!',
+            message: 'You\'ve logged your very first emotion. Welcome to MindMate!',
+            type: 'milestone',
+          );
+        } else if (totalLogs == 10) {
+          await notifService.createNotification(
+            userID: userId,
+            title: '🎯 Goal Setter',
+            message: 'You\'ve logged 10 emotions. You\'re building a great habit!',
+            type: 'milestone',
+          );
+        } else if (totalLogs == 30) {
+          await notifService.createNotification(
+            userID: userId,
+            title: '📊 Routine Builder',
+            message: '30 mood logs! You\'re a dedicated tracker.',
+            type: 'milestone',
+          );
+        }
+      } catch (e) {
+        developer.log('User notification write failed (non-critical): $e', name: 'EmotionVM');
+      }
+
       _isSubmitting = false;
       notifyListeners();
       return true;
@@ -213,6 +265,14 @@ class EmotionViewModel extends ChangeNotifier {
     _recommendedActivity = null;
     _showChatbotPrompt = false;
     notifyListeners();
+  }
+
+  String _moodEmoji(String emotion) {
+    const map = {
+      'Happy': '😊', 'Sad': '😢', 'Anxious': '😰',
+      'Angry': '😠', 'Calm': '😌', 'Tired': '😴',
+    };
+    return map[emotion] ?? '💙';
   }
 
   // ─── Reset for fresh state ───

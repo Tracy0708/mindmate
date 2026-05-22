@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/local_notification_service.dart';
 import '../main.dart';
-import '../services/interactive_message_service.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -205,7 +204,7 @@ class _NotificationSettingsScreenState
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: AppColors.fieldBorder.withOpacity(0.45),
+                        color: AppColors.fieldBorder.withValues(alpha: 0.45),
                       ),
                     ),
                     child: Row(
@@ -213,7 +212,7 @@ class _NotificationSettingsScreenState
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.golden.withOpacity(0.12),
+                            color: AppColors.golden.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -259,7 +258,7 @@ class _NotificationSettingsScreenState
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
+                            color: Colors.black.withValues(alpha: 0.04),
                             blurRadius: 10,
                             offset: const Offset(0, 4)),
                       ],
@@ -269,7 +268,7 @@ class _NotificationSettingsScreenState
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.golden.withOpacity(0.15),
+                            color: AppColors.golden.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -334,7 +333,7 @@ class _NotificationSettingsScreenState
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
+                            color: Colors.black.withValues(alpha: 0.04),
                             blurRadius: 10,
                             offset: const Offset(0, 4)),
                       ],
@@ -416,7 +415,7 @@ class _NotificationSettingsScreenState
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
+                                color: Colors.black.withValues(alpha: 0.04),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4)),
                           ],
@@ -426,7 +425,7 @@ class _NotificationSettingsScreenState
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: AppColors.golden.withOpacity(0.15),
+                                color: AppColors.golden.withValues(alpha: 0.15),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(Icons.access_time,
@@ -456,7 +455,7 @@ class _NotificationSettingsScreenState
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
-                                color: AppColors.golden.withOpacity(0.15),
+                                color: AppColors.golden.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -474,32 +473,6 @@ class _NotificationSettingsScreenState
                   ),
                   const SizedBox(height: 28),
 
-                  // Test Notification Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        await LocalNotificationService().showTestNotification();
-                        if (mounted) {
-                          InteractiveMessageService.showSuccess(
-                            context,
-                            title: 'Test notification sent! 🔔',
-                            message: 'Check your notification bar',
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.notifications_active, size: 20),
-                      label: const Text('Send Test Notification',
-                          style: TextStyle(fontWeight: FontWeight.w700)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.golden,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
-                      ),
-                    ),
-                  ),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -539,7 +512,7 @@ class _NotificationToggle extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.15),
+                color: iconColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: iconColor, size: 22),

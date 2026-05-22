@@ -11,6 +11,7 @@ import 'screens/admin/admin_dashboard.dart';
 import 'screens/admin/admin_notification_settings_screen.dart';
 import 'screens/privacy_screen.dart';
 import 'screens/help_support_screen.dart';
+import 'screens/notification_center_screen.dart';
 import 'services/auth_service.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +24,13 @@ import 'viewmodels/theme_viewmodel.dart';
 import 'viewmodels/emotion_viewmodel.dart';
 import 'services/local_notification_service.dart';
 import 'services/interactive_message_service.dart';
+import 'services/fcm_service.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+@pragma('vm:entry-point')
+Future<void> _fcmBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,11 +38,11 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await AuthService.initializeGoogleSignIn();
-  // Ensure any persisted auth session is cleared on app start (force re-login)
-  try {
-    await AuthService().signOut();
-  } catch (_) {}
   await LocalNotificationService().initialize();
+  FirebaseMessaging.onBackgroundMessage(_fcmBackgroundHandler);
+  FirebaseMessaging.onMessageOpenedApp.listen((msg) {
+    MyApp.navigatorKey.currentState?.pushNamed('/notifications');
+  });
   runApp(
     MultiProvider(
       providers: [
@@ -71,11 +79,14 @@ class AppColors {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  static final navigatorKey = GlobalKey<NavigatorState>();
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeViewModel>(
       builder: (context, themeVM, _) {
         return MaterialApp(
+          navigatorKey: MyApp.navigatorKey,
           title: 'MindMate',
           debugShowCheckedModeBanner: false,
           theme: _lightTheme(),
@@ -97,6 +108,7 @@ class MyApp extends StatelessWidget {
                 const AdminNotificationSettingsScreen(),
             '/privacy': (context) => const PrivacyScreen(),
             '/help-support': (context) => const HelpSupportScreen(),
+            '/notifications': (context) => const NotificationCenterScreen(),
           },
         );
       },
@@ -361,6 +373,7 @@ class _LoginPageState extends State<LoginPage>
       setState(() => _isLoading = true);
       await _authService.signInWithEmailPassword(
           _emailController.text.trim(), _passwordController.text);
+      await FCMService().initialize();
       if (mounted) {
         InteractiveMessageService.showSuccess(
           context,
@@ -390,6 +403,7 @@ class _LoginPageState extends State<LoginPage>
     try {
       setState(() => _isLoading = true);
       final cred = await _authService.signInWithGoogle();
+      await FCMService().initialize();
       if (mounted) {
         InteractiveMessageService.showSuccess(
           context,

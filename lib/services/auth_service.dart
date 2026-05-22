@@ -112,7 +112,10 @@ class AuthService {
 
     try {
       developer.log('Saving user document to Firestore', name: 'AuthService');
-      await userDoc.set(newUser.toJson()).timeout(const Duration(seconds: 10));
+      await userDoc.set({
+        ...newUser.toJson(),
+        'createdAt': FieldValue.serverTimestamp(),
+      }).timeout(const Duration(seconds: 10));
       developer.log('User document saved successfully', name: 'AuthService');
     } catch (e) {
       developer.log('Firestore error: $e', name: 'AuthService', level: 900);

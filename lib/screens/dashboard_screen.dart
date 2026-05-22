@@ -14,6 +14,7 @@ import 'calendar_screen.dart';
 import 'activity_screen.dart';
 import 'insights_screen.dart';
 import 'gamification_screen.dart';
+import '../services/notification_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -198,12 +199,48 @@ class _HomeTabState extends State<_HomeTab> {
                     const SizedBox(width: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(color: AppColors.golden.withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
+                      decoration: BoxDecoration(color: AppColors.golden.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
                       child: Row(children: [
                         const Icon(Icons.local_fire_department, color: AppColors.golden, size: 16),
                         const SizedBox(width: 4),
                         Text('$streak day${streak == 1 ? '' : 's'}', style: const TextStyle(color: AppColors.golden, fontWeight: FontWeight.w700, fontSize: 13)),
                       ]),
+                    ),
+                    const SizedBox(width: 8),
+                    StreamBuilder<int>(
+                      stream: NotificationService().getUnreadCount(_authService.currentUser?.uid ?? ''),
+                      builder: (context, snapshot) {
+                        final count = snapshot.data ?? 0;
+                        return Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              icon: const Icon(Icons.notifications_outlined, color: AppColors.brownDark, size: 24),
+                              onPressed: () => Navigator.pushNamed(context, '/notifications'),
+                            ),
+                            if (count > 0)
+                              Positioned(
+                                right: -2,
+                                top: -2,
+                                child: Container(
+                                  padding: const EdgeInsets.all(3),
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.errorRed,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                                  child: Text(
+                                    count > 99 ? '99+' : '$count',
+                                    style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
                   ],
                 ),

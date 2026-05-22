@@ -6,6 +6,8 @@ import '../../models/user_model.dart';
 import '../../main.dart';
 import '../../services/interactive_message_service.dart';
 import '../../services/admin_realtime_notification_service.dart';
+import '../../services/notification_service.dart';
+import '../../services/fcm_service.dart';
 import 'user_management_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -170,25 +172,50 @@ class _AdminHomeTab extends StatelessWidget {
                             ],
                           ),
                         ),
-                        if (vm.isLoading)
-                          const SizedBox(
-                            width: 20, height: 20,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2.5, color: AppColors.golden),
-                          )
-                        else
-                          GestureDetector(
-                            onTap: vm.generateReport,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: AppColors.golden.withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(Icons.refresh_rounded,
-                                  color: AppColors.golden, size: 20),
-                            ),
+                        StreamBuilder<int>(
+                          stream: NotificationService().getUnreadCount(
+                            FirebaseAuth.instance.currentUser?.uid ?? '',
                           ),
+                          builder: (context, snapshot) {
+                            final count = snapshot.data ?? 0;
+                            return Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                IconButton(
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  icon: const Icon(Icons.notifications_outlined,
+                                      color: AppColors.brownDark, size: 26),
+                                  onPressed: () =>
+                                      Navigator.pushNamed(context, '/notifications'),
+                                ),
+                                if (count > 0)
+                                  Positioned(
+                                    right: -2,
+                                    top: -2,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(3),
+                                      decoration: const BoxDecoration(
+                                        color: AppColors.errorRed,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      constraints: const BoxConstraints(
+                                          minWidth: 16, minHeight: 16),
+                                      child: Text(
+                                        count > 99 ? '99+' : '$count',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
+                        ),
                       ],
                     ),
                     const SizedBox(height: 6),
@@ -1410,6 +1437,7 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
                                 label: 'Sign Out',
                                 isDestructive: true,
                                 onTap: () async {
+                                  await FCMService().clearTokenForCurrentUser();
                                   await FirebaseAuth.instance.signOut();
                                   if (!context.mounted) return;
                                   InteractiveMessageService.showInfo(

@@ -7,22 +7,25 @@ class NotificationService {
 
   // Create a new notification
   Future<NotificationModel> createNotification({
+    required String userID,
     required String title,
     required String message,
     required String type,
     String? status,
+    bool pushEnabled = false,
   }) async {
     final docRef = _firestore.collection(_collection).doc();
 
     final notification = NotificationModel(
       notificationID: docRef.id,
+      userID: userID,
       title: title,
       notificationMessage: message,
       notificationType: type,
       notificationStatus: status,
     );
 
-    await docRef.set(notification.toJson());
+    await docRef.set({...notification.toJson(), 'pushEnabled': pushEnabled});
     return notification;
   }
 
@@ -30,6 +33,7 @@ class NotificationService {
   Stream<List<NotificationModel>> getUserNotifications(String userID) {
     return _firestore
         .collection(_collection)
+        .where('userID', isEqualTo: userID)
         .orderBy('notificationTimestamp', descending: true)
         .snapshots()
         .map((snapshot) {
@@ -55,13 +59,29 @@ class NotificationService {
   Stream<int> getUnreadCount(String userID) {
     return _firestore
         .collection(_collection)
+        .where('userID', isEqualTo: userID)
         .where('notificationStatus', isEqualTo: 'unread')
         .snapshots()
         .map((snapshot) => snapshot.docs.length);
   }
 
+  // Mark all notifications as read for a user
+  Future<void> markAllAsRead(String userID) async {
+    final snapshot = await _firestore
+        .collection(_collection)
+        .where('userID', isEqualTo: userID)
+        .where('notificationStatus', isEqualTo: 'unread')
+        .get();
+    final batch = _firestore.batch();
+    for (final doc in snapshot.docs) {
+      batch.update(doc.reference, {'notificationStatus': 'read'});
+    }
+    await batch.commit();
+  }
+
   // Create a scheduled notification
   Future<NotificationModel> scheduleNotification({
+    required String userID,
     required String title,
     required String message,
     required String type,
@@ -71,6 +91,7 @@ class NotificationService {
 
     final notification = NotificationModel(
       notificationID: docRef.id,
+      userID: userID,
       title: title,
       notificationMessage: message,
       notificationType: type,
