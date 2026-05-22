@@ -94,7 +94,8 @@ class AdminService {
     try {
       final since = DateTime.now().subtract(Duration(days: lookbackDays));
       final usersSnapshot = await _firestore.collection(_usersCollection).get();
-      final emotionsSnapshot = await _firestore.collection('emotions').get();
+      final emotionsSnapshot =
+          await _firestore.collectionGroup('emotion_logs').get();
 
       final usersById = <String, UserModel>{
         for (final doc in usersSnapshot.docs)
@@ -121,12 +122,19 @@ class AdminService {
                 .toLowerCase() ??
             'unknown';
 
+        final rawEmotion =
+            ((data['emotionType'] ?? data['emotion'] ?? data['mood']) as String?)
+                    ?.trim() ??
+                'Unknown';
+
         final entry = byUser.putIfAbsent(userId, _MoodRiskAccumulator.new);
         entry.totalLogs += 1;
         entry.lastMoodAt =
             entry.lastMoodAt == null || timestamp.isAfter(entry.lastMoodAt!)
                 ? timestamp
                 : entry.lastMoodAt;
+        entry.emotionByType[rawEmotion] =
+            (entry.emotionByType[rawEmotion] ?? 0) + 1;
 
         if (_isNegativeEmotion(emotion)) {
           entry.negativeLogs += 1;
@@ -187,6 +195,7 @@ class AdminService {
           'negativeRatio': negativeRatio,
           'dominantNegativeMood': dominantNegativeMood,
           'riskScore': riskScore.clamp(0, 100),
+          'emotionByType': Map<String, int>.from(value.emotionByType),
         });
       });
 
@@ -195,6 +204,57 @@ class AdminService {
       return results.take(limit).toList(growable: false);
     } catch (e) {
       developer.log('getMoodRiskUsers failed: $e',
+          name: 'AdminService', level: 900);
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> getPlatformEmotionStats({
+    int lookbackDays = 21,
+  }) async {
+    try {
+      final since = DateTime.now().subtract(Duration(days: lookbackDays));
+      final snapshot =
+          await _firestore.collectionGroup('emotion_logs').get();
+
+      const allEmotions = [
+        'Happy', 'Calm', 'Tired', 'Anxious', 'Sad', 'Angry'
+      ];
+      final emotionCounts = <String, int>{
+        for (final e in allEmotions) e: 0,
+      };
+
+      final dailyCounts = <String, int>{};
+      for (int i = lookbackDays - 1; i >= 0; i--) {
+        final day = DateTime.now().subtract(Duration(days: i));
+        final key =
+            '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
+        dailyCounts[key] = 0;
+      }
+
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final ts = _parseEmotionTimestamp(data);
+        if (ts == null || ts.isBefore(since)) continue;
+
+        final rawEmotion =
+            ((data['emotionType'] ?? data['emotion'] ?? data['mood']) as String?)
+                    ?.trim() ??
+                '';
+        if (emotionCounts.containsKey(rawEmotion)) {
+          emotionCounts[rawEmotion] = emotionCounts[rawEmotion]! + 1;
+        }
+
+        final key =
+            '${ts.year}-${ts.month.toString().padLeft(2, '0')}-${ts.day.toString().padLeft(2, '0')}';
+        if (dailyCounts.containsKey(key)) {
+          dailyCounts[key] = (dailyCounts[key] ?? 0) + 1;
+        }
+      }
+
+      return {'emotionCounts': emotionCounts, 'dailyCounts': dailyCounts};
+    } catch (e) {
+      developer.log('getPlatformEmotionStats failed: $e',
           name: 'AdminService', level: 900);
       rethrow;
     }
@@ -404,4 +464,5 @@ class _MoodRiskAccumulator {
   int recentNegativeLogs = 0;
   DateTime? lastMoodAt;
   final Map<String, int> negativeByType = {};
+  final Map<String, int> emotionByType = {};
 }
