@@ -121,6 +121,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       appBar: AppBar(
         title: const Text('Mood Calendar', style: TextStyle(color: AppColors.golden, fontWeight: FontWeight.w800, fontSize: 24)),
         centerTitle: true,
+        automaticallyImplyLeading: false,
       ),
       body: Column(
         children: [
