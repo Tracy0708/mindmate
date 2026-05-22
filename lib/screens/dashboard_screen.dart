@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 import '../main.dart';
 import '../services/auth_service.dart';
 import '../viewmodels/emotion_viewmodel.dart';
@@ -48,6 +50,7 @@ class DashboardScreenState extends State<DashboardScreen> {
       DailyCheckinDialog.show(context,
         onCompleted: () => vm.checkTodaysLog(),
         onSkipped: () {},
+        onOpenChat: () => navigateToTab(3),
       );
     }
   }
@@ -118,31 +121,39 @@ class _HomeTabState extends State<_HomeTab> {
 
   final AuthService _authService = AuthService();
   String _userName = 'MindMate';
+  StreamSubscription<DocumentSnapshot>? _profileSub;
 
   @override
   void initState() {
     super.initState();
-    _fetchUserName();
+    _subscribeToUserName();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final gamVm = Provider.of<GamificationViewModel>(context, listen: false);
       gamVm.fetchHistory();
     });
   }
 
-  Future<void> _fetchUserName() async {
-    // Fast synchronous fallback
-    if (mounted && _authService.currentUser != null) {
+  @override
+  void dispose() {
+    _profileSub?.cancel();
+    super.dispose();
+  }
+
+  void _subscribeToUserName() {
+    final user = _authService.currentUser;
+    if (user == null) return;
+    _profileSub = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .snapshots()
+        .listen((snap) {
+      if (!mounted) return;
+      final data = snap.data();
+      final name = (data?['userName'] as String?)?.trim() ?? '';
       setState(() {
-        _userName = _authService.currentUser!.displayName ?? 'MindMate';
+        _userName = name.isNotEmpty ? name : (user.displayName ?? 'MindMate');
       });
-    }
-    // Fetch actual profile for the most up-to-date name
-    final profile = await _authService.getUserProfile();
-    if (mounted && profile != null && profile.userName.isNotEmpty) {
-      setState(() {
-        _userName = profile.userName;
-      });
-    }
+    });
   }
 
   String get _greeting {
@@ -251,7 +262,7 @@ class _HomeTabState extends State<_HomeTab> {
                   mood: todaysMood,
                   streak: streak,
                   emojiMap: _emojiMap,
-                  onLogMood: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EmotionTrackingScreen())),
+                  onLogMood: () => Navigator.push(context, MaterialPageRoute(builder: (_) => EmotionTrackingScreen(onOpenChat: () => widget.onNavigate(3)))),
                 ),
                 const SizedBox(height: 24),
 
@@ -276,8 +287,8 @@ class _HomeTabState extends State<_HomeTab> {
                 _BadgeMiniRow(streak: streak, logCount: logCount, activities: activities, breathing: vm.breathingSessionCount),
                 const SizedBox(height: 24),
 
-                // ── SECTION 4: QUICK ACTIONS ──
-                const Text('Quick Actions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
+                // ── SECTION 4: SELF CARE ACTIVITIES ──
+                const Text('Self Care Activities', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
                 const SizedBox(height: 14),
                 Row(children: [
                   _QuickAction(icon: Icons.air, label: 'Breathe', color: const Color(0xFF42A5F5), onTap: () {
@@ -290,12 +301,27 @@ class _HomeTabState extends State<_HomeTab> {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ActivityScreen(activity: a)));
                   }),
                   const SizedBox(width: 12),
+                  _QuickAction(icon: Icons.spa, label: 'Relax', color: const Color(0xFFFF7043), onTap: () {
+                    const a = RecommendedActivity(title: 'Progressive Muscle Relaxation', activityType: 'relaxation', emoji: '💆', durationMinutes: 8, description: 'Tense and release each muscle group to let go of physical tension. Start from your toes and work up to your head.');
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ActivityScreen(activity: a)));
+                  }),
+                ]),
+                const SizedBox(height: 12),
+                Row(children: [
                   _QuickAction(icon: Icons.self_improvement, label: 'Meditate', color: const Color(0xFFAB47BC), onTap: () {
                     const a = RecommendedActivity(title: 'Mindful Body Scan', activityType: 'meditation', emoji: '🧘', durationMinutes: 5, description: 'A gentle meditation to check in with your body and release tension.');
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ActivityScreen(activity: a)));
                   }),
                   const SizedBox(width: 12),
-                  _QuickAction(icon: Icons.chat_bubble_outline, label: 'Chat', color: const Color(0xFFFF7043), onTap: () => widget.onNavigate(3)),
+                  _QuickAction(icon: Icons.favorite, label: 'Gratitude', color: const Color(0xFF26A69A), onTap: () {
+                    const a = RecommendedActivity(title: 'Gratitude Reflection', activityType: 'gratitude', emoji: '🙏', durationMinutes: 5, description: 'You\'re in a wonderful state of calm. Take a moment to appreciate this feeling and note what contributed to it.');
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ActivityScreen(activity: a)));
+                  }),
+                  const SizedBox(width: 12),
+                  _QuickAction(icon: Icons.star, label: 'Affirm', color: const Color(0xFFFFB300), onTap: () {
+                    const a = RecommendedActivity(title: 'Positive Affirmations', activityType: 'affirmations', emoji: '✨', durationMinutes: 3, description: 'Reinforce your well-being with uplifting statements. Read each one slowly and let it sink in.');
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ActivityScreen(activity: a)));
+                  }),
                 ]),
                 const SizedBox(height: 24),
 

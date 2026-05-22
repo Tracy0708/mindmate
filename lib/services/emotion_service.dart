@@ -67,6 +67,18 @@ class EmotionService {
     return EmotionLog.fromMap(doc.data(), doc.id);
   }
 
+  // ─── Stream logs for a given month (real-time updates) ───
+  Stream<List<EmotionLog>> streamLogsForMonth(String userId, DateTime month) {
+    final start = DateTime(month.year, month.month, 1);
+    final end = DateTime(month.year, month.month + 1, 1);
+    return _emotionLogsRef(userId)
+        .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+        .where('timestamp', isLessThan: Timestamp.fromDate(end))
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snap) => snap.docs.map((doc) => EmotionLog.fromMap(doc.data(), doc.id)).toList());
+  }
+
   // ─── Get recent logs for trend analysis (NF7) ───
   Future<List<EmotionLog>> getRecentLogs(String userId, {int days = 7}) async {
     final startDate = DateTime.now().subtract(Duration(days: days));
