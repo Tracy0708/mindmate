@@ -482,12 +482,15 @@ class _TodayCard extends StatelessWidget {
               const Text('Take a moment to check in with yourself', style: TextStyle(fontSize: 13, color: AppColors.brownMedium)),
               const SizedBox(height: 16),
               SizedBox(
-                width: double.infinity, height: 46,
-                child: ElevatedButton.icon(
+                width: double.infinity,
+                child: ElevatedButton(
                   onPressed: onLogMood,
-                  icon: const Text('😊', style: TextStyle(fontSize: 18)),
-                  label: const Text('Log My Mood', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.golden, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 0),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.golden, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 0, padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24)),
+                  child: const Row(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
+                    Text('😊', style: TextStyle(fontSize: 18)),
+                    SizedBox(width: 8),
+                    Text('Log My Mood', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+                  ]),
                 ),
               ),
             ]),

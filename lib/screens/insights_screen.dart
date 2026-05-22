@@ -281,20 +281,24 @@ class _InsightsScreenState extends State<InsightsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))]),
-      child: Row(children: [
-        SizedBox(height: 160, width: 160, child: PieChart(PieChartData(sections: sections, centerSpaceRadius: 30, sectionsSpace: 2))),
-        const SizedBox(width: 24),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: freq.entries.map((e) {
-          final color = _emotionColors[e.key] ?? Colors.grey;
-          final emoji = _emojiMap[e.key] ?? '🙂';
-          return Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Row(children: [
-            Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-            const SizedBox(width: 8),
-            Text('$emoji ${e.key}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.brownDark)),
-            const Spacer(),
-            Text('${e.value}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.brownMedium)),
-          ]));
-        }).toList())),
+      child: Column(children: [
+        Center(child: SizedBox(height: 160, width: 160, child: PieChart(PieChartData(sections: sections, centerSpaceRadius: 30, sectionsSpace: 2)))),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 16,
+          runSpacing: 10,
+          children: freq.entries.map((e) {
+            final color = _emotionColors[e.key] ?? Colors.grey;
+            final emoji = _emojiMap[e.key] ?? '🙂';
+            return Row(mainAxisSize: MainAxisSize.min, children: [
+              Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+              const SizedBox(width: 6),
+              Text('$emoji ${e.key}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.brownDark)),
+              const SizedBox(width: 4),
+              Text('${e.value}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.brownMedium)),
+            ]);
+          }).toList(),
+        ),
       ]),
     );
   }
