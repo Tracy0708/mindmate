@@ -37,9 +37,12 @@ class NotificationService {
         .orderBy('notificationTimestamp', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
+      final list = snapshot.docs
           .map((doc) => NotificationModel.fromJson(doc.data()))
           .toList();
+      list.sort(
+          (a, b) => b.notificationTimestamp.compareTo(a.notificationTimestamp));
+      return list;
     });
   }
 
