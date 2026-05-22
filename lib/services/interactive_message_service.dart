@@ -162,7 +162,7 @@ class InteractiveMessageService {
           : null,
     );
 
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    MyApp.scaffoldMessengerKey.currentState?.showSnackBar(snackBar);
   }
 
   static Color _getBackgroundColor(MessageType type) {

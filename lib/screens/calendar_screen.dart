@@ -22,6 +22,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   bool _isLoading = true;
   EmotionLog? _selectedDayLog;
   String? _lastSeenLogId;
+  EmotionViewModel? _emotionViewModel;
 
   static const _emojiMap = {
     'Happy': '😊',
@@ -38,21 +39,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _emotionViewModel = Provider.of<EmotionViewModel>(context, listen: false);
+      _emotionViewModel!.addListener(_onEmotionChanged);
       _loadMonthData();
-      Provider.of<EmotionViewModel>(context, listen: false).addListener(_onEmotionChanged);
     });
   }
 
   @override
   void dispose() {
-    Provider.of<EmotionViewModel>(context, listen: false).removeListener(_onEmotionChanged);
+    _emotionViewModel?.removeListener(_onEmotionChanged);
     super.dispose();
   }
 
   void _onEmotionChanged() {
     if (!mounted) return;
-    final vm = Provider.of<EmotionViewModel>(context, listen: false);
-    final newLogId = vm.todaysLog?.logID;
+    final newLogId = _emotionViewModel?.todaysLog?.logID;
     if (newLogId != null && newLogId != _lastSeenLogId) {
       _lastSeenLogId = newLogId;
       _loadMonthData();
