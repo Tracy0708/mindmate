@@ -8,6 +8,7 @@ import '../models/emotion_log.dart';
 import '../viewmodels/insights_viewmodel.dart';
 import '../services/emotion_service.dart';
 import 'activity_screen.dart';
+import 'dashboard_screen.dart';
 
 class InsightsScreen extends StatefulWidget {
   const InsightsScreen({super.key});
@@ -130,7 +131,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
       const Text('Start tracking your emotions to see\npersonalized insights and trends here.', textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: AppColors.brownMedium, height: 1.5)),
       const SizedBox(height: 32),
       ElevatedButton.icon(
-        onPressed: () => Navigator.pop(context),
+        onPressed: () {
+          context.findAncestorStateOfType<DashboardScreenState>()?.navigateToTab(0);
+        },
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('Log Your First Mood', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
         style: ElevatedButton.styleFrom(backgroundColor: AppColors.golden, padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
@@ -353,7 +356,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
   void _launchSuggestion(InsightSuggestion s) {
     if (s.actionType == 'chatbot') {
-      Navigator.pop(context); // go back, user can tap Chat tab
+      context.findAncestorStateOfType<DashboardScreenState>()?.navigateToTab(3);
       return;
     }
     if (s.actionType == 'none') return;

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import '../main.dart';
 import '../models/emotion_log.dart';
 import '../services/emotion_service.dart';
+import '../viewmodels/emotion_viewmodel.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -19,6 +21,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   List<EmotionLog> _monthLogs = [];
   bool _isLoading = true;
   EmotionLog? _selectedDayLog;
+  String? _lastSeenLogId;
 
   static const _emojiMap = {
     'Happy': '😊',
@@ -34,7 +37,26 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   void initState() {
     super.initState();
-    _loadMonthData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadMonthData();
+      Provider.of<EmotionViewModel>(context, listen: false).addListener(_onEmotionChanged);
+    });
+  }
+
+  @override
+  void dispose() {
+    Provider.of<EmotionViewModel>(context, listen: false).removeListener(_onEmotionChanged);
+    super.dispose();
+  }
+
+  void _onEmotionChanged() {
+    if (!mounted) return;
+    final vm = Provider.of<EmotionViewModel>(context, listen: false);
+    final newLogId = vm.todaysLog?.logID;
+    if (newLogId != null && newLogId != _lastSeenLogId) {
+      _lastSeenLogId = newLogId;
+      _loadMonthData();
+    }
   }
 
   Future<void> _loadMonthData() async {
@@ -44,17 +66,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Get logs for the entire month (plus buffer for trend data)
       final lastDay = DateTime(_currentMonth.year, _currentMonth.month + 1, 0);
-      final daysInMonth = lastDay.day;
-      final logs = await _emotionService.getRecentLogs(userId, days: daysInMonth + 30);
-
-      // Filter to only current month
+      final logs = await _emotionService.getRecentLogs(userId, days: lastDay.day + 30);
       _monthLogs = logs.where((log) =>
           log.timestamp.year == _currentMonth.year &&
           log.timestamp.month == _currentMonth.month
       ).toList();
-    } catch (e) {
+    } catch (_) {
       _monthLogs = [];
     }
 
@@ -71,11 +89,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   void _nextMonth() {
     final now = DateTime.now();
-    final nextMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 1);
-    // Don't allow navigating past current month
-    if (nextMonth.isAfter(DateTime(now.year, now.month + 1, 1))) return;
+    final next = DateTime(_currentMonth.year, _currentMonth.month + 1, 1);
+    if (next.isAfter(DateTime(now.year, now.month + 1, 1))) return;
     setState(() {
-      _currentMonth = nextMonth;
+      _currentMonth = next;
       _selectedDayLog = null;
     });
     _loadMonthData();
@@ -300,7 +317,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     ),
                     if (emoji != null) ...[
                       const SizedBox(height: 2),
-                      Text(emoji, style: const TextStyle(fontSize: 16)),
+                      Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Text(emoji, style: const TextStyle(fontSize: 16)),
+                          if (log!.isMixedMood)
+                            Positioned(
+                              top: -3,
+                              right: -5,
+                              child: Container(
+                                width: 7,
+                                height: 7,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFFF7043),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ] else
                       const SizedBox(height: 18),
                   ],
@@ -367,6 +402,30 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
             ],
           ),
+          if (log.isMixedMood) ...[
+            const SizedBox(height: 14),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF7043).withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFFF7043).withValues(alpha: 0.35)),
+              ),
+              child: const Row(
+                children: [
+                  Text('💬', style: TextStyle(fontSize: 16)),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Mixed mood detected — your note reflects a different emotional tone than your selected mood.',
+                      style: TextStyle(fontSize: 12, color: Color(0xFFBF360C), height: 1.4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (log.notes != null && log.notes!.isNotEmpty) ...[
             const SizedBox(height: 16),
             Container(

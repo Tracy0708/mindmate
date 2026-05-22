@@ -4,23 +4,23 @@ import '../main.dart';
 import '../viewmodels/emotion_viewmodel.dart';
 import '../viewmodels/gamification_viewmodel.dart';
 import '../services/interactive_message_service.dart';
-import '../screens/dashboard_screen.dart';
 
 /// Bottom sheet dialog shown at app launch when no emotion has been logged today (NF1, NF2)
 class DailyCheckinDialog extends StatefulWidget {
   final VoidCallback? onCompleted;
   final VoidCallback? onSkipped;
+  final VoidCallback? onOpenChat;
 
-  const DailyCheckinDialog({super.key, this.onCompleted, this.onSkipped});
+  const DailyCheckinDialog({super.key, this.onCompleted, this.onSkipped, this.onOpenChat});
 
   /// Show this dialog as a modal bottom sheet
-  static Future<void> show(BuildContext context, {VoidCallback? onCompleted, VoidCallback? onSkipped}) {
+  static Future<void> show(BuildContext context, {VoidCallback? onCompleted, VoidCallback? onSkipped, VoidCallback? onOpenChat}) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       isDismissible: true,
-      builder: (_) => DailyCheckinDialog(onCompleted: onCompleted, onSkipped: onSkipped),
+      builder: (_) => DailyCheckinDialog(onCompleted: onCompleted, onSkipped: onSkipped, onOpenChat: onOpenChat),
     );
   }
 
@@ -143,10 +143,9 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
                     const SizedBox(width: 12),
                     Expanded(flex: 2, child: ElevatedButton.icon(
                       onPressed: () {
-                        final dashState = context.findAncestorStateOfType<DashboardScreenState>();
                         Navigator.pop(context);
                         widget.onCompleted?.call();
-                        dashState?.navigateToTab(3);
+                        widget.onOpenChat?.call();
                       },
                       icon: const Icon(Icons.chat_bubble_outline, size: 18, color: Colors.white),
                       label: const Text("Let's talk", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),

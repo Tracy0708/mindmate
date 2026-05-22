@@ -5,10 +5,10 @@ import '../viewmodels/emotion_viewmodel.dart';
 import '../services/interactive_message_service.dart';
 import '../viewmodels/gamification_viewmodel.dart';
 import 'activity_screen.dart';
-import 'dashboard_screen.dart';
 
 class EmotionTrackingScreen extends StatefulWidget {
-  const EmotionTrackingScreen({super.key});
+  final VoidCallback? onOpenChat;
+  const EmotionTrackingScreen({super.key, this.onOpenChat});
 
   @override
   State<EmotionTrackingScreen> createState() => _EmotionTrackingScreenState();
@@ -104,9 +104,8 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
 
   void _openChatbot() {
     Provider.of<EmotionViewModel>(context, listen: false).dismissChatbotPrompt();
-    final dashState = context.findAncestorStateOfType<DashboardScreenState>();
     Navigator.of(context).popUntil((route) => route.isFirst);
-    dashState?.navigateToTab(3);
+    widget.onOpenChat?.call();
   }
 
   @override
