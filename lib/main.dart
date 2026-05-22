@@ -92,9 +92,9 @@ class MyApp extends StatelessWidget {
           theme: _lightTheme(),
           darkTheme: _darkTheme(),
           themeMode: themeVM.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-          initialRoute:
-              FirebaseAuth.instance.currentUser != null ? '/dashboard' : '/',
+          initialRoute: '/splash',
           routes: {
+            '/splash': (context) => const _SplashScreen(),
             '/': (context) => const LoginPage(),
             '/register': (context) => const RegistrationScreen(),
             '/dashboard': (context) => const DashboardScreen(),
@@ -328,6 +328,49 @@ class MyApp extends StatelessWidget {
       ),
       dividerTheme:
           const DividerThemeData(color: Color(0xFF353550), thickness: 1),
+    );
+  }
+}
+
+// ─── SPLASH / AUTH GATE ───
+class _SplashScreen extends StatefulWidget {
+  const _SplashScreen();
+
+  @override
+  State<_SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<_SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _resolveRoute();
+  }
+
+  Future<void> _resolveRoute() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (!mounted) return;
+
+    if (user == null) {
+      Navigator.pushReplacementNamed(context, '/');
+      return;
+    }
+
+    final profile = await AuthService().getUserProfileById(user.uid);
+    if (!mounted) return;
+
+    if (profile?.role == 'admin') {
+      Navigator.pushReplacementNamed(context, '/admin-dashboard');
+    } else {
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: AppColors.cream,
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }
