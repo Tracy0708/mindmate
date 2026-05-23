@@ -1,6 +1,8 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../services/admin_service.dart';
+import '../services/report_pdf_service.dart';
 
 class AdminViewModel extends ChangeNotifier {
   final AdminService _adminService = AdminService();
@@ -56,6 +58,56 @@ class AdminViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<Uint8List> exportSystemReport({int lookbackDays = 21}) async {
+    final results = await Future.wait([
+      _adminService.generateUsageReport(),
+      _adminService.getPlatformEmotionStats(lookbackDays: lookbackDays),
+      _adminService.getMoodRiskUsers(lookbackDays: lookbackDays, limit: 20),
+    ]);
+    return ReportPdfService().generateSystemReportPdf(
+      usageReport: results[0] as Map<String, dynamic>,
+      platformEmotionStats: results[1] as Map<String, dynamic>,
+      moodRiskUsers: results[2] as List<Map<String, dynamic>>,
+      lookbackDays: lookbackDays,
+    );
+  }
+
+  Future<Uint8List> exportAllUsersMoodReport({int lookbackDays = 21}) async {
+    final riskUsers = await _adminService.getMoodRiskUsers(
+      lookbackDays: lookbackDays,
+      limit: 100,
+    );
+    final capped = riskUsers.take(50).toList();
+    final logsPerUser = await Future.wait(
+      capped.map((u) => _adminService.getUserEmotionLogs(
+            u['userId'] as String,
+            lookbackDays: lookbackDays,
+          )),
+    );
+    final usersWithLogs = List.generate(
+      capped.length,
+      (i) => (riskUser: capped[i], logs: logsPerUser[i]),
+    );
+    return ReportPdfService().generateUserMoodReportPdf(
+      usersWithLogs: usersWithLogs,
+      lookbackDays: lookbackDays,
+    );
+  }
+
+  Future<Uint8List> exportSingleUserMoodReport(
+    Map<String, dynamic> riskUser, {
+    int lookbackDays = 21,
+  }) async {
+    final logs = await _adminService.getUserEmotionLogs(
+      riskUser['userId'] as String,
+      lookbackDays: lookbackDays,
+    );
+    return ReportPdfService().generateUserMoodReportPdf(
+      usersWithLogs: [(riskUser: riskUser, logs: logs)],
+      lookbackDays: lookbackDays,
+    );
   }
 
   Future<void> deleteUser(String userId) async {
