@@ -391,13 +391,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: _intensityColor(log.intensityScore).withOpacity(0.15),
+                  color: _intensityColor(log.wellbeingScore.round()).withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'Score: ${log.intensityScore}/5',
+                  'Intensity: ${log.intensityScore}/5',
                   style: TextStyle(
-                    color: _intensityColor(log.intensityScore),
+                    color: _intensityColor(log.wellbeingScore.round()),
                     fontWeight: FontWeight.w700,
                     fontSize: 12,
                   ),

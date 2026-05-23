@@ -70,6 +70,7 @@ class EmotionViewModel extends ChangeNotifier {
   /// Returns true if save was successful
   Future<bool> submitEmotion({
     required String emotionType,
+    required int intensity,
     String? notes,
   }) async {
     final userId = _currentUserId;
@@ -89,7 +90,7 @@ class EmotionViewModel extends ChangeNotifier {
         logID: DateTime.now().millisecondsSinceEpoch.toString(),
         userID: userId,
         emotionType: emotionType,
-        intensityScore: EmotionLog.emotionToScore(emotionType),
+        intensityScore: intensity,
         notes: notes,
         timestamp: DateTime.now(),
         noteSentimentScore: notes != null && notes.trim().isNotEmpty
@@ -246,23 +247,51 @@ class EmotionViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Keyword-based note sentiment scorer — returns 1.0 (negative) to 5.0 (positive)
+  // Negation-aware keyword sentiment scorer — returns 1.0 (negative) to 5.0 (positive).
+  // Tokenizes into words so "tired" won't match "retired", and checks a 3-word
+  // negation window so "didn't feel sad" correctly scores as positive.
   double _scoreNotes(String notes) {
-    final lower = notes.toLowerCase();
-    const negativeWords = [
+    const negators = {
+      'not', 'no', 'never', "don't", "doesn't", "didn't",
+      "isn't", "aren't", "wasn't", "weren't", "can't",
+      "couldn't", "won't", "wouldn't", "shouldn't",
+      'hardly', 'barely', 'scarcely',
+    };
+    const negativeWords = {
       'sad', 'down', 'depressed', 'anxious', 'stressed', 'angry', 'lonely',
       'hopeless', 'overwhelmed', 'tired', 'fearful', 'worried', 'unhappy',
       'upset', 'miserable', 'terrible', 'awful', 'horrible', 'exhausted',
       'drained', 'frustrated', 'irritated', 'nervous', 'scared', 'hurt', 'bad',
-    ];
-    const positiveWords = [
+    };
+    const positiveWords = {
       'happy', 'good', 'great', 'excited', 'calm', 'peaceful', 'grateful',
       'joy', 'joyful', 'wonderful', 'amazing', 'fantastic', 'love', 'loved',
       'cheerful', 'content', 'satisfied', 'thankful', 'hopeful', 'relieved',
       'energized', 'refreshed', 'nice', 'better', 'blessed', 'positive',
-    ];
-    final negHits = negativeWords.where(lower.contains).length;
-    final posHits = positiveWords.where(lower.contains).length;
+    };
+
+    // Preserve apostrophes so "don't" stays one token
+    final words = notes.toLowerCase()
+        .split(RegExp(r"[^a-z']+"))
+        .where((w) => w.isNotEmpty)
+        .toList();
+
+    int posHits = 0;
+    int negHits = 0;
+
+    for (int i = 0; i < words.length; i++) {
+      final word = words[i];
+      final isNegated = (i >= 1 && negators.contains(words[i - 1])) ||
+                        (i >= 2 && negators.contains(words[i - 2])) ||
+                        (i >= 3 && negators.contains(words[i - 3]));
+
+      if (positiveWords.contains(word)) {
+        isNegated ? negHits++ : posHits++;
+      } else if (negativeWords.contains(word)) {
+        isNegated ? posHits++ : negHits++;
+      }
+    }
+
     final net = posHits - negHits;
     if (net <= -2) return 1.0;
     if (net == -1) return 2.0;
@@ -274,7 +303,7 @@ class EmotionViewModel extends ChangeNotifier {
   String _moodEmoji(String emotion) {
     const map = {
       'Happy': '😊', 'Sad': '😢', 'Anxious': '😰',
-      'Angry': '😠', 'Calm': '😌', 'Tired': '😴',
+      'Angry': '😠', 'Calm': '😌',
     };
     return map[emotion] ?? '💙';
   }
