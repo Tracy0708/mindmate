@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../main.dart';
 import '../../services/admin_service.dart';
@@ -121,7 +121,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               height: 180,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.golden.withValues(alpha:0.10),
+                color: AppColors.primary.withValues(alpha:0.10),
               ),
             ),
           ),
@@ -133,7 +133,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               height: 140,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.brownDark.withValues(alpha:0.06),
+                color: AppColors.textDark.withValues(alpha:0.06),
               ),
             ),
           ),
@@ -181,7 +181,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                           }
                                         },
                                   style: TextButton.styleFrom(
-                                    foregroundColor: AppColors.brownMedium,
+                                    foregroundColor: AppColors.textMedium,
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 8, vertical: 6),
                                   ),
@@ -199,19 +199,19 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                     shape: BoxShape.circle,
                                     gradient: LinearGradient(
                                       colors: [
-                                        AppColors.golden.withValues(alpha:0.20),
-                                        AppColors.golden.withValues(alpha:0.06),
+                                        AppColors.primary.withValues(alpha:0.20),
+                                        AppColors.primary.withValues(alpha:0.06),
                                       ],
                                     ),
                                     border: Border.all(
                                         color:
-                                            AppColors.golden.withValues(alpha:0.55),
+                                            AppColors.primary.withValues(alpha:0.55),
                                         width: 2),
                                   ),
                                   child: const Icon(
                                       Icons.admin_panel_settings_rounded,
                                       size: 44,
-                                      color: AppColors.brownDark),
+                                      color: AppColors.textDark),
                                 ),
                               ),
                               const SizedBox(height: 18),
@@ -221,7 +221,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                   style: TextStyle(
                                     fontSize: 30,
                                     fontWeight: FontWeight.w900,
-                                    color: AppColors.golden,
+                                    color: AppColors.primary,
                                     letterSpacing: 2.4,
                                   ),
                                 ),
@@ -233,7 +233,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                   style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.w800,
-                                    color: AppColors.brownDark,
+                                    color: AppColors.textDark,
                                   ),
                                 ),
                               ),
@@ -245,7 +245,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                   style: TextStyle(
                                     fontSize: 13,
                                     height: 1.45,
-                                    color: AppColors.brownMedium,
+                                    color: AppColors.textMedium,
                                   ),
                                 ),
                               ),
@@ -256,13 +256,13 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 12, vertical: 8),
                                   decoration: BoxDecoration(
-                                    color: AppColors.golden.withValues(alpha:0.10),
+                                    color: AppColors.primary.withValues(alpha:0.10),
                                     borderRadius: BorderRadius.circular(999),
                                   ),
                                   child: const Text(
                                     'Authorized staff only',
                                     style: TextStyle(
-                                      color: AppColors.brownDark,
+                                      color: AppColors.textDark,
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -273,7 +273,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                               const Text('Email Address',
                                   style: TextStyle(
                                       fontWeight: FontWeight.w700,
-                                      color: AppColors.brownDark)),
+                                      color: AppColors.textDark)),
                               const SizedBox(height: 8),
                               TextField(
                                 controller: _emailCtrl,
@@ -282,7 +282,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                 decoration: InputDecoration(
                                   hintText: 'admin@mindmate.com',
                                   prefixIcon: const Icon(Icons.email_rounded,
-                                      color: AppColors.brownMedium),
+                                      color: AppColors.textMedium),
                                   filled: true,
                                   fillColor: const Color(0xFFFFFCF8),
                                   border: OutlineInputBorder(
@@ -298,7 +298,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(16),
                                     borderSide: const BorderSide(
-                                        color: AppColors.golden, width: 2),
+                                        color: AppColors.primary, width: 2),
                                   ),
                                 ),
                               ),
@@ -306,7 +306,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                               const Text('Password',
                                   style: TextStyle(
                                       fontWeight: FontWeight.w700,
-                                      color: AppColors.brownDark)),
+                                      color: AppColors.textDark)),
                               const SizedBox(height: 8),
                               TextField(
                                 controller: _passCtrl,
@@ -320,7 +320,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                 decoration: InputDecoration(
                                   hintText: 'Enter your password',
                                   prefixIcon: const Icon(Icons.lock_rounded,
-                                      color: AppColors.brownMedium),
+                                      color: AppColors.textMedium),
                                   suffixIcon: IconButton(
                                     onPressed: () => setState(() =>
                                         _obscurePassword = !_obscurePassword),
@@ -328,7 +328,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                       _obscurePassword
                                           ? Icons.visibility_off_outlined
                                           : Icons.visibility_outlined,
-                                      color: AppColors.brownLight,
+                                      color: AppColors.textLight,
                                     ),
                                   ),
                                   filled: true,
@@ -346,7 +346,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(16),
                                     borderSide: const BorderSide(
-                                        color: AppColors.golden, width: 2),
+                                        color: AppColors.primary, width: 2),
                                   ),
                                 ),
                               ),
@@ -357,8 +357,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                 child: ElevatedButton.icon(
                                   onPressed: _isLoading ? null : _handleLogin,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.golden,
-                                    foregroundColor: Colors.white,
+                                    backgroundColor: AppColors.primary,
+                                    foregroundColor: AppColors.textDark,
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16),
@@ -370,7 +370,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                           width: 18,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2.2,
-                                            color: Colors.white,
+                                            color: AppColors.textDark,
                                           ),
                                         )
                                       : const Icon(Icons.login_rounded),
@@ -388,14 +388,14 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                 children: [
                                   Icon(Icons.security_rounded,
                                       size: 16,
-                                      color: AppColors.brownMedium
+                                      color: AppColors.textMedium
                                           .withValues(alpha:0.9)),
                                   const SizedBox(width: 8),
                                   const Expanded(
                                     child: Text(
                                       'Only admin accounts stored in Firebase can enter this portal.',
                                       style: TextStyle(
-                                        color: AppColors.brownMedium,
+                                        color: AppColors.textMedium,
                                         fontSize: 12,
                                         height: 1.35,
                                       ),
@@ -421,7 +421,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                 child: const Text(
                                   'Back to regular login',
                                   style: TextStyle(
-                                    color: AppColors.golden,
+                                    color: AppColors.primary,
                                     fontWeight: FontWeight.w800,
                                     decoration: TextDecoration.underline,
                                   ),

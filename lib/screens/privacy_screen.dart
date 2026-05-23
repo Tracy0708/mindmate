@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../main.dart';
 
 class PrivacyScreen extends StatelessWidget {
@@ -12,7 +12,7 @@ class PrivacyScreen extends StatelessWidget {
         backgroundColor: AppColors.creamLight,
         title: const Text('Privacy'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.brownDark),
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -26,7 +26,7 @@ class PrivacyScreen extends StatelessWidget {
               'Your privacy matters to us. Here\'s how MindMate handles your data.',
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.brownMedium,
+                color: AppColors.textMedium,
                 height: 1.5,
               ),
             ),
@@ -43,7 +43,7 @@ class PrivacyScreen extends StatelessWidget {
                     'MindMate collects the following information to provide you with a personalized experience:',
                     style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.brownMedium,
+                        color: AppColors.textMedium,
                         height: 1.5),
                   ),
                   const SizedBox(height: 12),
@@ -67,11 +67,11 @@ class PrivacyScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: AppColors.golden.withValues(alpha: 0.12),
+                              color: AppColors.primary.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(item.$2,
-                                color: AppColors.golden, size: 16),
+                                color: AppColors.primary, size: 16),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -79,7 +79,7 @@ class PrivacyScreen extends StatelessWidget {
                               item.$3,
                               style: const TextStyle(
                                   fontSize: 13,
-                                  color: AppColors.brownDark,
+                                  color: AppColors.textDark,
                                   height: 1.45),
                             ),
                           ),
@@ -102,15 +102,15 @@ class PrivacyScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.golden.withValues(alpha: 0.08),
+                      color: AppColors.primary.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                          color: AppColors.golden.withValues(alpha: 0.2)),
+                          color: AppColors.primary.withValues(alpha: 0.2)),
                     ),
                     child: const Row(
                       children: [
                         Icon(Icons.lock_rounded,
-                            color: AppColors.golden, size: 20),
+                            color: AppColors.primary, size: 20),
                         SizedBox(width: 10),
                         Expanded(
                           child: Text(
@@ -118,7 +118,7 @@ class PrivacyScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              color: AppColors.brownDark,
+                              color: AppColors.textDark,
                             ),
                           ),
                         ),
@@ -130,7 +130,7 @@ class PrivacyScreen extends StatelessWidget {
                     'Your mental health information is strictly private. We do not share your personal data, mood logs, or profile details with any third parties.',
                     style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.brownMedium,
+                        color: AppColors.textMedium,
                         height: 1.55),
                   ),
                   const SizedBox(height: 10),
@@ -138,7 +138,7 @@ class PrivacyScreen extends StatelessWidget {
                     'All data is stored securely in Firebase, protected by industry-standard encryption. Only you can access your personal wellness journey.',
                     style: TextStyle(
                         fontSize: 13,
-                        color: AppColors.brownMedium,
+                        color: AppColors.textMedium,
                         height: 1.55),
                   ),
                 ],
@@ -230,10 +230,10 @@ class _PrivacyCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.golden.withValues(alpha: 0.14),
+                  color: AppColors.primary.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: AppColors.golden, size: 20),
+                child: Icon(icon, color: AppColors.primary, size: 20),
               ),
               const SizedBox(width: 12),
               Text(
@@ -241,7 +241,7 @@ class _PrivacyCard extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.brownDark,
+                  color: AppColors.textDark,
                 ),
               ),
             ],
@@ -277,7 +277,7 @@ class _PolicySection extends StatelessWidget {
           style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: AppColors.brownDark,
+            color: AppColors.textDark,
           ),
         ),
         const SizedBox(height: 4),
@@ -285,7 +285,7 @@ class _PolicySection extends StatelessWidget {
           body,
           style: const TextStyle(
             fontSize: 13,
-            color: AppColors.brownMedium,
+            color: AppColors.textMedium,
             height: 1.55,
           ),
         ),

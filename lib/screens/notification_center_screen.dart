@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../main.dart';
 import '../models/notification_model.dart';
@@ -43,7 +43,7 @@ class NotificationCenterScreen extends StatelessWidget {
       case 'system':
         return const Color(0xFF5C6BC0);
       default:
-        return AppColors.golden;
+        return AppColors.primary;
     }
   }
 
@@ -58,7 +58,7 @@ class NotificationCenterScreen extends StatelessWidget {
         backgroundColor: AppColors.creamLight,
         title: const Text('Notifications'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.brownDark),
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
@@ -68,7 +68,7 @@ class NotificationCenterScreen extends StatelessWidget {
               child: const Text(
                 'Mark all read',
                 style: TextStyle(
-                  color: AppColors.golden,
+                  color: AppColors.primary,
                   fontWeight: FontWeight.w700,
                   fontSize: 13,
                 ),
@@ -79,13 +79,13 @@ class NotificationCenterScreen extends StatelessWidget {
       body: uid == null
           ? const Center(
               child: Text('Not signed in.',
-                  style: TextStyle(color: AppColors.brownMedium)))
+                  style: TextStyle(color: AppColors.textMedium)))
           : StreamBuilder<List<NotificationModel>>(
               stream: service.getUserNotifications(uid),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(
-                      child: CircularProgressIndicator(color: AppColors.golden));
+                      child: CircularProgressIndicator(color: AppColors.primary));
                 }
 
                 if (snapshot.hasError) {
@@ -95,7 +95,7 @@ class NotificationCenterScreen extends StatelessWidget {
                       child: Text(
                         'Could not load notifications.\n${snapshot.error}',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: AppColors.brownMedium),
+                        style: const TextStyle(color: AppColors.textMedium),
                       ),
                     ),
                   );
@@ -109,21 +109,21 @@ class NotificationCenterScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.notifications_off_outlined,
-                            size: 52, color: AppColors.brownLight),
+                            size: 52, color: AppColors.textLight),
                         SizedBox(height: 12),
                         Text(
                           'No notifications yet',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.brownDark,
+                            color: AppColors.textDark,
                           ),
                         ),
                         SizedBox(height: 4),
                         Text(
                           'You\'re all caught up!',
                           style: TextStyle(
-                              fontSize: 13, color: AppColors.brownMedium),
+                              fontSize: 13, color: AppColors.textMedium),
                         ),
                       ],
                     ),
@@ -169,7 +169,7 @@ class NotificationCenterScreen extends StatelessWidget {
                                   height: 48,
                                   margin: const EdgeInsets.only(right: 12),
                                   decoration: BoxDecoration(
-                                    color: AppColors.golden,
+                                    color: AppColors.primary,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                 )
@@ -196,7 +196,7 @@ class NotificationCenterScreen extends StatelessWidget {
                                         fontWeight: isUnread
                                             ? FontWeight.w700
                                             : FontWeight.w500,
-                                        color: AppColors.brownDark,
+                                        color: AppColors.textDark,
                                       ),
                                     ),
                                     const SizedBox(height: 3),
@@ -204,7 +204,7 @@ class NotificationCenterScreen extends StatelessWidget {
                                       n.notificationMessage,
                                       style: const TextStyle(
                                         fontSize: 13,
-                                        color: AppColors.brownMedium,
+                                        color: AppColors.textMedium,
                                         height: 1.4,
                                       ),
                                     ),
@@ -213,7 +213,7 @@ class NotificationCenterScreen extends StatelessWidget {
                                       _timeAgo(n.notificationTimestamp),
                                       style: const TextStyle(
                                         fontSize: 11,
-                                        color: AppColors.brownLight,
+                                        color: AppColors.textLight,
                                       ),
                                     ),
                                   ],
@@ -225,7 +225,7 @@ class NotificationCenterScreen extends StatelessWidget {
                                   height: 8,
                                   margin: const EdgeInsets.only(top: 4, left: 8),
                                   decoration: const BoxDecoration(
-                                    color: AppColors.golden,
+                                    color: AppColors.primary,
                                     shape: BoxShape.circle,
                                   ),
                                 ),

@@ -59,21 +59,28 @@ void main() async {
   );
 }
 
-// ─── MindMate Color Palette (matching UI mockups) ───
+// ─── MindMate Color Palette — Lemon Yellow Theme ───
 class AppColors {
-  static const golden = Color(0xFFFFB300);
-  static const goldenLight = Color(0xFFFFD54F);
-  static const cream = Color(0xFFFFF8E1);
-  static const creamLight = Color(0xFFFFFDE7);
-  static const brownDark = Color(0xFF5D4037);
-  static const brownMedium = Color(0xFF795548);
-  static const brownLight = Color(0xFFA1887F);
-  static const fieldBorder = Color(0xFFE0D5C1);
+  static const primary = Color(0xFFF9A825);       // deep amber (calm, readable)
+  static const primaryDark = Color(0xFFF57F17);   // deep orange-amber
+  static const primaryLight = Color(0xFFFFF9C4);  // pale lemon
+  static const cream = Color(0xFFFFFDE7);         // warm white
+  static const creamLight = Color(0xFFFFFFFA);    // off-white
+  static const textDark = Color(0xFF33300A);      // dark olive-black
+  static const textMedium = Color(0xFF5C5210);    // warm olive
+  static const textLight = Color(0xFF8C7B20);     // muted gold-olive
+  static const fieldBorder = Color(0xFFE8E0A0);   // soft yellow border
   static const errorRed = Color(0xFFE53935);
-  // Dark
-  static const darkBg = Color(0xFF1A1A2E);
-  static const darkCard = Color(0xFF252540);
-  static const darkText = Color(0xFFF5EDE8);
+  // Aliases kept for service files — do not remove
+  static const golden = primary;
+  static const goldenLight = primaryLight;
+  static const brownDark = textDark;
+  static const brownMedium = textMedium;
+  static const brownLight = textLight;
+  // Dark mode
+  static const darkBg = Color(0xFF1C1A00);        // near-black yellow tint
+  static const darkCard = Color(0xFF2A2700);      // dark olive card
+  static const darkText = Color(0xFFFFF9C4);      // pale lemon text
 }
 
 class MyApp extends StatelessWidget {
@@ -122,41 +129,41 @@ class MyApp extends StatelessWidget {
       useMaterial3: true,
       brightness: Brightness.light,
       colorScheme: const ColorScheme.light(
-        primary: AppColors.golden,
+        primary: AppColors.primary,
         onPrimary: Colors.white,
-        secondary: AppColors.goldenLight,
-        onSecondary: AppColors.brownDark,
+        secondary: AppColors.primaryLight,
+        onSecondary: AppColors.textDark,
         tertiary: Color(0xFFFFE082),
         surface: AppColors.cream,
-        onSurface: AppColors.brownDark,
+        onSurface: AppColors.textDark,
         error: AppColors.errorRed,
         outline: AppColors.fieldBorder,
       ),
       scaffoldBackgroundColor: AppColors.cream,
       textTheme: const TextTheme(
         headlineLarge: TextStyle(
-            color: AppColors.brownDark,
+            color: AppColors.textDark,
             fontWeight: FontWeight.w800,
             fontSize: 30),
         headlineMedium: TextStyle(
-            color: AppColors.brownDark,
+            color: AppColors.textDark,
             fontWeight: FontWeight.w700,
             fontSize: 24),
         headlineSmall: TextStyle(
-            color: AppColors.brownDark,
+            color: AppColors.textDark,
             fontWeight: FontWeight.w600,
             fontSize: 20),
         titleLarge: TextStyle(
-            color: AppColors.brownDark,
+            color: AppColors.textDark,
             fontWeight: FontWeight.w700,
             fontSize: 20),
         titleMedium: TextStyle(
-            color: AppColors.brownDark,
+            color: AppColors.textDark,
             fontWeight: FontWeight.w500,
             fontSize: 16),
-        bodyLarge: TextStyle(color: AppColors.brownDark, fontSize: 16),
-        bodyMedium: TextStyle(color: AppColors.brownMedium, fontSize: 14),
-        bodySmall: TextStyle(color: AppColors.brownLight, fontSize: 12),
+        bodyLarge: TextStyle(color: AppColors.textDark, fontSize: 16),
+        bodyMedium: TextStyle(color: AppColors.textMedium, fontSize: 14),
+        bodySmall: TextStyle(color: AppColors.textLight, fontSize: 12),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -171,18 +178,18 @@ class MyApp extends StatelessWidget {
             borderSide: const BorderSide(color: AppColors.fieldBorder)),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: AppColors.golden, width: 2)),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2)),
         errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: AppColors.errorRed)),
-        prefixIconColor: AppColors.brownLight,
-        labelStyle: const TextStyle(color: AppColors.brownLight),
-        hintStyle: const TextStyle(color: AppColors.brownLight),
+        prefixIconColor: AppColors.textLight,
+        labelStyle: const TextStyle(color: AppColors.textLight),
+        hintStyle: const TextStyle(color: AppColors.textLight),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.golden,
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.textDark,
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
           shape:
@@ -192,7 +199,7 @@ class MyApp extends StatelessWidget {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.brownDark,
+          foregroundColor: AppColors.textDark,
           side: const BorderSide(color: AppColors.fieldBorder),
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 32),
           shape:
@@ -207,7 +214,7 @@ class MyApp extends StatelessWidget {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: Colors.white,
-        indicatorColor: AppColors.golden.withValues(alpha: 0.12),
+        indicatorColor: AppColors.primary.withValues(alpha: 0.12),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
@@ -217,10 +224,10 @@ class MyApp extends StatelessWidget {
         scrolledUnderElevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
-            color: AppColors.brownDark,
+            color: AppColors.textDark,
             fontWeight: FontWeight.w700,
             fontSize: 20),
-        iconTheme: IconThemeData(color: AppColors.brownDark),
+        iconTheme: IconThemeData(color: AppColors.textDark),
       ),
       dividerTheme:
           const DividerThemeData(color: AppColors.fieldBorder, thickness: 1),
@@ -232,15 +239,15 @@ class MyApp extends StatelessWidget {
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: const ColorScheme.dark(
-        primary: AppColors.golden,
+        primary: AppColors.primary,
         onPrimary: AppColors.darkBg,
-        secondary: AppColors.goldenLight,
+        secondary: AppColors.primaryLight,
         onSecondary: AppColors.darkBg,
         tertiary: Color(0xFFFFE082),
         surface: AppColors.darkBg,
         onSurface: AppColors.darkText,
         error: Color(0xFFFF8A80),
-        outline: Color(0xFF4A4A5E),
+        outline: Color(0xFF4A4500),
       ),
       scaffoldBackgroundColor: AppColors.darkBg,
       textTheme: const TextTheme(
@@ -265,8 +272,8 @@ class MyApp extends StatelessWidget {
             fontWeight: FontWeight.w500,
             fontSize: 16),
         bodyLarge: TextStyle(color: AppColors.darkText, fontSize: 16),
-        bodyMedium: TextStyle(color: Color(0xFFB8AFA8), fontSize: 14),
-        bodySmall: TextStyle(color: Color(0xFF8E8E9E), fontSize: 12),
+        bodyMedium: TextStyle(color: Color(0xFFBFAF5A), fontSize: 14),
+        bodySmall: TextStyle(color: Color(0xFF8C7B20), fontSize: 12),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -275,19 +282,19 @@ class MyApp extends StatelessWidget {
             const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xFF4A4A5E))),
+            borderSide: const BorderSide(color: Color(0xFF4A4500))),
         enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xFF4A4A5E))),
+            borderSide: const BorderSide(color: Color(0xFF4A4500))),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: AppColors.golden, width: 2)),
-        prefixIconColor: const Color(0xFF8E8E9E),
-        labelStyle: const TextStyle(color: Color(0xFF8E8E9E)),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2)),
+        prefixIconColor: const Color(0xFF8C7B20),
+        labelStyle: const TextStyle(color: Color(0xFF8C7B20)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.golden,
+          backgroundColor: AppColors.primary,
           foregroundColor: AppColors.darkBg,
           elevation: 0,
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
@@ -299,7 +306,7 @@ class MyApp extends StatelessWidget {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.darkText,
-          side: const BorderSide(color: Color(0xFF4A4A5E)),
+          side: const BorderSide(color: Color(0xFF4A4500)),
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 32),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -312,8 +319,8 @@ class MyApp extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: const Color(0xFF151528),
-        indicatorColor: AppColors.golden.withValues(alpha: 0.12),
+        backgroundColor: const Color(0xFF1C1A00),
+        indicatorColor: AppColors.primary.withValues(alpha: 0.12),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
@@ -329,7 +336,7 @@ class MyApp extends StatelessWidget {
         iconTheme: IconThemeData(color: AppColors.darkText),
       ),
       dividerTheme:
-          const DividerThemeData(color: Color(0xFF353550), thickness: 1),
+          const DividerThemeData(color: Color(0xFF3A3500), thickness: 1),
     );
   }
 }
@@ -511,14 +518,14 @@ class _LoginPageState extends State<LoginPage>
                     children: [
                       // Logo
                       const Icon(Icons.psychology_alt,
-                          size: 56, color: AppColors.brownDark),
+                          size: 56, color: AppColors.textDark),
                       const SizedBox(height: 8),
                       const Text(
                         'MINDMATE',
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.golden,
+                          color: AppColors.primary,
                           letterSpacing: 2,
                         ),
                       ),
@@ -549,7 +556,7 @@ class _LoginPageState extends State<LoginPage>
                                 _obscurePassword
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
-                                color: AppColors.brownLight),
+                                color: AppColors.textLight),
                             onPressed: () => setState(
                                 () => _obscurePassword = !_obscurePassword),
                           ),
@@ -571,7 +578,7 @@ class _LoginPageState extends State<LoginPage>
                                   height: 22,
                                   width: 22,
                                   child: CircularProgressIndicator(
-                                      strokeWidth: 2.5, color: Colors.white))
+                                      strokeWidth: 2.5, color: AppColors.textDark))
                               : const Text('Log in'),
                         ),
                       ),
@@ -588,7 +595,7 @@ class _LoginPageState extends State<LoginPage>
                             padding: EdgeInsets.symmetric(horizontal: 16),
                             child: Text('Or continue with',
                                 style: TextStyle(
-                                    color: AppColors.brownLight, fontSize: 13)),
+                                    color: AppColors.textLight, fontSize: 13)),
                           ),
                           Expanded(
                               child: Divider(
@@ -624,21 +631,21 @@ class _LoginPageState extends State<LoginPage>
                                 context, '/forgot-password'),
                             child: const Text('Forgot Password?',
                                 style: TextStyle(
-                                    color: AppColors.golden,
+                                    color: AppColors.primary,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 13)),
                           ),
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 8),
                             child: Text('•',
-                                style: TextStyle(color: AppColors.brownLight)),
+                                style: TextStyle(color: AppColors.textLight)),
                           ),
                           GestureDetector(
                             onTap: () =>
                                 Navigator.pushNamed(context, '/register'),
                             child: const Text('Create Account',
                                 style: TextStyle(
-                                    color: AppColors.golden,
+                                    color: AppColors.primary,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 13)),
                           ),
@@ -651,7 +658,7 @@ class _LoginPageState extends State<LoginPage>
                         child: const Text(
                           'Admin Portal',
                           style: TextStyle(
-                            color: AppColors.brownDark,
+                            color: AppColors.textDark,
                             fontWeight: FontWeight.w700,
                             decoration: TextDecoration.underline,
                           ),

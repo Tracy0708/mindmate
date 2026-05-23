@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../main.dart';
 import '../services/interactive_message_service.dart';
@@ -14,7 +14,7 @@ class HelpSupportScreen extends StatelessWidget {
         backgroundColor: AppColors.creamLight,
         title: const Text('Help & Support'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.brownDark),
+          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -28,7 +28,7 @@ class HelpSupportScreen extends StatelessWidget {
               'We\'re here to help. Find answers below or reach out to our team.',
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.brownMedium,
+                color: AppColors.textMedium,
                 height: 1.5,
               ),
             ),
@@ -143,11 +143,11 @@ class HelpSupportScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.golden.withValues(alpha: 0.12),
+                      color: AppColors.primary.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.psychology_alt,
-                        color: AppColors.golden, size: 32),
+                        color: AppColors.primary, size: 32),
                   ),
                   const SizedBox(height: 12),
                   const Text(
@@ -155,7 +155,7 @@ class HelpSupportScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.brownDark,
+                      color: AppColors.textDark,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -164,7 +164,7 @@ class HelpSupportScreen extends StatelessWidget {
                     'Version 1.0.0',
                     style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.brownMedium,
+                      color: AppColors.textMedium,
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -175,7 +175,7 @@ class HelpSupportScreen extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.brownMedium,
+                      color: AppColors.textMedium,
                       height: 1.55,
                     ),
                   ),
@@ -184,7 +184,7 @@ class HelpSupportScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.golden.withValues(alpha: 0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Text(
@@ -192,7 +192,7 @@ class HelpSupportScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.golden,
+                        color: AppColors.primary,
                       ),
                     ),
                   ),
@@ -259,7 +259,7 @@ class _CrisisCard extends StatelessWidget {
             'If you or someone you know is in crisis, please reach out to these resources immediately:',
             style: TextStyle(
               fontSize: 12,
-              color: AppColors.brownMedium,
+              color: AppColors.textMedium,
               height: 1.5,
             ),
           ),
@@ -286,7 +286,7 @@ class _CrisisCard extends StatelessWidget {
             'Tap a number to copy it to your clipboard.',
             style: TextStyle(
               fontSize: 11,
-              color: AppColors.brownLight,
+              color: AppColors.textLight,
               fontStyle: FontStyle.italic,
             ),
           ),
@@ -333,7 +333,7 @@ class _HotlineTile extends StatelessWidget {
                     label,
                     style: const TextStyle(
                       fontSize: 12,
-                      color: AppColors.brownMedium,
+                      color: AppColors.textMedium,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -342,14 +342,14 @@ class _HotlineTile extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
-                      color: AppColors.brownDark,
+                      color: AppColors.textDark,
                     ),
                   ),
                 ],
               ),
             ),
             const Icon(Icons.copy_rounded,
-                color: AppColors.brownLight, size: 16),
+                color: AppColors.textLight, size: 16),
           ],
         ),
       ),
@@ -370,10 +370,10 @@ class _SectionHeader extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(7),
           decoration: BoxDecoration(
-            color: AppColors.golden.withValues(alpha: 0.15),
+            color: AppColors.primary.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: AppColors.golden, size: 17),
+          child: Icon(icon, color: AppColors.primary, size: 17),
         ),
         const SizedBox(width: 10),
         Text(
@@ -381,7 +381,7 @@ class _SectionHeader extends StatelessWidget {
           style: const TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w800,
-            color: AppColors.brownDark,
+            color: AppColors.textDark,
           ),
         ),
       ],
@@ -409,14 +409,14 @@ class _FaqTile extends StatelessWidget {
         childrenPadding:
             const EdgeInsets.fromLTRB(16, 0, 16, 16),
         expandedCrossAxisAlignment: CrossAxisAlignment.start,
-        iconColor: AppColors.golden,
-        collapsedIconColor: AppColors.brownLight,
+        iconColor: AppColors.primary,
+        collapsedIconColor: AppColors.textLight,
         title: Text(
           question,
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: AppColors.brownDark,
+            color: AppColors.textDark,
           ),
         ),
         children: [
@@ -424,7 +424,7 @@ class _FaqTile extends StatelessWidget {
             answer,
             style: const TextStyle(
               fontSize: 13,
-              color: AppColors.brownMedium,
+              color: AppColors.textMedium,
               height: 1.55,
             ),
           ),
@@ -470,10 +470,10 @@ class _ContactTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.golden.withValues(alpha: 0.14),
+                color: AppColors.primary.withValues(alpha: 0.14),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: AppColors.golden, size: 20),
+              child: Icon(icon, color: AppColors.primary, size: 20),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -485,7 +485,7 @@ class _ContactTile extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.brownDark,
+                      color: AppColors.textDark,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -493,14 +493,14 @@ class _ContactTile extends StatelessWidget {
                     subtitle,
                     style: const TextStyle(
                       fontSize: 12,
-                      color: AppColors.brownMedium,
+                      color: AppColors.textMedium,
                     ),
                   ),
                 ],
               ),
             ),
             const Icon(Icons.copy_rounded,
-                color: AppColors.brownLight, size: 18),
+                color: AppColors.textLight, size: 18),
           ],
         ),
       ),

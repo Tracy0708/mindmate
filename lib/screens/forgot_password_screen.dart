@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../services/auth_service.dart';
 import '../main.dart';
@@ -92,25 +92,25 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: AppColors.golden.withOpacity(0.15),
+              color: AppColors.primary.withOpacity(0.15),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.vpn_key_rounded,
-                size: 36, color: AppColors.golden),
+                size: 36, color: AppColors.primary),
           ),
           const SizedBox(height: 24),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.golden.withOpacity(0.08),
+              color: AppColors.primary.withOpacity(0.08),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Text(
               'Make sure this is the same email you use to sign in to MindMate.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  color: AppColors.brownMedium, fontSize: 13, height: 1.4),
+                  color: AppColors.textMedium, fontSize: 13, height: 1.4),
             ),
           ),
           const SizedBox(height: 32),
@@ -138,7 +138,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                       height: 22,
                       width: 22,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2.5, color: Colors.white))
+                          strokeWidth: 2.5, color: AppColors.textDark))
                   : const Text('Send Reset Link'),
             ),
           ),
@@ -147,12 +147,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text('Remember your password? ',
-                  style: TextStyle(color: AppColors.brownMedium, fontSize: 13)),
+                  style: TextStyle(color: AppColors.textMedium, fontSize: 13)),
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: const Text('Log in',
                     style: TextStyle(
-                        color: AppColors.golden,
+                        color: AppColors.primary,
                         fontWeight: FontWeight.w700,
                         fontSize: 13)),
               ),
@@ -182,13 +182,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
             style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
-                color: AppColors.brownDark)),
+                color: AppColors.textDark)),
         const SizedBox(height: 12),
         Text(
           'We\'ve sent a password reset link to\n${_emailController.text.trim()}',
           textAlign: TextAlign.center,
           style: const TextStyle(
-              color: AppColors.brownMedium, fontSize: 14, height: 1.5),
+              color: AppColors.textMedium, fontSize: 14, height: 1.5),
         ),
         const SizedBox(height: 32),
         SizedBox(
@@ -203,7 +203,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
         TextButton(
           onPressed: () => setState(() => _emailSent = false),
           child: const Text('Try another email',
-              style: TextStyle(color: AppColors.golden)),
+              style: TextStyle(color: AppColors.primary)),
         ),
       ],
     );

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../main.dart';
 
@@ -25,8 +25,8 @@ class AuthShell extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFFFF7DF),
-              Color(0xFFFFF1C4),
+              AppColors.primaryLight,
+              AppColors.cream,
               AppColors.creamLight,
             ],
           ),
@@ -55,13 +55,13 @@ class AuthShell extends StatelessWidget {
                             width: 64,
                             height: 64,
                             decoration: BoxDecoration(
-                              color: AppColors.golden.withOpacity(0.14),
+                              color: AppColors.primary.withOpacity(0.14),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               Icons.psychology_alt_rounded,
                               size: 34,
-                              color: AppColors.brownDark,
+                              color: AppColors.textDark,
                             ),
                           ),
                           const SizedBox(height: 18),
@@ -69,7 +69,7 @@ class AuthShell extends StatelessWidget {
                             eyebrow,
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                              color: AppColors.golden,
+                              color: AppColors.primary,
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
                               letterSpacing: 1.8,
@@ -82,7 +82,7 @@ class AuthShell extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 30,
                               fontWeight: FontWeight.w800,
-                              color: AppColors.brownDark,
+                              color: AppColors.textDark,
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -90,7 +90,7 @@ class AuthShell extends StatelessWidget {
                             subtitle,
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                              color: AppColors.brownMedium,
+                              color: AppColors.textMedium,
                               fontSize: 14,
                               height: 1.5,
                             ),
