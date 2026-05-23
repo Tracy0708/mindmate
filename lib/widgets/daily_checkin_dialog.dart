@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../viewmodels/emotion_viewmodel.dart';
@@ -121,13 +121,13 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
                   const Text(
                     "It's okay to feel mixed emotions",
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF3E2723)),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark),
                   ),
                   const SizedBox(height: 10),
                   const Text(
                     "Your note sounds a bit heavier than your selected mood — emotions can be complex. Would you like to talk it through with the AI Assistant?",
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Color(0xFF6D4C41), height: 1.5),
+                    style: TextStyle(fontSize: 14, color: AppColors.textMedium, height: 1.5),
                   ),
                   const SizedBox(height: 28),
                   Row(children: [
@@ -136,9 +136,9 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        side: const BorderSide(color: Color(0xFFBCAAA4)),
+                        side: const BorderSide(color: AppColors.fieldBorder),
                       ),
-                      child: const Text('No, thanks', style: TextStyle(color: Color(0xFF6D4C41), fontWeight: FontWeight.w600)),
+                      child: const Text('No, thanks', style: TextStyle(color: AppColors.textMedium, fontWeight: FontWeight.w600)),
                     )),
                     const SizedBox(width: 12),
                     Expanded(flex: 2, child: ElevatedButton.icon(
@@ -147,10 +147,10 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
                         widget.onCompleted?.call();
                         widget.onOpenChat?.call();
                       },
-                      icon: const Icon(Icons.chat_bubble_outline, size: 18, color: Colors.white),
-                      label: const Text("Let's talk", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                      icon: const Icon(Icons.chat_bubble_outline, size: 18, color: AppColors.textDark),
+                      label: const Text("Let's talk", style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.w700)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFFA000),
+                        backgroundColor: AppColors.primaryDark,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
@@ -173,12 +173,12 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
           padding: EdgeInsets.only(left: 24, right: 24, top: 20, bottom: MediaQuery.of(context).viewInsets.bottom + 24),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             // Handle
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.brownLight.withOpacity(0.3), borderRadius: BorderRadius.circular(2))),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.textLight.withOpacity(0.3), borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 20),
             // Title
-            const Text('How are you feeling today?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
+            const Text('How are you feeling today?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark)),
             const SizedBox(height: 6),
-            const Text('Take a moment to check in with yourself', style: TextStyle(fontSize: 14, color: AppColors.brownMedium)),
+            const Text('Take a moment to check in with yourself', style: TextStyle(fontSize: 14, color: AppColors.textMedium)),
             const SizedBox(height: 24),
             // Mood grid
             GridView.builder(
@@ -193,14 +193,14 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.golden.withOpacity(0.15) : Colors.white,
-                      border: Border.all(color: isSelected ? AppColors.golden : AppColors.golden.withOpacity(0.3), width: isSelected ? 2 : 1),
+                      color: isSelected ? AppColors.primary.withOpacity(0.15) : Colors.white,
+                      border: Border.all(color: isSelected ? AppColors.primary : AppColors.primary.withOpacity(0.3), width: isSelected ? 2 : 1),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                       Text(mood['emoji']!, style: TextStyle(fontSize: isSelected ? 36 : 32)),
                       const SizedBox(height: 6),
-                      Text(mood['label']!, style: TextStyle(color: isSelected ? AppColors.golden : AppColors.brownDark, fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600, fontSize: 13)),
+                      Text(mood['label']!, style: TextStyle(color: isSelected ? AppColors.primary : AppColors.textDark, fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600, fontSize: 13)),
                     ]),
                   ),
                 );
@@ -212,20 +212,20 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('How intense is this feeling?', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.brownDark)),
+                  const Text('How intense is this feeling?', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
                   Text(
                     ['Mild', 'Low', 'Moderate', 'Strong', 'Intense'][_selectedIntensity - 1],
-                    style: const TextStyle(color: AppColors.golden, fontWeight: FontWeight.w700, fontSize: 13),
+                    style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 13),
                   ),
                 ],
               ),
               const SizedBox(height: 2),
               SliderTheme(
                 data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: AppColors.golden,
-                  inactiveTrackColor: AppColors.golden.withValues(alpha: 0.2),
-                  thumbColor: AppColors.golden,
-                  overlayColor: AppColors.golden.withValues(alpha: 0.12),
+                  activeTrackColor: AppColors.primary,
+                  inactiveTrackColor: AppColors.primary.withValues(alpha: 0.2),
+                  thumbColor: AppColors.primary,
+                  overlayColor: AppColors.primary.withValues(alpha: 0.12),
                   trackHeight: 4,
                 ),
                 child: Slider(
@@ -241,8 +241,8 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Mild', style: TextStyle(fontSize: 11, color: AppColors.brownLight)),
-                    Text('Intense', style: TextStyle(fontSize: 11, color: AppColors.brownLight)),
+                    Text('Mild', style: TextStyle(fontSize: 11, color: AppColors.textLight)),
+                    Text('Intense', style: TextStyle(fontSize: 11, color: AppColors.textLight)),
                   ],
                 ),
               ),
@@ -252,10 +252,10 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
             TextField(
               controller: _noteController, maxLines: 2,
               decoration: InputDecoration(
-                hintText: 'Quick note (optional)', hintStyle: TextStyle(color: AppColors.brownMedium.withOpacity(0.5)),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: AppColors.golden.withOpacity(0.5))),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: AppColors.golden.withOpacity(0.3))),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.golden, width: 2)),
+                hintText: 'Quick note (optional)', hintStyle: TextStyle(color: AppColors.textMedium.withOpacity(0.5)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: AppColors.primary.withOpacity(0.5))),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: AppColors.primary.withOpacity(0.3))),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
                 filled: true, fillColor: Colors.white,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
@@ -266,15 +266,15 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
               Expanded(child: OutlinedButton(
                 onPressed: _skip,
                 style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), side: const BorderSide(color: AppColors.fieldBorder)),
-                child: const Text('Skip', style: TextStyle(color: AppColors.brownMedium, fontWeight: FontWeight.w600)),
+                child: const Text('Skip', style: TextStyle(color: AppColors.textMedium, fontWeight: FontWeight.w600)),
               )),
               const SizedBox(width: 12),
               Expanded(flex: 2, child: ElevatedButton(
                 onPressed: vm.isSubmitting ? null : _submit,
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.golden, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
                 child: vm.isSubmitting
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Log & Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textDark))
+                    : const Text('Log & Continue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
               )),
             ]),
           ]),

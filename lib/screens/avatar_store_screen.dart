@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../models/user_model.dart';
@@ -92,13 +92,13 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
     return Scaffold(
       backgroundColor: AppColors.creamLight,
       appBar: AppBar(
-        title: const Text('Avatar Store', style: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w800)),
+        title: const Text('Avatar Store', style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.w800)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.brownDark),
+        iconTheme: const IconThemeData(color: AppColors.textDark),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.golden))
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : Column(
               children: [
                 // Points Header
@@ -107,27 +107,27 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [AppColors.golden, Color(0xFFFF8F00)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                      colors: [AppColors.primary, Color(0xFFFFCC4D)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: [BoxShadow(color: AppColors.golden.withOpacity(0.25), blurRadius: 12, offset: const Offset(0, 4))],
+                    boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.25), blurRadius: 12, offset: const Offset(0, 4))],
                   ),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
-                        child: const Icon(Icons.star, color: Colors.white, size: 28),
+                        decoration: BoxDecoration(color: AppColors.textDark.withValues(alpha: 0.12), shape: BoxShape.circle),
+                        child: const Icon(Icons.star, color: AppColors.textDark, size: 28),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('${gamVm.totalPoints}', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.white)),
-                            const Text('Available Points', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white70)),
+                            Text('${gamVm.totalPoints}', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.textDark)),
+                            const Text('Available Points', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textMedium)),
                           ],
                         ),
                       ),
@@ -159,10 +159,10 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
                       return Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                         decoration: BoxDecoration(
-                          color: isEquipped ? AppColors.golden.withOpacity(0.1) : Colors.white,
+                          color: isEquipped ? AppColors.primary.withOpacity(0.1) : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: isEquipped ? AppColors.golden : (isUnlocked ? AppColors.fieldBorder : Colors.transparent),
+                            color: isEquipped ? AppColors.primary : (isUnlocked ? AppColors.fieldBorder : Colors.transparent),
                             width: isEquipped ? 2 : 1,
                           ),
                           boxShadow: [
@@ -174,23 +174,23 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
                           children: [
                             Text(emoji, style: const TextStyle(fontSize: 48)),
                             const SizedBox(height: 12),
-                            Text(name, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.brownDark, fontSize: 13), textAlign: TextAlign.center),
+                            Text(name, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textDark, fontSize: 13), textAlign: TextAlign.center),
                             const SizedBox(height: 12),
                             if (isEquipped)
                               Container(
                                 width: double.infinity,
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                                 decoration: BoxDecoration(
-                                  color: AppColors.golden.withOpacity(0.15),
+                                  color: AppColors.primary.withOpacity(0.15),
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: AppColors.golden, width: 1.5),
+                                  border: Border.all(color: AppColors.primary, width: 1.5),
                                 ),
                                 child: const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.check_circle, color: AppColors.golden, size: 14),
+                                    Icon(Icons.check_circle, color: AppColors.primary, size: 14),
                                     SizedBox(width: 6),
-                                    Text('Equipped', style: TextStyle(color: AppColors.golden, fontSize: 13, fontWeight: FontWeight.w800)),
+                                    Text('Equipped', style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w800)),
                                   ],
                                 ),
                               )
@@ -198,7 +198,7 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
                               OutlinedButton(
                                 onPressed: () => _equipAvatar(id),
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppColors.brownDark,
+                                  foregroundColor: AppColors.textDark,
                                   side: const BorderSide(color: AppColors.fieldBorder, width: 1.5),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                                   minimumSize: const Size(double.infinity, 40),
@@ -214,21 +214,21 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
                                   padding: const EdgeInsets.symmetric(vertical: 10),
                                   decoration: BoxDecoration(
                                     gradient: const LinearGradient(
-                                      colors: [AppColors.golden, Color(0xFFFF8F00)],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
+                                      colors: [AppColors.primary, Color(0xFFFFCC4D)],
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
                                     ),
                                     borderRadius: BorderRadius.circular(16),
                                     boxShadow: [
-                                      BoxShadow(color: AppColors.golden.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3)),
+                                      BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3)),
                                     ],
                                   ),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      const Icon(Icons.lock_open_rounded, color: Colors.white, size: 14),
+                                      const Icon(Icons.lock_open_rounded, color: AppColors.textDark, size: 14),
                                       const SizedBox(width: 6),
-                                      Text('$cost pts', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800)),
+                                      Text('$cost pts', style: const TextStyle(color: AppColors.textDark, fontSize: 13, fontWeight: FontWeight.w800)),
                                     ],
                                   ),
                                 ),

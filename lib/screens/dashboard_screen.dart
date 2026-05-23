@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
@@ -78,9 +78,9 @@ class DashboardScreenState extends State<DashboardScreen> {
             navigationBarTheme: NavigationBarThemeData(
               labelTextStyle: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.golden);
+                  return const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary);
                 }
-                return const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.brownMedium);
+                return const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.textMedium);
               }),
             ),
           ),
@@ -89,11 +89,11 @@ class DashboardScreenState extends State<DashboardScreen> {
             onDestinationSelected: _onNavigate,
             height: 65,
             destinations: const [
-              NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home, color: AppColors.golden), label: 'Home'),
-              NavigationDestination(icon: Icon(Icons.insights_outlined), selectedIcon: Icon(Icons.insights, color: AppColors.golden), label: 'Insights'),
-              NavigationDestination(icon: Icon(Icons.calendar_today_outlined), selectedIcon: Icon(Icons.calendar_month, color: AppColors.golden), label: 'Calendar'),
-              NavigationDestination(icon: Icon(Icons.chat_bubble_outline), selectedIcon: Icon(Icons.chat_bubble, color: AppColors.golden), label: 'Chat'),
-              NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person, color: AppColors.golden), label: 'Profile'),
+              NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home, color: AppColors.primary), label: 'Home'),
+              NavigationDestination(icon: Icon(Icons.insights_outlined), selectedIcon: Icon(Icons.insights, color: AppColors.primary), label: 'Insights'),
+              NavigationDestination(icon: Icon(Icons.calendar_today_outlined), selectedIcon: Icon(Icons.calendar_month, color: AppColors.primary), label: 'Calendar'),
+              NavigationDestination(icon: Icon(Icons.chat_bubble_outline), selectedIcon: Icon(Icons.chat_bubble, color: AppColors.primary), label: 'Chat'),
+              NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person, color: AppColors.primary), label: 'Profile'),
             ],
           ),
         ),
@@ -182,7 +182,7 @@ class _HomeTabState extends State<_HomeTab> {
 
         return SafeArea(
           child: RefreshIndicator(
-            color: AppColors.golden,
+            color: AppColors.primary,
             onRefresh: () async {
               await vm.checkTodaysLog();
               await gamVm.fetchUserStats();
@@ -199,9 +199,9 @@ class _HomeTabState extends State<_HomeTab> {
                   children: [
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text('$_greeting 👋', style: const TextStyle(fontSize: 14, color: AppColors.brownMedium, fontWeight: FontWeight.w500)),
+                        Text('$_greeting 👋', style: const TextStyle(fontSize: 14, color: AppColors.textMedium, fontWeight: FontWeight.w500)),
                         Text(_userName, 
-                          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: AppColors.brownDark, letterSpacing: 0.5),
+                          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: AppColors.textDark, letterSpacing: 0.5),
                           maxLines: 1, 
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -210,11 +210,11 @@ class _HomeTabState extends State<_HomeTab> {
                     const SizedBox(width: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(color: AppColors.golden.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
+                      decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
                       child: Row(children: [
-                        const Icon(Icons.local_fire_department, color: AppColors.golden, size: 16),
+                        const Icon(Icons.local_fire_department, color: AppColors.primary, size: 16),
                         const SizedBox(width: 4),
-                        Text('$streak day${streak == 1 ? '' : 's'}', style: const TextStyle(color: AppColors.golden, fontWeight: FontWeight.w700, fontSize: 13)),
+                        Text('$streak day${streak == 1 ? '' : 's'}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 13)),
                       ]),
                     ),
                     const SizedBox(width: 8),
@@ -228,7 +228,7 @@ class _HomeTabState extends State<_HomeTab> {
                             IconButton(
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
-                              icon: const Icon(Icons.notifications_outlined, color: AppColors.brownDark, size: 24),
+                              icon: const Icon(Icons.notifications_outlined, color: AppColors.textDark, size: 24),
                               onPressed: () => Navigator.pushNamed(context, '/notifications'),
                             ),
                             if (count > 0)
@@ -277,10 +277,10 @@ class _HomeTabState extends State<_HomeTab> {
 
                 // ── SECTION 3: BADGE CENTER ──
                 Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  const Text('Badge Center', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
+                  const Text('Badge Center', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark)),
                   GestureDetector(
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GamificationScreen())),
-                    child: const Text('See All →', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.golden)),
+                    child: const Text('See All →', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary)),
                   ),
                 ]),
                 const SizedBox(height: 14),
@@ -288,7 +288,7 @@ class _HomeTabState extends State<_HomeTab> {
                 const SizedBox(height: 24),
 
                 // ── SECTION 4: SELF CARE ACTIVITIES ──
-                const Text('Self Care Activities', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
+                const Text('Self Care Activities', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark)),
                 const SizedBox(height: 14),
                 Row(children: [
                   _QuickAction(icon: Icons.air, label: 'Breathe', color: const Color(0xFF42A5F5), onTap: () {
@@ -326,7 +326,7 @@ class _HomeTabState extends State<_HomeTab> {
                 const SizedBox(height: 24),
 
                 // ── SECTION 5: HISTORY FEED ──
-                const Text('Recent Activity', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
+                const Text('Recent Activity', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark)),
                 const SizedBox(height: 14),
                 _HistoryFeed(history: gamVm.history, recentLogs: vm.recentLogs, emojiMap: _emojiMap),
               ]),
@@ -350,18 +350,18 @@ class _GamificationHeroCard extends StatelessWidget {
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFFFF8F00), AppColors.golden, Color(0xFFFFD54F)],
-          begin: Alignment.topLeft, end: Alignment.bottomRight,
+          colors: [AppColors.primary, Color(0xFFFFCC4D)],
+          begin: Alignment.topCenter, end: Alignment.bottomCenter,
         ),
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: AppColors.golden.withOpacity(0.35), blurRadius: 20, offset: const Offset(0, 8))],
+        boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.35), blurRadius: 20, offset: const Offset(0, 8))],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
-            child: const Icon(Icons.emoji_events, color: Colors.white, size: 20)),
+          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.textDark.withValues(alpha: 0.12), shape: BoxShape.circle),
+            child: const Icon(Icons.emoji_events, color: AppColors.textDark, size: 20)),
           const SizedBox(width: 10),
-          const Text('Your Achievements', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+          const Text('Your Achievements', style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.w700, fontSize: 15)),
         ]),
         const SizedBox(height: 18),
         Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
@@ -380,7 +380,7 @@ class _GamificationHeroCard extends StatelessWidget {
 
 class _VertDivider extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => Container(width: 1, height: 40, color: Colors.white.withOpacity(0.3));
+  Widget build(BuildContext context) => Container(width: 1, height: 40, color: AppColors.textMedium.withValues(alpha: 0.25));
 }
 
 class _HeroStat extends StatelessWidget {
@@ -394,8 +394,8 @@ class _HeroStat extends StatelessWidget {
     return Column(children: [
       Icon(icon, color: iconColor, size: 22),
       const SizedBox(height: 4),
-      Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 22)),
-      Text(label, style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 11, fontWeight: FontWeight.w500)),
+      Text(value, style: const TextStyle(color: AppColors.textDark, fontWeight: FontWeight.w900, fontSize: 22)),
+      Text(label, style: const TextStyle(color: AppColors.textMedium, fontSize: 11, fontWeight: FontWeight.w500)),
     ]);
   }
 }
@@ -438,7 +438,7 @@ class _BadgeMiniRow extends StatelessWidget {
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(b.icon, size: 26, color: b.unlocked ? b.color : Colors.grey.shade400),
               const SizedBox(height: 6),
-              Text(b.label, textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: b.unlocked ? AppColors.brownDark : Colors.grey, height: 1.2)),
+              Text(b.label, textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: b.unlocked ? AppColors.textDark : Colors.grey, height: 1.2)),
             ]),
           );
         },
@@ -472,28 +472,28 @@ class _TodayCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isLogged
-              ? [AppColors.golden.withOpacity(0.12), AppColors.golden.withOpacity(0.04)]
-              : [const Color(0xFFFFF8E1), const Color(0xFFFFFDF5)],
+              ? [AppColors.primary.withOpacity(0.12), AppColors.primary.withOpacity(0.04)]
+              : [AppColors.primaryLight, AppColors.cream],
           begin: Alignment.topLeft, end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.golden.withOpacity(0.2)),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
       ),
       child: isLogged
           ? Row(children: [
               Text(emojiMap[mood.emotionType] ?? '🙂', style: const TextStyle(fontSize: 48)),
               const SizedBox(width: 16),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text("You're feeling ${mood.emotionType}", style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
+                Text("You're feeling ${mood.emotionType}", style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.textDark)),
                 if (mood.notes != null && mood.notes!.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text('"${mood.notes}"', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, color: AppColors.brownMedium, fontStyle: FontStyle.italic)),
+                  Text('"${mood.notes}"', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, color: AppColors.textMedium, fontStyle: FontStyle.italic)),
                 ],
                 const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: AppColors.golden.withOpacity(0.18), borderRadius: BorderRadius.circular(10)),
-                  child: const Text('✅ Logged today', style: TextStyle(color: AppColors.golden, fontWeight: FontWeight.w700, fontSize: 12)),
+                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.18), borderRadius: BorderRadius.circular(10)),
+                  child: const Text('✅ Logged today', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 12)),
                 ),
               ])),
               Container(
@@ -503,19 +503,19 @@ class _TodayCard extends StatelessWidget {
               ),
             ])
           : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('How are you feeling today?', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
+              const Text('How are you feeling today?', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800, color: AppColors.textDark)),
               const SizedBox(height: 6),
-              const Text('Take a moment to check in with yourself', style: TextStyle(fontSize: 13, color: AppColors.brownMedium)),
+              const Text('Take a moment to check in with yourself', style: TextStyle(fontSize: 13, color: AppColors.textMedium)),
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: onLogMood,
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.golden, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 0, padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24)),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 0, padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24)),
                   child: const Row(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
                     Text('😊', style: TextStyle(fontSize: 18)),
                     SizedBox(width: 8),
-                    Text('Log My Mood', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+                    Text('Log My Mood', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark)),
                   ]),
                 ),
               ),
@@ -551,7 +551,7 @@ class _QuickAction extends StatelessWidget {
               child: Icon(icon, color: color, size: 22),
             ),
             const SizedBox(height: 8),
-            Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.brownDark)),
+            Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDark)),
           ]),
         ),
       ),
@@ -590,7 +590,7 @@ class _HistoryFeed extends StatelessWidget {
       case 'purchase':
         return _HistoryItemData(icon: Icons.storefront, color: const Color(0xFFFF7043), title: h.achievement, subtitle: '${h.pointsEarned} pts', time: _timeAgo(h.achievementTimestamp));
       default:
-        return _HistoryItemData(icon: Icons.star, color: AppColors.golden, title: h.achievement, subtitle: h.pointsEarned > 0 ? '+${h.pointsEarned} pts' : '', time: _timeAgo(h.achievementTimestamp));
+        return _HistoryItemData(icon: Icons.star, color: AppColors.primary, title: h.achievement, subtitle: h.pointsEarned > 0 ? '+${h.pointsEarned} pts' : '', time: _timeAgo(h.achievementTimestamp));
     }
   }
 
@@ -604,8 +604,8 @@ class _HistoryFeed extends StatelessWidget {
         child: const Center(child: Column(children: [
           Text('🌱', style: TextStyle(fontSize: 36)),
           SizedBox(height: 10),
-          Text('Your activity will appear here', style: TextStyle(color: AppColors.brownMedium, fontSize: 14)),
-          Text('Start logging moods or doing activities!', style: TextStyle(color: AppColors.brownLight, fontSize: 12)),
+          Text('Your activity will appear here', style: TextStyle(color: AppColors.textMedium, fontSize: 14)),
+          Text('Start logging moods or doing activities!', style: TextStyle(color: AppColors.textLight, fontSize: 12)),
         ])),
       );
     }
@@ -630,10 +630,10 @@ class _HistoryFeed extends StatelessWidget {
               ),
               const SizedBox(width: 14),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(item.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.brownDark)),
+                Text(item.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                 if (item.subtitle.isNotEmpty) Text(item.subtitle, style: TextStyle(fontSize: 12, color: item.color, fontWeight: FontWeight.w600)),
               ])),
-              Text(item.time, style: const TextStyle(fontSize: 11, color: AppColors.brownLight)),
+              Text(item.time, style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
             ]),
           );
         },

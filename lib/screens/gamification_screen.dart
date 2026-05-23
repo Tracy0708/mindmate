@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
 import '../viewmodels/gamification_viewmodel.dart';
@@ -96,24 +96,24 @@ class _GamificationScreenState extends State<GamificationScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: AppColors.golden.withOpacity(0.2), shape: BoxShape.circle),
-                  child: const Icon(Icons.emoji_events, color: AppColors.golden),
+                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.2), shape: BoxShape.circle),
+                  child: const Icon(Icons.emoji_events, color: AppColors.primary),
                 ),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Badge Center', style: TextStyle(color: AppColors.golden, fontWeight: FontWeight.w800, fontSize: 20)),
-                    Text('Unlock achievements on your journey', style: TextStyle(color: AppColors.brownMedium.withOpacity(0.8), fontSize: 13, fontWeight: FontWeight.w500)),
+                    const Text('Badge Center', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 20)),
+                    Text('Unlock achievements on your journey', style: TextStyle(color: AppColors.textMedium.withOpacity(0.8), fontSize: 13, fontWeight: FontWeight.w500)),
                   ],
                 ),
               ],
             ),
           ),
           body: gamVm.isLoading
-              ? const Center(child: CircularProgressIndicator(color: AppColors.golden))
+              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
               : RefreshIndicator(
-                  color: AppColors.golden,
+                  color: AppColors.primary,
                   onRefresh: () => gamVm.fetchUserStats(),
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
@@ -126,21 +126,21 @@ class _GamificationScreenState extends State<GamificationScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 36),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [AppColors.golden, Color(0xFFFF8F00)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+                              colors: [AppColors.primary, Color(0xFFFFCC4D)],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
                             ),
                             borderRadius: BorderRadius.circular(20),
-                            boxShadow: [BoxShadow(color: AppColors.golden.withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 6))],
+                            boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 6))],
                           ),
                           child: Column(
                             children: [
                               Text(
                                 '$totalPoints',
-                                style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900, color: Colors.white),
+                                style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900, color: AppColors.textDark),
                               ),
                               const SizedBox(height: 8),
-                              const Text('Achievement Points', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                              const Text('Achievement Points', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textDark)),
                               const SizedBox(height: 16),
                               // Quick stats row
                               Row(
@@ -217,10 +217,10 @@ class _QuickStat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, color: Colors.white.withOpacity(0.9), size: 20),
+        Icon(icon, color: AppColors.textDark, size: 20),
         const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.white)),
-        Text(label, style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.8))),
+        Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textMedium)),
       ],
     );
   }
@@ -272,7 +272,7 @@ class _BadgeCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: unlocked ? AppColors.golden.withOpacity(0.15) : Colors.grey.withOpacity(0.1),
+          color: unlocked ? AppColors.primary.withOpacity(0.15) : Colors.grey.withOpacity(0.1),
           shape: BoxShape.circle,
         ),
         child: Icon(d, size: 36, color: c),
@@ -284,9 +284,9 @@ class _BadgeCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: unlocked ? Colors.white : const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: unlocked ? AppColors.golden.withOpacity(0.3) : Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: unlocked ? AppColors.primary.withOpacity(0.3) : Colors.grey.withOpacity(0.1)),
         boxShadow: unlocked
-            ? [BoxShadow(color: AppColors.golden.withOpacity(0.1), blurRadius: 12, offset: const Offset(0, 4))]
+            ? [BoxShadow(color: AppColors.primary.withOpacity(0.1), blurRadius: 12, offset: const Offset(0, 4))]
             : [],
       ),
       child: Column(
@@ -294,9 +294,9 @@ class _BadgeCard extends StatelessWidget {
         children: [
           getIcon(),
           const SizedBox(height: 12),
-          Text(title, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: unlocked ? AppColors.brownDark : Colors.grey)),
+          Text(title, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: unlocked ? AppColors.textDark : Colors.grey)),
           const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12, color: AppColors.brownMedium)),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12, color: AppColors.textMedium)),
           const SizedBox(height: 8),
           // Progress text
           Text(
@@ -304,7 +304,7 @@ class _BadgeCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
-              color: unlocked ? const Color(0xFF4CAF50) : AppColors.brownLight,
+              color: unlocked ? const Color(0xFF4CAF50) : AppColors.textLight,
             ),
           ),
         ],

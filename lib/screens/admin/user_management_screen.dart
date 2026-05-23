@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/admin_viewmodel.dart';
 import '../../models/user_model.dart';
@@ -48,17 +48,17 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   children: [
                     const Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text('User Management', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.brownDark)),
+                        Text('User Management', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.textDark)),
                         SizedBox(height: 4),
-                        Text('Search, add, edit and manage user accounts.', style: TextStyle(fontSize: 12, color: AppColors.brownMedium)),
+                        Text('Search, add, edit and manage user accounts.', style: TextStyle(fontSize: 12, color: AppColors.textMedium)),
                       ]),
                     ),
                     // Create User button
                     ElevatedButton.icon(
                       onPressed: () => _showCreateUserDialog(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.golden,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.textDark,
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                         elevation: 0,
@@ -101,10 +101,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     stream: vm.getUsersStream(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator(color: AppColors.golden));
+                        return const Center(child: CircularProgressIndicator(color: AppColors.primary));
                       }
                       if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: AppColors.brownMedium)));
+                        return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: AppColors.textMedium)));
                       }
 
                       // Filter out admin accounts, then apply search
@@ -128,10 +128,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                             ),
                             child: Column(mainAxisSize: MainAxisSize.min, children: [
                               Icon(_searchQuery.isEmpty ? Icons.group_off_rounded : Icons.manage_search_rounded,
-                                  size: 40, color: AppColors.brownMedium),
+                                  size: 40, color: AppColors.textMedium),
                               const SizedBox(height: 10),
                               Text(_searchQuery.isEmpty ? 'No users found' : 'No matching users',
-                                  style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.brownDark)),
+                                  style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.textDark)),
                             ]),
                           ),
                         );
@@ -143,9 +143,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           child: Row(children: [
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(color: AppColors.golden.withOpacity(0.12), borderRadius: BorderRadius.circular(999)),
+                              decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(999)),
                               child: Text('${users.length} user${users.length == 1 ? '' : 's'}',
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.brownDark)),
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textDark)),
                             ),
                           ]),
                         ),
@@ -207,7 +207,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         builder: (ctx, setState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           backgroundColor: Colors.white,
-          title: const Text('Create User Account', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.brownDark)),
+          title: const Text('Create User Account', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.textDark)),
           content: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               _field('Full Name', nameCtrl, hint: 'e.g. Jane Doe', icon: Icons.person_outline),
@@ -231,7 +231,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           actions: [
             TextButton(onPressed: saving ? null : () => Navigator.pop(ctx), child: const Text('Cancel')),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.golden, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: AppColors.textDark),
               onPressed: saving ? null : () async {
                 if (nameCtrl.text.trim().isEmpty || emailCtrl.text.trim().isEmpty || passCtrl.text.trim().isEmpty) {
                   InteractiveMessageService.showError(context, title: 'Missing fields', message: 'Name, email and password are required.');
@@ -260,7 +260,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 }
               },
               child: saving
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textDark))
                   : const Text('Create', style: TextStyle(fontWeight: FontWeight.w700)),
             ),
           ],
@@ -282,7 +282,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         builder: (ctx, setState) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           backgroundColor: Colors.white,
-          title: const Text('Edit User', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.brownDark)),
+          title: const Text('Edit User', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.textDark)),
           content: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               _field('Full Name', nameCtrl, hint: user.userName, icon: Icons.person_outline),
@@ -296,10 +296,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   border: Border.all(color: AppColors.fieldBorder),
                 ),
                 child: Row(children: [
-                  const Icon(Icons.email_outlined, color: AppColors.brownLight, size: 20),
+                  const Icon(Icons.email_outlined, color: AppColors.textLight, size: 20),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(user.userEmail, style: const TextStyle(color: AppColors.brownMedium, fontSize: 14))),
-                  const Icon(Icons.lock_outline, size: 14, color: AppColors.brownLight),
+                  Expanded(child: Text(user.userEmail, style: const TextStyle(color: AppColors.textMedium, fontSize: 14))),
+                  const Icon(Icons.lock_outline, size: 14, color: AppColors.textLight),
                 ]),
               ),
               const SizedBox(height: 12),
@@ -318,7 +318,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           actions: [
             TextButton(onPressed: saving ? null : () => Navigator.pop(ctx), child: const Text('Cancel')),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.golden, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: AppColors.textDark),
               onPressed: saving ? null : () async {
                 setState(() => saving = true);
                 try {
@@ -339,7 +339,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 }
               },
               child: saving
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textDark))
                   : const Text('Save', style: TextStyle(fontWeight: FontWeight.w700)),
             ),
           ],
@@ -350,10 +350,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   // ── Helpers ──
   InputDecoration _inputDeco(IconData icon) => InputDecoration(
-        prefixIcon: Icon(icon, color: AppColors.brownLight, size: 20),
+        prefixIcon: Icon(icon, color: AppColors.textLight, size: 20),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.fieldBorder)),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.fieldBorder)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.golden, width: 2)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       );
 
@@ -373,7 +373,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         labelText: label,
         hintText: 'Min. 6 characters',
         suffixIcon: IconButton(
-          icon: Icon(obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: AppColors.brownLight),
+          icon: Icon(obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: AppColors.textLight),
           onPressed: toggle,
         ),
       ),
@@ -391,7 +391,7 @@ class _UserCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDisabled = user.isDisabled;
-    final accentColor = isDisabled ? AppColors.errorRed : AppColors.brownDark;
+    final accentColor = isDisabled ? AppColors.errorRed : AppColors.textDark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -414,8 +414,8 @@ class _UserCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(user.userName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
-            Text(user.userEmail, style: const TextStyle(fontSize: 12, color: AppColors.brownMedium)),
+            Text(user.userName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+            Text(user.userEmail, style: const TextStyle(fontSize: 12, color: AppColors.textMedium)),
           ])),
           _Chip(label: isDisabled ? 'Disabled' : 'Active', color: isDisabled ? AppColors.errorRed : Colors.green),
         ]),
@@ -430,7 +430,7 @@ class _UserCard extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               icon: const Icon(Icons.visibility_rounded, size: 16),
-              label: const Text('View', style: TextStyle(fontSize: 12, color: AppColors.brownDark, fontWeight: FontWeight.w600)),
+              label: const Text('View', style: TextStyle(fontSize: 12, color: AppColors.textDark, fontWeight: FontWeight.w600)),
             ),
           ),
           const SizedBox(width: 8),
@@ -439,11 +439,11 @@ class _UserCard extends StatelessWidget {
               onPressed: onEdit,
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 10),
-                side: const BorderSide(color: AppColors.golden),
+                side: const BorderSide(color: AppColors.primary),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              icon: const Icon(Icons.edit_outlined, size: 16, color: AppColors.golden),
-              label: const Text('Edit', style: TextStyle(fontSize: 12, color: AppColors.golden, fontWeight: FontWeight.w600)),
+              icon: const Icon(Icons.edit_outlined, size: 16, color: AppColors.primary),
+              label: const Text('Edit', style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
             ),
           ),
           const SizedBox(width: 8),
@@ -504,7 +504,7 @@ class _UserCard extends StatelessWidget {
                 final stats = snapshot.data;
                 final isLoading = snapshot.connectionState == ConnectionState.waiting;
                 final isDisabled = user.isDisabled;
-                final accentColor = isDisabled ? AppColors.errorRed : AppColors.brownDark;
+                final accentColor = isDisabled ? AppColors.errorRed : AppColors.textDark;
 
                 return ListView(
                   controller: sc,
@@ -544,13 +544,13 @@ class _UserCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 16),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(user.userName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.brownDark)),
+                          Text(user.userName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.textDark)),
                           const SizedBox(height: 3),
-                          Text(user.userEmail, style: const TextStyle(fontSize: 13, color: AppColors.brownMedium)),
+                          Text(user.userEmail, style: const TextStyle(fontSize: 13, color: AppColors.textMedium)),
                           const SizedBox(height: 10),
                           Wrap(spacing: 8, children: [
                             _Chip(label: isDisabled ? 'Disabled' : 'Active', color: isDisabled ? AppColors.errorRed : Colors.green),
-                            _Chip(label: user.role == 'admin' ? 'Admin' : 'User', color: AppColors.brownDark),
+                            _Chip(label: user.role == 'admin' ? 'Admin' : 'User', color: AppColors.textDark),
                           ]),
                         ])),
                       ]),
@@ -609,7 +609,7 @@ class _UserCard extends StatelessWidget {
                     Row(children: [
                       Expanded(child: _statCard('Status', isDisabled ? 'Disabled' : 'Active', Icons.shield_outlined, isDisabled ? AppColors.errorRed : Colors.green)),
                       const SizedBox(width: 12),
-                      Expanded(child: _statCard('Type', user.role == 'admin' ? 'Admin' : 'User', Icons.person_outline, AppColors.golden)),
+                      Expanded(child: _statCard('Type', user.role == 'admin' ? 'Admin' : 'User', Icons.person_outline, AppColors.primary)),
                     ]),
                     const SizedBox(height: 24),
 
@@ -691,7 +691,7 @@ class _UserCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     const Text(
                       'Note: Password resets are sent via Firebase Auth. Disable/enable is enforced through the Firestore user record.',
-                      style: TextStyle(fontSize: 11, color: AppColors.brownLight, height: 1.5),
+                      style: TextStyle(fontSize: 11, color: AppColors.textLight, height: 1.5),
                     ),
                   ],
                 );
@@ -704,7 +704,7 @@ class _UserCard extends StatelessWidget {
   }
 
   Widget _sectionTitle(String title) => Text(title,
-      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.brownDark));
+      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textDark));
 
   Widget _divider() => Divider(height: 1, indent: 56, color: AppColors.fieldBorder.withOpacity(0.4));
 
@@ -714,18 +714,18 @@ class _UserCard extends StatelessWidget {
       child: Row(children: [
         Container(
           width: 36, height: 36,
-          decoration: BoxDecoration(color: AppColors.golden.withOpacity(0.10), shape: BoxShape.circle),
-          child: Icon(icon, size: 18, color: AppColors.golden),
+          decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.10), shape: BoxShape.circle),
+          child: Icon(icon, size: 18, color: AppColors.primary),
         ),
         const SizedBox(width: 14),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.brownMedium, fontWeight: FontWeight.w600)),
+          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textMedium, fontWeight: FontWeight.w600)),
           const SizedBox(height: 2),
           Text(value,
               style: TextStyle(
                   fontSize: mono ? 11 : 14,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.brownDark,
+                  color: AppColors.textDark,
                   fontFamily: mono ? 'monospace' : null),
               overflow: TextOverflow.ellipsis),
         ])),
@@ -751,7 +751,7 @@ class _UserCard extends StatelessWidget {
         const SizedBox(height: 10),
         Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: color)),
         const SizedBox(height: 3),
-        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.brownMedium, fontWeight: FontWeight.w600)),
+        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textMedium, fontWeight: FontWeight.w600)),
       ]),
     );
   }
@@ -780,11 +780,11 @@ class _UserCard extends StatelessWidget {
             Text(label,
                 style: TextStyle(
                     fontSize: 14, fontWeight: FontWeight.w700,
-                    color: isDestructive ? AppColors.errorRed : AppColors.brownDark)),
+                    color: isDestructive ? AppColors.errorRed : AppColors.textDark)),
             const SizedBox(height: 2),
-            Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.brownMedium)),
+            Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textMedium)),
           ])),
-          Icon(Icons.chevron_right, color: isDestructive ? AppColors.errorRed.withOpacity(0.5) : AppColors.brownLight, size: 20),
+          Icon(Icons.chevron_right, color: isDestructive ? AppColors.errorRed.withOpacity(0.5) : AppColors.textLight, size: 20),
         ]),
       ),
     );

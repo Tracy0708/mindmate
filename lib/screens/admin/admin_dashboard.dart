@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+﻿import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
@@ -73,12 +73,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   return const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.golden);
+                      color: AppColors.primary);
                 }
                 return const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.normal,
-                    color: AppColors.brownMedium);
+                    color: AppColors.textMedium);
               }),
             ),
           ),
@@ -89,19 +89,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             destinations: const [
               NavigationDestination(
                   icon: Icon(Icons.home_outlined),
-                  selectedIcon: Icon(Icons.home, color: AppColors.golden),
+                  selectedIcon: Icon(Icons.home, color: AppColors.primary),
                   label: 'Dashboard'),
               NavigationDestination(
                   icon: Icon(Icons.people_outline),
-                  selectedIcon: Icon(Icons.people, color: AppColors.golden),
+                  selectedIcon: Icon(Icons.people, color: AppColors.primary),
                   label: 'Users'),
               NavigationDestination(
                   icon: Icon(Icons.assignment_outlined),
-                  selectedIcon: Icon(Icons.assignment, color: AppColors.golden),
+                  selectedIcon: Icon(Icons.assignment, color: AppColors.primary),
                   label: 'Analytics'),
               NavigationDestination(
                   icon: Icon(Icons.person_outline),
-                  selectedIcon: Icon(Icons.person, color: AppColors.golden),
+                  selectedIcon: Icon(Icons.person, color: AppColors.primary),
                   label: 'Profile'),
             ],
           ),
@@ -192,7 +192,7 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
       child: Container(
         color: AppColors.creamLight,
         child: RefreshIndicator(
-          color: AppColors.golden,
+          color: AppColors.primary,
           onRefresh: () => context.read<AdminViewModel>().generateReport(),
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -217,7 +217,7 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                                 style: const TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w900,
-                                  color: AppColors.brownDark,
+                                  color: AppColors.textDark,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -225,7 +225,7 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                                 _todayLabel(),
                                 style: const TextStyle(
                                   fontSize: 13,
-                                  color: AppColors.brownMedium,
+                                  color: AppColors.textMedium,
                                 ),
                               ),
                             ],
@@ -244,7 +244,7 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(),
                                   icon: const Icon(Icons.notifications_outlined,
-                                      color: AppColors.brownDark, size: 26),
+                                      color: AppColors.textDark, size: 26),
                                   onPressed: () =>
                                       Navigator.pushNamed(context, '/notifications'),
                                 ),
@@ -298,7 +298,7 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                               child: Text(vm.errorMessage!,
                                   style: const TextStyle(
                                       fontSize: 12,
-                                      color: AppColors.brownMedium)),
+                                      color: AppColors.textMedium)),
                             ),
                             TextButton(
                               onPressed: vm.generateReport,
@@ -330,7 +330,7 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                         _StatCard(
                           value: '${report?['totalUsers'] ?? 0}',
                           label: 'Total Users',
-                          color: AppColors.golden,
+                          color: AppColors.primary,
                           icon: Icons.group_rounded,
                           subtitle: 'All registered accounts',
                         ),
@@ -445,14 +445,14 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                           const Row(
                             children: [
                               Icon(Icons.info_outline_rounded,
-                                  size: 14, color: AppColors.brownLight),
+                                  size: 14, color: AppColors.textLight),
                               SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   'Pull down to refresh, or tap the refresh icon above.',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: AppColors.brownLight,
+                                    color: AppColors.textLight,
                                   ),
                                 ),
                               ),
@@ -489,7 +489,7 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                             'Export a full platform report (last 30 days) as a PDF — includes user stats, emotion distribution, daily trends, and at-risk users.',
                             style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.brownMedium,
+                              color: AppColors.textMedium,
                               height: 1.4,
                             ),
                           ),
@@ -504,7 +504,7 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                                           height: 14,
                                           child: CircularProgressIndicator(
                                               strokeWidth: 2,
-                                              color: AppColors.golden),
+                                              color: AppColors.primary),
                                         )
                                       : const Icon(Icons.preview_rounded,
                                           size: 16),
@@ -512,9 +512,9 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                                       ? 'Loading…'
                                       : 'Preview'),
                                   style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.golden,
+                                    foregroundColor: AppColors.primary,
                                     side: const BorderSide(
-                                        color: AppColors.golden),
+                                        color: AppColors.primary),
                                     shape: RoundedRectangleBorder(
                                         borderRadius:
                                             BorderRadius.circular(12)),
@@ -536,7 +536,7 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                                           height: 16,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
-                                            color: Colors.white,
+                                            color: AppColors.textDark,
                                           ),
                                         )
                                       : const Icon(Icons.download_rounded,
@@ -545,8 +545,8 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                                       ? 'Generating…'
                                       : 'Export PDF'),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.golden,
-                                    foregroundColor: Colors.white,
+                                    backgroundColor: AppColors.primary,
+                                    foregroundColor: AppColors.textDark,
                                     shape: RoundedRectangleBorder(
                                         borderRadius:
                                             BorderRadius.circular(12)),
@@ -607,14 +607,14 @@ class _DashboardInfoTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppColors.golden, size: 20),
+          Icon(icon, color: AppColors.primary, size: 20),
           const SizedBox(height: 8),
           Text(
             value,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w800,
-              color: AppColors.brownDark,
+              color: AppColors.textDark,
             ),
           ),
           const SizedBox(height: 2),
@@ -622,7 +622,7 @@ class _DashboardInfoTile extends StatelessWidget {
             label,
             style: const TextStyle(
               fontSize: 12,
-              color: AppColors.brownMedium,
+              color: AppColors.textMedium,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -642,17 +642,17 @@ class _SectionHeader extends StatelessWidget {
       Container(
         padding: const EdgeInsets.all(7),
         decoration: BoxDecoration(
-          color: AppColors.golden.withOpacity(0.15),
+          color: AppColors.primary.withOpacity(0.15),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Icon(icon, color: AppColors.golden, size: 17),
+        child: Icon(icon, color: AppColors.primary, size: 17),
       ),
       const SizedBox(width: 10),
       Text(title,
           style: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w800,
-              color: AppColors.brownDark)),
+              color: AppColors.textDark)),
     ]);
   }
 }
@@ -713,11 +713,11 @@ class _StatCard extends StatelessWidget {
               style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.brownDark)),
+                  color: AppColors.textDark)),
           if (subtitle.isNotEmpty)
             Text(subtitle,
                 style: const TextStyle(
-                    fontSize: 11, color: AppColors.brownMedium)),
+                    fontSize: 11, color: AppColors.textMedium)),
         ],
       ),
     );
@@ -751,7 +751,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
   Color _riskColor(double score) {
     if (score >= 80) return AppColors.errorRed;
     if (score >= 60) return const Color(0xFFDD8A00);
-    return AppColors.brownMedium;
+    return AppColors.textMedium;
   }
 
   Future<void> _showUserRiskDetailSheet(Map<String, dynamic> user) async {
@@ -804,7 +804,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w900,
-                            color: AppColors.brownDark,
+                            color: AppColors.textDark,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -814,7 +814,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                               : 'No email',
                           style: const TextStyle(
                             fontSize: 13,
-                            color: AppColors.brownMedium,
+                            color: AppColors.textMedium,
                           ),
                         ),
                         const SizedBox(height: 14),
@@ -855,7 +855,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                             _RiskStatPill(
                               icon: Icons.history_rounded,
                               label: '$moodLogs logs tracked',
-                              color: AppColors.golden,
+                              color: AppColors.primary,
                             ),
                             if ((user['mixedMoodCount'] as int? ?? 0) > 0)
                               _RiskStatPill(
@@ -871,7 +871,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                           'Last mood entry: ${_formatDate(user['lastMoodAt'])}',
                           style: const TextStyle(
                             fontSize: 12,
-                            color: AppColors.brownMedium,
+                            color: AppColors.textMedium,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -880,7 +880,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                           'Last login: ${_formatDate(user['lastLogin'])}',
                           style: const TextStyle(
                             fontSize: 12,
-                            color: AppColors.brownMedium,
+                            color: AppColors.textMedium,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -890,7 +890,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.brownDark,
+                            color: AppColors.textDark,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -907,7 +907,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                             child: Padding(
                               padding: EdgeInsets.symmetric(vertical: 8),
                               child: CircularProgressIndicator(
-                                color: AppColors.golden,
+                                color: AppColors.primary,
                               ),
                             ),
                           )
@@ -990,7 +990,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                   'Per-user mood pattern analysis to identify users who may need counselling follow-up.',
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.brownMedium,
+                    color: AppColors.textMedium,
                     height: 1.4,
                   ),
                 ),
@@ -999,18 +999,18 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                   margin: const EdgeInsets.only(top: 10),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.golden.withOpacity(0.08),
+                    color: AppColors.primary.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.golden.withOpacity(0.25)),
+                    border: Border.all(color: AppColors.primary.withOpacity(0.25)),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.info_outline_rounded, size: 14, color: AppColors.golden),
+                      Icon(Icons.info_outline_rounded, size: 14, color: AppColors.primary),
                       SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           'Score = negative mood ratio (58%) + recent trend (25%) + log volume (10%) + recency (7%)',
-                          style: TextStyle(fontSize: 11, color: AppColors.brownMedium, height: 1.4),
+                          style: TextStyle(fontSize: 11, color: AppColors.textMedium, height: 1.4),
                         ),
                       ),
                     ],
@@ -1068,7 +1068,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                           const Text(
                             'Risk Level:',
                             style: TextStyle(
-                                color: AppColors.brownMedium,
+                                color: AppColors.textMedium,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 12),
                           ),
@@ -1112,7 +1112,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                         'Showing ${filteredUsers.length} of ${users.length} users',
                         style: const TextStyle(
                           fontSize: 12,
-                          color: AppColors.brownMedium,
+                          color: AppColors.textMedium,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1135,7 +1135,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                   const Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 32),
-                      child: CircularProgressIndicator(color: AppColors.golden),
+                      child: CircularProgressIndicator(color: AppColors.primary),
                     ),
                   )
                 else if (snapshot.hasError)
@@ -1155,7 +1155,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                           'Could not load mood risk analysis',
                           style: TextStyle(
                             fontWeight: FontWeight.w800,
-                            color: AppColors.brownDark,
+                            color: AppColors.textDark,
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -1163,7 +1163,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                           '$snapshot.error',
                           style: const TextStyle(
                               fontSize: 12,
-                              color: AppColors.brownMedium,
+                              color: AppColors.textMedium,
                               height: 1.35),
                         ),
                       ],
@@ -1187,7 +1187,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                     child: const Text(
                       'No users match the current filter. Try adjusting search or risk level.',
                       style: TextStyle(
-                          color: AppColors.brownMedium,
+                          color: AppColors.textMedium,
                           height: 1.4,
                           fontWeight: FontWeight.w600),
                     ),
@@ -1249,14 +1249,14 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                                         style: const TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w800,
-                                          color: AppColors.brownDark,
+                                          color: AppColors.textDark,
                                         ),
                                       ),
                                       Text(
                                         (user['email'] as String?) ?? '',
                                         style: const TextStyle(
                                           fontSize: 12,
-                                          color: AppColors.brownMedium,
+                                          color: AppColors.textMedium,
                                         ),
                                       ),
                                     ],
@@ -1325,7 +1325,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                                 _RiskStatPill(
                                   icon: Icons.history_rounded,
                                   label: '${user['totalLogs']} logs',
-                                  color: AppColors.golden,
+                                  color: AppColors.primary,
                                 ),
                                 if ((user['mixedMoodCount'] as int? ?? 0) > 0)
                                   _RiskStatPill(
@@ -1340,7 +1340,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                               'Last mood: ${_formatDate(user['lastMoodAt'])}  ·  Last login: ${_formatDate(user['lastLogin'])}',
                               style: const TextStyle(
                                 fontSize: 11,
-                                color: AppColors.brownMedium,
+                                color: AppColors.textMedium,
                               ),
                             ),
                           ],
@@ -1352,16 +1352,16 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                 OutlinedButton.icon(
                   onPressed: () => setState(() => _refreshSeed++),
                   icon: const Icon(Icons.refresh_rounded,
-                      color: AppColors.golden),
+                      color: AppColors.primary),
                   label: const Text(
                     'Refresh Mood Analysis',
                     style: TextStyle(
-                      color: AppColors.golden,
+                      color: AppColors.primary,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.golden, width: 1.4),
+                    side: const BorderSide(color: AppColors.primary, width: 1.4),
                     minimumSize: const Size(double.infinity, 48),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
@@ -1439,14 +1439,14 @@ class _LookbackSelector extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppColors.golden
-                    : AppColors.golden.withOpacity(0.10),
+                    ? AppColors.primary
+                    : AppColors.primary.withOpacity(0.10),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 '${days}D',
                 style: TextStyle(
-                  color: isSelected ? Colors.white : AppColors.brownMedium,
+                  color: isSelected ? AppColors.textDark : AppColors.textMedium,
                   fontWeight: FontWeight.w700,
                   fontSize: 12,
                 ),
@@ -1502,7 +1502,7 @@ class _RiskSummaryRow extends StatelessWidget {
           child: _RiskMiniCard(
             label: 'Observe',
             count: observe,
-            color: AppColors.brownMedium,
+            color: AppColors.textMedium,
             icon: Icons.visibility_rounded,
           ),
         ),
@@ -1630,7 +1630,7 @@ class _EmotionBarChart extends StatelessWidget {
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w800,
-              color: AppColors.brownDark,
+              color: AppColors.textDark,
             ),
           ),
           const SizedBox(height: 16),
@@ -1674,7 +1674,7 @@ class _EmotionBarChart extends StatelessWidget {
                         value.toInt().toString(),
                         style: const TextStyle(
                           fontSize: 9,
-                          color: AppColors.brownMedium,
+                          color: AppColors.textMedium,
                         ),
                       ),
                     ),
@@ -1744,7 +1744,7 @@ class _ChartLegendDot extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-              fontSize: 11, color: AppColors.brownMedium),
+              fontSize: 11, color: AppColors.textMedium),
         ),
       ],
     );
@@ -1808,7 +1808,7 @@ class _DailyTrendChart extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w800,
-              color: AppColors.brownDark,
+              color: AppColors.textDark,
             ),
           ),
           const SizedBox(height: 16),
@@ -1825,21 +1825,21 @@ class _DailyTrendChart extends StatelessWidget {
                     spots: spots,
                     isCurved: true,
                     curveSmoothness: 0.35,
-                    color: AppColors.golden,
+                    color: AppColors.primary,
                     barWidth: 2.5,
                     dotData: FlDotData(
                       show: true,
                       getDotPainter: (spot, percent, bar, index) =>
                           FlDotCirclePainter(
                         radius: 3.5,
-                        color: AppColors.golden,
+                        color: AppColors.primary,
                         strokeColor: Colors.white,
                         strokeWidth: 1.5,
                       ),
                     ),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: AppColors.golden.withOpacity(0.08),
+                      color: AppColors.primary.withOpacity(0.08),
                     ),
                   ),
                 ],
@@ -1887,7 +1887,7 @@ class _DailyTrendChart extends StatelessWidget {
                             dayLabels[i],
                             style: const TextStyle(
                               fontSize: 9,
-                              color: AppColors.brownMedium,
+                              color: AppColors.textMedium,
                             ),
                           ),
                         );
@@ -1903,7 +1903,7 @@ class _DailyTrendChart extends StatelessWidget {
                         value.toInt().toString(),
                         style: const TextStyle(
                           fontSize: 9,
-                          color: AppColors.brownMedium,
+                          color: AppColors.textMedium,
                         ),
                       ),
                     ),
@@ -1953,7 +1953,7 @@ class _EmotionBreakdownChips extends StatelessWidget {
         final isPositive = _positiveEmotions.contains(emotion);
         final color = isPositive
             ? const Color(0xFF66BB6A)
-            : AppColors.brownMedium;
+            : AppColors.textMedium;
         final emoji = _emotionEmoji[emotion] ?? '';
 
         return Container(
@@ -2036,15 +2036,15 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.lock_outline,
-                          size: 42, color: AppColors.brownMedium),
+                          size: 42, color: AppColors.textMedium),
                       SizedBox(height: 10),
                       Text('Admin session not found',
                           style: TextStyle(
                               fontWeight: FontWeight.w800,
-                              color: AppColors.brownDark)),
+                              color: AppColors.textDark)),
                       SizedBox(height: 4),
                       Text('Please sign in again to view profile.',
-                          style: TextStyle(color: AppColors.brownMedium)),
+                          style: TextStyle(color: AppColors.textMedium)),
                     ],
                   ),
                 ),
@@ -2056,7 +2056,7 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
                         child:
-                            CircularProgressIndicator(color: AppColors.golden));
+                            CircularProgressIndicator(color: AppColors.primary));
                   }
 
                   final profile = snapshot.data;
@@ -2093,7 +2093,7 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
                                 style: const TextStyle(
                                     fontSize: 34,
                                     fontWeight: FontWeight.w800,
-                                    color: AppColors.golden),
+                                    color: AppColors.primary),
                               ),
                             ),
                             Container(
@@ -2108,7 +2108,7 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
                               child: const Icon(
                                 Icons.admin_panel_settings_rounded,
                                 size: 18,
-                                color: AppColors.golden,
+                                color: AppColors.primary,
                               ),
                             ),
                           ],
@@ -2119,7 +2119,7 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.brownDark,
+                            color: AppColors.textDark,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -2127,7 +2127,7 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
                           email,
                           style: const TextStyle(
                             fontSize: 14,
-                            color: AppColors.brownMedium,
+                            color: AppColors.textMedium,
                           ),
                         ),
                         const SizedBox(height: 26),
@@ -2186,18 +2186,18 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: AppColors.golden.withValues(alpha: 0.2),
+                                color: AppColors.primary.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: const Icon(Icons.settings,
-                                  color: AppColors.golden, size: 20),
+                                  color: AppColors.primary, size: 20),
                             ),
                             const SizedBox(width: 12),
                             const Text('Settings',
                                 style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w800,
-                                    color: AppColors.brownDark)),
+                                    color: AppColors.textDark)),
                           ]),
                         ),
                         const SizedBox(height: 16),
@@ -2287,14 +2287,14 @@ class _AdminSettingsItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isDestructive ? AppColors.errorRed : AppColors.brownDark;
+    final color = isDestructive ? AppColors.errorRed : AppColors.textDark;
     return InkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Row(children: [
           Icon(icon,
-              color: isDestructive ? color : AppColors.brownMedium, size: 22),
+              color: isDestructive ? color : AppColors.textMedium, size: 22),
           const SizedBox(width: 16),
           Expanded(
             child: Text(label,
@@ -2305,7 +2305,7 @@ class _AdminSettingsItem extends StatelessWidget {
           ),
           if (!isDestructive)
             const Icon(Icons.chevron_right,
-                color: AppColors.brownLight, size: 20),
+                color: AppColors.textLight, size: 20),
         ]),
       ),
     );
@@ -2330,10 +2330,10 @@ class _AdminProfileItem extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.golden.withValues(alpha: 0.14),
+              color: AppColors.primary.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: AppColors.golden, size: 20),
+            child: Icon(icon, color: AppColors.primary, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -2344,7 +2344,7 @@ class _AdminProfileItem extends StatelessWidget {
                   label,
                   style: const TextStyle(
                     fontSize: 12,
-                    color: AppColors.brownMedium,
+                    color: AppColors.textMedium,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -2355,7 +2355,7 @@ class _AdminProfileItem extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 14,
-                    color: AppColors.brownDark,
+                    color: AppColors.textDark,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -2381,9 +2381,9 @@ class _PdfPreviewScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
-        backgroundColor: AppColors.golden,
-        foregroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.textDark,
+        iconTheme: const IconThemeData(color: AppColors.textDark),
       ),
       body: PdfPreview(
         build: (_) => buildPdf(),
@@ -2477,13 +2477,13 @@ class _ExportUserPdfButtonState extends State<_ExportUserPdfButton> {
                     width: 14,
                     height: 14,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: AppColors.golden),
+                        strokeWidth: 2, color: AppColors.primary),
                   )
                 : const Icon(Icons.preview_rounded, size: 16),
             label: Text(_previewing ? 'Loading…' : 'Preview'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.golden,
-              side: const BorderSide(color: AppColors.golden),
+              foregroundColor: AppColors.primary,
+              side: const BorderSide(color: AppColors.primary),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(vertical: 11),
@@ -2499,13 +2499,13 @@ class _ExportUserPdfButtonState extends State<_ExportUserPdfButton> {
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Colors.white),
+                        strokeWidth: 2, color: AppColors.textDark),
                   )
                 : const Icon(Icons.download_rounded, size: 18),
             label: Text(_loading ? 'Generating…' : 'Export PDF'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.golden,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.textDark,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(vertical: 11),

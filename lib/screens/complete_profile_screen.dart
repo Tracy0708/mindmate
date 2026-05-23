@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import '../services/auth_service.dart';
 import '../main.dart';
@@ -89,14 +89,14 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.golden.withOpacity(0.08),
+                color: AppColors.primary.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Text(
                 'You can update these details again later from your profile settings.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: AppColors.brownMedium,
+                  color: AppColors.textMedium,
                   fontSize: 13,
                   height: 1.4,
                 ),
@@ -147,7 +147,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         height: 22,
                         width: 22,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2.5, color: Colors.white))
+                            strokeWidth: 2.5, color: AppColors.textDark))
                     : const Text('Complete Registration'),
               ),
             ),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
@@ -121,7 +121,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return Scaffold(
       backgroundColor: AppColors.creamLight,
       appBar: AppBar(
-        title: const Text('Mood Calendar', style: TextStyle(color: AppColors.golden, fontWeight: FontWeight.w800, fontSize: 24)),
+        title: const Text('Mood Calendar', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 24)),
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
@@ -149,10 +149,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.golden : Colors.white,
+                        color: isSelected ? AppColors.primary : Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: isSelected ? AppColors.golden : AppColors.golden.withOpacity(0.3),
+                          color: isSelected ? AppColors.primary : AppColors.primary.withOpacity(0.3),
                         ),
                       ),
                       child: Row(
@@ -162,7 +162,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           Text(
                             filter,
                             style: TextStyle(
-                              color: isSelected ? Colors.white : AppColors.brownDark,
+                              color: isSelected ? AppColors.textDark : AppColors.textDark,
                               fontWeight: FontWeight.w600,
                               fontSize: 13,
                             ),
@@ -188,16 +188,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.golden.withOpacity(0.15),
+                      color: AppColors.primary.withOpacity(0.15),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.chevron_left, color: AppColors.golden),
+                    child: const Icon(Icons.chevron_left, color: AppColors.primary),
                   ),
                 ),
                 const SizedBox(width: 20),
                 Text(
                   monthLabel,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.brownDark),
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textDark),
                 ),
                 const SizedBox(width: 20),
                 GestureDetector(
@@ -207,12 +207,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     decoration: BoxDecoration(
                       color: isCurrentMonth
                           ? Colors.grey.withOpacity(0.1)
-                          : AppColors.golden.withOpacity(0.15),
+                          : AppColors.primary.withOpacity(0.15),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.chevron_right,
-                      color: isCurrentMonth ? Colors.grey : AppColors.golden,
+                      color: isCurrentMonth ? Colors.grey : AppColors.primary,
                     ),
                   ),
                 ),
@@ -224,7 +224,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           // Calendar grid
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: AppColors.golden))
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                 : SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
@@ -258,7 +258,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         Row(
           children: days.map((d) => Expanded(
             child: Center(
-              child: Text(d, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.brownLight, fontSize: 13)),
+              child: Text(d, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textLight, fontSize: 13)),
             ),
           )).toList(),
         ),
@@ -300,12 +300,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 duration: const Duration(milliseconds: 200),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? AppColors.golden.withOpacity(0.15)
-                      : (isToday ? AppColors.golden.withOpacity(0.08) : Colors.transparent),
+                      ? AppColors.primary.withOpacity(0.15)
+                      : (isToday ? AppColors.primary.withOpacity(0.08) : Colors.transparent),
                   borderRadius: BorderRadius.circular(12),
                   border: isToday
-                      ? Border.all(color: AppColors.golden, width: 2)
-                      : (isSelected ? Border.all(color: AppColors.golden, width: 1.5) : null),
+                      ? Border.all(color: AppColors.primary, width: 2)
+                      : (isSelected ? Border.all(color: AppColors.primary, width: 1.5) : null),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -313,7 +313,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     Text(
                       '$day',
                       style: TextStyle(
-                        color: isToday ? AppColors.golden : AppColors.brownDark,
+                        color: isToday ? AppColors.primary : AppColors.textDark,
                         fontWeight: isToday ? FontWeight.w800 : FontWeight.w600,
                         fontSize: 14,
                       ),
@@ -377,12 +377,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   children: [
                     Text(
                       log.emotionType,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.brownDark),
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textDark),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '$dateStr at $timeStr',
-                      style: const TextStyle(fontSize: 13, color: AppColors.brownMedium),
+                      style: const TextStyle(fontSize: 13, color: AppColors.textMedium),
                     ),
                   ],
                 ),
@@ -435,17 +435,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.golden.withOpacity(0.06),
+                color: AppColors.primary.withOpacity(0.06),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Notes', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.brownLight)),
+                  const Text('Notes', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textLight)),
                   const SizedBox(height: 6),
                   Text(
                     log.notes!,
-                    style: const TextStyle(fontSize: 14, color: AppColors.brownDark, height: 1.5),
+                    style: const TextStyle(fontSize: 14, color: AppColors.textDark, height: 1.5),
                   ),
                 ],
               ),
@@ -458,7 +458,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Color _intensityColor(int score) {
     if (score >= 4) return const Color(0xFF4CAF50);
-    if (score >= 3) return AppColors.golden;
+    if (score >= 3) return AppColors.primary;
     return const Color(0xFFE53935);
   }
 }

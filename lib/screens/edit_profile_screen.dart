@@ -63,7 +63,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         radius: 18,
                         child: const Icon(Icons.camera_alt,
-                            color: Colors.white, size: 18),
+                            color: Colors.black87, size: 18),
                       ),
                     ),
                   ],

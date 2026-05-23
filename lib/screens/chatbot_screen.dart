@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../viewmodels/chatbot_viewmodel.dart';
@@ -51,10 +51,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.golden.withOpacity(0.15),
+                color: AppColors.primary.withOpacity(0.15),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.smart_toy, color: AppColors.golden, size: 28),
+              child: const Icon(Icons.smart_toy, color: AppColors.primary, size: 28),
             ),
             const SizedBox(width: 12),
             Column(
@@ -62,11 +62,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               children: [
                 const Text(
                   'MindMate AI',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.golden),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.primary),
                 ),
                 Text(
                   'Online • Ready to chat',
-                  style: TextStyle(fontSize: 13, color: AppColors.brownMedium.withOpacity(0.8), fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: 13, color: AppColors.textMedium.withOpacity(0.8), fontWeight: FontWeight.w500),
                 ),
               ],
             ),
@@ -86,10 +86,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   stream: vm.getSessionMessages(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator(color: AppColors.golden));
+                      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
                     }
                     if (!snapshot.hasData || snapshot.data!.messages.isEmpty) {
-                      return const Center(child: Text('Say hi to start the conversation!', style: TextStyle(color: AppColors.brownMedium)));
+                      return const Center(child: Text('Say hi to start the conversation!', style: TextStyle(color: AppColors.textMedium)));
                     }
 
                     final messages = snapshot.data!.messages.reversed.toList();
@@ -119,7 +119,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                                   decoration: BoxDecoration(
-                                    color: isUser ? AppColors.golden : Colors.white,
+                                    color: isUser ? AppColors.primary : Colors.white,
                                     borderRadius: BorderRadius.circular(20).copyWith(
                                       bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(20),
                                       bottomLeft: !isUser ? const Radius.circular(4) : const Radius.circular(20),
@@ -134,7 +134,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                                       Text(
                                         msg['content'] ?? '',
                                         style: TextStyle(
-                                          color: isUser ? Colors.white : AppColors.brownDark,
+                                          color: isUser ? AppColors.textDark : AppColors.textDark,
                                           fontSize: 15,
                                           height: 1.4,
                                           fontWeight: isUser ? FontWeight.w600 : FontWeight.w500,
@@ -144,7 +144,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                                       Text(
                                         timeString,
                                         style: TextStyle(
-                                          color: isUser ? Colors.white.withOpacity(0.8) : AppColors.brownLight,
+                                          color: isUser ? AppColors.textMedium : AppColors.textLight,
                                           fontSize: 10,
                                         ),
                                       ),
@@ -182,7 +182,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   padding: EdgeInsets.only(left: 24, bottom: 8),
                   child: Align(
                     alignment: Alignment.centerLeft,
-                    child: Text('MindMate AI is typing...', style: TextStyle(color: AppColors.brownLight, fontSize: 12, fontStyle: FontStyle.italic)),
+                    child: Text('MindMate AI is typing...', style: TextStyle(color: AppColors.textLight, fontSize: 12, fontStyle: FontStyle.italic)),
                   ),
                 ),
 
@@ -205,7 +205,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                           controller: _msgController,
                           decoration: const InputDecoration(
                             hintText: 'Type your message...',
-                            hintStyle: TextStyle(color: AppColors.brownLight),
+                            hintStyle: TextStyle(color: AppColors.textLight),
                             border: InputBorder.none,
                             enabledBorder: InputBorder.none,
                             focusedBorder: InputBorder.none,
@@ -222,10 +222,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                         width: 52,
                         height: 52,
                         decoration: const BoxDecoration(
-                          color: AppColors.golden,
+                          color: AppColors.primary,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.send_rounded, color: Colors.white, size: 22),
+                        child: const Icon(Icons.send_rounded, color: AppColors.textDark, size: 22),
                       ),
                     ),
                   ],
@@ -254,14 +254,14 @@ class _SuggestionChip extends StatelessWidget {
         margin: const EdgeInsets.only(right: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: AppColors.golden.withOpacity(0.15),
+          color: AppColors.primary.withOpacity(0.15),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           children: [
             Text(icon, style: const TextStyle(fontSize: 16)),
             const SizedBox(width: 8),
-            Text(label, style: const TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w600, fontSize: 13)),
+            Text(label, style: const TextStyle(color: AppColors.textDark, fontWeight: FontWeight.w600, fontSize: 13)),
           ],
         ),
       ),

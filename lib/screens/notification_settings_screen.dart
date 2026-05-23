@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/local_notification_service.dart';
 import '../main.dart';
@@ -132,8 +132,8 @@ class _NotificationSettingsScreenState
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-                  primary: AppColors.golden,
-                  onPrimary: Colors.white,
+                  primary: AppColors.primary,
+                  onPrimary: AppColors.textDark,
                 ),
           ),
           child: child!,
@@ -179,19 +179,19 @@ class _NotificationSettingsScreenState
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new,
-              color: AppColors.brownDark, size: 20),
+              color: AppColors.textDark, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text('Notifications',
             style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: AppColors.golden)),
+                color: AppColors.primary)),
         centerTitle: true,
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: AppColors.golden))
+              child: CircularProgressIndicator(color: AppColors.primary))
           : SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Column(
@@ -212,12 +212,12 @@ class _NotificationSettingsScreenState
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.golden.withValues(alpha: 0.12),
+                            color: AppColors.primary.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
                             Icons.tips_and_updates_outlined,
-                            color: AppColors.golden,
+                            color: AppColors.primary,
                           ),
                         ),
                         const SizedBox(width: 14),
@@ -230,7 +230,7 @@ class _NotificationSettingsScreenState
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
-                                  color: AppColors.brownDark,
+                                  color: AppColors.textDark,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -240,7 +240,7 @@ class _NotificationSettingsScreenState
                                     : 'Notifications are currently paused',
                                 style: const TextStyle(
                                   fontSize: 13,
-                                  color: AppColors.brownMedium,
+                                  color: AppColors.textMedium,
                                 ),
                               ),
                             ],
@@ -268,14 +268,14 @@ class _NotificationSettingsScreenState
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.golden.withValues(alpha: 0.15),
+                            color: AppColors.primary.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             _masterToggle
                                 ? Icons.notifications_active
                                 : Icons.notifications_off_outlined,
-                            color: AppColors.golden,
+                            color: AppColors.primary,
                             size: 28,
                           ),
                         ),
@@ -288,21 +288,21 @@ class _NotificationSettingsScreenState
                                   style: TextStyle(
                                       fontSize: 17,
                                       fontWeight: FontWeight.w700,
-                                      color: AppColors.brownDark)),
+                                      color: AppColors.textDark)),
                               const SizedBox(height: 4),
                               Text(
                                 _masterToggle
                                     ? 'You will receive reminders'
                                     : 'All notifications are off',
                                 style: const TextStyle(
-                                    fontSize: 13, color: AppColors.brownMedium),
+                                    fontSize: 13, color: AppColors.textMedium),
                               ),
                             ],
                           ),
                         ),
                         Switch(
                           value: _masterToggle,
-                          activeThumbColor: AppColors.golden,
+                          activeThumbColor: AppColors.primary,
                           onChanged: _onMasterToggle,
                         ),
                       ],
@@ -315,13 +315,13 @@ class _NotificationSettingsScreenState
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.brownDark)),
+                          color: AppColors.textDark)),
                   const SizedBox(height: 6),
                   const Text(
                     'Choose which reminders are actually helpful so the app stays supportive instead of noisy.',
                     style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.brownMedium,
+                      color: AppColors.textMedium,
                       height: 1.4,
                     ),
                   ),
@@ -392,13 +392,13 @@ class _NotificationSettingsScreenState
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.brownDark)),
+                          color: AppColors.textDark)),
                   const SizedBox(height: 6),
                   const Text(
                     'Your daily mood reminder and breathing reminder follow this time.',
                     style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.brownMedium,
+                      color: AppColors.textMedium,
                       height: 1.4,
                     ),
                   ),
@@ -425,11 +425,11 @@ class _NotificationSettingsScreenState
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: AppColors.golden.withValues(alpha: 0.15),
+                                color: AppColors.primary.withValues(alpha: 0.15),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(Icons.access_time,
-                                  color: AppColors.golden, size: 28),
+                                  color: AppColors.primary, size: 28),
                             ),
                             const SizedBox(width: 16),
                             const Expanded(
@@ -440,13 +440,13 @@ class _NotificationSettingsScreenState
                                       style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w700,
-                                          color: AppColors.brownDark)),
+                                          color: AppColors.textDark)),
                                   SizedBox(height: 4),
                                   Text(
                                     'Tap to change',
                                     style: TextStyle(
                                         fontSize: 13,
-                                        color: AppColors.brownMedium),
+                                        color: AppColors.textMedium),
                                   ),
                                 ],
                               ),
@@ -455,7 +455,7 @@ class _NotificationSettingsScreenState
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
-                                color: AppColors.golden.withValues(alpha: 0.15),
+                                color: AppColors.primary.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -463,7 +463,7 @@ class _NotificationSettingsScreenState
                                 style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
-                                    color: AppColors.golden),
+                                    color: AppColors.primary),
                               ),
                             ),
                           ],
@@ -526,17 +526,17 @@ class _NotificationToggle extends StatelessWidget {
                       style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.brownDark)),
+                          color: AppColors.textDark)),
                   const SizedBox(height: 2),
                   Text(subtitle,
                       style: const TextStyle(
-                          fontSize: 12, color: AppColors.brownMedium)),
+                          fontSize: 12, color: AppColors.textMedium)),
                 ],
               ),
             ),
             Switch(
               value: value,
-              activeThumbColor: AppColors.golden,
+              activeThumbColor: AppColors.primary,
               onChanged: enabled ? onChanged : null,
             ),
           ],
