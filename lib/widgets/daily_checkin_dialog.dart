@@ -30,6 +30,7 @@ class DailyCheckinDialog extends StatefulWidget {
 
 class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
   String? _selectedMood;
+  int _selectedIntensity = 3;
   final TextEditingController _noteController = TextEditingController();
   bool _showMixedNudge = false;
 
@@ -39,7 +40,6 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
     {'label': 'Anxious', 'emoji': '😰'},
     {'label': 'Angry', 'emoji': '😠'},
     {'label': 'Calm', 'emoji': '😌'},
-    {'label': 'Tired', 'emoji': '😴'},
   ];
 
   @override
@@ -55,7 +55,7 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
     }
     final vm = Provider.of<EmotionViewModel>(context, listen: false);
     final wasLoggedToday = vm.hasLoggedToday;
-    final success = await vm.submitEmotion(emotionType: _selectedMood!, notes: _noteController.text.isNotEmpty ? _noteController.text : null);
+    final success = await vm.submitEmotion(emotionType: _selectedMood!, intensity: _selectedIntensity, notes: _noteController.text.isNotEmpty ? _noteController.text : null);
     if (!mounted || !success) return;
 
     // Capture isMixedMood before any further awaits
@@ -206,6 +206,47 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
                 );
               },
             ),
+            // Intensity slider
+            if (_selectedMood != null) ...[
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('How intense is this feeling?', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.brownDark)),
+                  Text(
+                    ['Mild', 'Low', 'Moderate', 'Strong', 'Intense'][_selectedIntensity - 1],
+                    style: const TextStyle(color: AppColors.golden, fontWeight: FontWeight.w700, fontSize: 13),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: AppColors.golden,
+                  inactiveTrackColor: AppColors.golden.withValues(alpha: 0.2),
+                  thumbColor: AppColors.golden,
+                  overlayColor: AppColors.golden.withValues(alpha: 0.12),
+                  trackHeight: 4,
+                ),
+                child: Slider(
+                  value: _selectedIntensity.toDouble(),
+                  min: 1,
+                  max: 5,
+                  divisions: 4,
+                  onChanged: (val) => setState(() => _selectedIntensity = val.round()),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Mild', style: TextStyle(fontSize: 11, color: AppColors.brownLight)),
+                    Text('Intense', style: TextStyle(fontSize: 11, color: AppColors.brownLight)),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 20),
             // Quick note
             TextField(

@@ -20,15 +20,24 @@ class EmotionLog {
     this.noteSentimentScore,
   });
 
-  /// Weighted blend of selected emotion and note sentiment (notes weighted 60%)
-  double get resolvedScore => noteSentimentScore != null
-      ? (intensityScore * 0.4) + (noteSentimentScore! * 0.6)
-      : intensityScore.toDouble();
+  /// Wellbeing score (1–5): positive emotions map intensity directly,
+  /// negative emotions invert it so higher intensity = lower wellbeing.
+  double get wellbeingScore {
+    const positiveEmotions = {'Happy', 'Calm'};
+    return positiveEmotions.contains(emotionType)
+        ? intensityScore.toDouble()
+        : (6 - intensityScore).toDouble();
+  }
 
-  /// True when selected emotion and note sentiment diverge by more than 2 points
+  /// Weighted blend of wellbeing score and note sentiment (notes weighted 60%)
+  double get resolvedScore => noteSentimentScore != null
+      ? (wellbeingScore * 0.4) + (noteSentimentScore! * 0.6)
+      : wellbeingScore;
+
+  /// True when wellbeing score and note sentiment diverge by more than 2 points
   bool get isMixedMood =>
       noteSentimentScore != null &&
-      (intensityScore - noteSentimentScore!).abs() > 2;
+      (wellbeingScore - noteSentimentScore!).abs() > 2;
 
   /// Whether this emotion is considered negative for trend detection
   bool get isNegative =>

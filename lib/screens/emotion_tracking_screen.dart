@@ -17,6 +17,7 @@ class EmotionTrackingScreen extends StatefulWidget {
 class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
     with SingleTickerProviderStateMixin {
   String? _selectedMood;
+  int _selectedIntensity = 3;
   final TextEditingController _noteController = TextEditingController();
   bool _showRecommendation = false;
 
@@ -29,7 +30,6 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
     {'label': 'Anxious', 'emoji': '😰'},
     {'label': 'Angry', 'emoji': '😠'},
     {'label': 'Calm', 'emoji': '😌'},
-    {'label': 'Tired', 'emoji': '😴'},
   ];
 
   @override
@@ -57,6 +57,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
     final wasLoggedToday = vm.hasLoggedToday;
     final success = await vm.submitEmotion(
       emotionType: _selectedMood!,
+      intensity: _selectedIntensity,
       notes: _noteController.text.isNotEmpty ? _noteController.text : null,
     );
 
@@ -97,6 +98,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
     setState(() {
       _showRecommendation = false;
       _selectedMood = null;
+      _selectedIntensity = 3;
       _noteController.clear();
     });
     Provider.of<EmotionViewModel>(context, listen: false).clearRecommendation();
@@ -167,7 +169,50 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
                 );
               },
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
+
+            // Intensity slider
+            if (_selectedMood != null) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('How intense is this feeling?', style: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w700, fontSize: 16)),
+                  Text(
+                    ['Mild', 'Low', 'Moderate', 'Strong', 'Intense'][_selectedIntensity - 1],
+                    style: const TextStyle(color: AppColors.golden, fontWeight: FontWeight.w700, fontSize: 14),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: AppColors.golden,
+                  inactiveTrackColor: AppColors.golden.withValues(alpha: 0.2),
+                  thumbColor: AppColors.golden,
+                  overlayColor: AppColors.golden.withValues(alpha: 0.12),
+                  trackHeight: 4,
+                ),
+                child: Slider(
+                  value: _selectedIntensity.toDouble(),
+                  min: 1,
+                  max: 5,
+                  divisions: 4,
+                  onChanged: (val) => setState(() => _selectedIntensity = val.round()),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Mild', style: TextStyle(fontSize: 11, color: AppColors.brownLight)),
+                    Text('Intense', style: TextStyle(fontSize: 11, color: AppColors.brownLight)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 28),
+            ] else
+              const SizedBox(height: 4),
 
             // Notes field
             const Text('Add a note about your day', style: TextStyle(color: AppColors.brownDark, fontWeight: FontWeight.w700, fontSize: 16)),
@@ -371,7 +416,9 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
         Text(emoji, style: const TextStyle(fontSize: 64)),
         const SizedBox(height: 16),
         Text('You\'re feeling ${log.emotionType}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.brownDark)),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
+        Text('Intensity: ${log.intensityScore}/5', style: const TextStyle(fontSize: 14, color: AppColors.brownMedium, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 4),
         if (log.notes != null && log.notes!.isNotEmpty)
           Text('"${log.notes}"', textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: AppColors.brownMedium, fontStyle: FontStyle.italic, height: 1.5)),
         const SizedBox(height: 8),
