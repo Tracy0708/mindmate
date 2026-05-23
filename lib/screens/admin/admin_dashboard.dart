@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +10,8 @@ import '../../services/interactive_message_service.dart';
 import '../../services/admin_realtime_notification_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/fcm_service.dart';
+import 'package:intl/intl.dart';
+import 'package:printing/printing.dart';
 import 'user_management_screen.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -108,8 +111,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 }
 
-class _AdminHomeTab extends StatelessWidget {
+class _AdminHomeTab extends StatefulWidget {
   const _AdminHomeTab();
+
+  @override
+  State<_AdminHomeTab> createState() => _AdminHomeTabState();
+}
+
+class _AdminHomeTabState extends State<_AdminHomeTab> {
+  bool _isExportingReport = false;
+  bool _isPreviewingReport = false;
 
   String _greeting() {
     final h = DateTime.now().hour;
@@ -126,6 +137,53 @@ class _AdminHomeTab extends StatelessWidget {
     ];
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return '${days[now.weekday - 1]}, ${months[now.month - 1]} ${now.day}';
+  }
+
+  Future<void> _exportSystemReport() async {
+    setState(() => _isExportingReport = true);
+    try {
+      final bytes = await context
+          .read<AdminViewModel>()
+          .exportSystemReport(lookbackDays: 30);
+      final filename =
+          'mindmate_system_report_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf';
+      await Printing.sharePdf(bytes: bytes, filename: filename);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isExportingReport = false);
+    }
+  }
+
+  Future<void> _previewSystemReport() async {
+    setState(() => _isPreviewingReport = true);
+    try {
+      final bytes = await context
+          .read<AdminViewModel>()
+          .exportSystemReport(lookbackDays: 30);
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => _PdfPreviewScreen(
+            title: 'System Report',
+            buildPdf: () async => bytes,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Preview failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isPreviewingReport = false);
+    }
   }
 
   @override
@@ -396,6 +454,109 @@ class _AdminHomeTab extends StatelessWidget {
                                     fontSize: 11,
                                     color: AppColors.brownLight,
                                   ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ── SYSTEM REPORT EXPORT ──
+                    const _SectionHeader(
+                      icon: Icons.picture_as_pdf_rounded,
+                      title: 'System Report',
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 14,
+                            offset: const Offset(0, 6),
+                          )
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Export a full platform report (last 30 days) as a PDF — includes user stats, emotion distribution, daily trends, and at-risk users.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.brownMedium,
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  icon: _isPreviewingReport
+                                      ? const SizedBox(
+                                          width: 14,
+                                          height: 14,
+                                          child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: AppColors.golden),
+                                        )
+                                      : const Icon(Icons.preview_rounded,
+                                          size: 16),
+                                  label: Text(_isPreviewingReport
+                                      ? 'Loading…'
+                                      : 'Preview'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.golden,
+                                    side: const BorderSide(
+                                        color: AppColors.golden),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10),
+                                  ),
+                                  onPressed: (_isExportingReport ||
+                                          _isPreviewingReport)
+                                      ? null
+                                      : _previewSystemReport,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  icon: _isExportingReport
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Icon(Icons.download_rounded,
+                                          size: 18),
+                                  label: Text(_isExportingReport
+                                      ? 'Generating…'
+                                      : 'Export PDF'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.golden,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10),
+                                  ),
+                                  onPressed: (_isExportingReport ||
+                                          _isPreviewingReport)
+                                      ? null
+                                      : _exportSystemReport,
                                 ),
                               ),
                             ],
@@ -759,6 +920,8 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
+                        const SizedBox(height: 8),
+                        _ExportUserPdfButton(user: user),
                       ],
                     ),
                   );
@@ -2201,6 +2364,156 @@ class _AdminProfileItem extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── Full-screen PDF preview screen ───────────────────────────────────────────
+
+class _PdfPreviewScreen extends StatelessWidget {
+  final String title;
+  final Future<Uint8List> Function() buildPdf;
+
+  const _PdfPreviewScreen({required this.title, required this.buildPdf});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+        backgroundColor: AppColors.golden,
+        foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: PdfPreview(
+        build: (_) => buildPdf(),
+        allowPrinting: true,
+        allowSharing: true,
+        canChangePageFormat: false,
+        canChangeOrientation: false,
+        canDebug: false,
+        pdfFileName: '${title.toLowerCase().replaceAll(' ', '_')}_'
+            '${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf',
+      ),
+    );
+  }
+}
+
+// ── Per-user PDF export button (used in the Analytics tab detail sheet) ──────
+
+class _ExportUserPdfButton extends StatefulWidget {
+  final Map<String, dynamic> user;
+
+  const _ExportUserPdfButton({required this.user});
+
+  @override
+  State<_ExportUserPdfButton> createState() => _ExportUserPdfButtonState();
+}
+
+class _ExportUserPdfButtonState extends State<_ExportUserPdfButton> {
+  bool _loading = false;
+  bool _previewing = false;
+
+  String get _filename {
+    final rawName = (widget.user['name'] as String? ?? 'user')
+        .replaceAll(' ', '_')
+        .toLowerCase();
+    return 'mindmate_${rawName}_mood_report_${DateFormat('yyyyMMdd').format(DateTime.now())}.pdf';
+  }
+
+  Future<Uint8List> _generateBytes() =>
+      context.read<AdminViewModel>().exportSingleUserMoodReport(widget.user);
+
+  Future<void> _preview() async {
+    setState(() => _previewing = true);
+    try {
+      final bytes = await _generateBytes();
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => _PdfPreviewScreen(
+            title: 'Mood Report',
+            buildPdf: () async => bytes,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Preview failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _previewing = false);
+    }
+  }
+
+  Future<void> _export() async {
+    setState(() => _loading = true);
+    try {
+      final bytes = await _generateBytes();
+      await Printing.sharePdf(bytes: bytes, filename: _filename);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final busy = _loading || _previewing;
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            icon: _previewing
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: AppColors.golden),
+                  )
+                : const Icon(Icons.preview_rounded, size: 16),
+            label: Text(_previewing ? 'Loading…' : 'Preview'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.golden,
+              side: const BorderSide(color: AppColors.golden),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(vertical: 11),
+            ),
+            onPressed: busy ? null : _preview,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: ElevatedButton.icon(
+            icon: _loading
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white),
+                  )
+                : const Icon(Icons.download_rounded, size: 18),
+            label: Text(_loading ? 'Generating…' : 'Export PDF'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.golden,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(vertical: 11),
+            ),
+            onPressed: busy ? null : _export,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'dart:developer' as developer;
 import 'dart:math' as math;
 import '../models/user_model.dart';
+import '../models/emotion_log.dart';
 
 class AdminService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -271,6 +272,23 @@ class AdminService {
           name: 'AdminService', level: 900);
       rethrow;
     }
+  }
+
+  Future<List<EmotionLog>> getUserEmotionLogs(
+    String userId, {
+    int lookbackDays = 21,
+  }) async {
+    final since = DateTime.now().subtract(Duration(days: lookbackDays));
+    final snapshot = await _firestore
+        .collection(_usersCollection)
+        .doc(userId)
+        .collection('emotion_logs')
+        .orderBy('timestamp', descending: true)
+        .get();
+    return snapshot.docs
+        .map((doc) => EmotionLog.fromMap(doc.data(), doc.id))
+        .where((log) => log.timestamp.isAfter(since))
+        .toList();
   }
 
   // Update user role
