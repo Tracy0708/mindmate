@@ -346,7 +346,7 @@ class _SplashScreenState extends State<_SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _resolveRoute();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _resolveRoute());
   }
 
   Future<void> _resolveRoute() async {
