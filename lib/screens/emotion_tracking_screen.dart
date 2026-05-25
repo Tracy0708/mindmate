@@ -68,7 +68,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
         await gamVm.awardMoodLogPoints();
         final streakAch = await gamVm.checkStreakMilestones(vm.streak);
         final firstAch = await gamVm.checkFirstLogMilestone(vm.logCount);
-        final logAch = await gamVm.checkLogMilestones(vm.logCount);
+        final logAch = await gamVm.checkLogMilestones(vm.totalLogCount);
         await gamVm.fetchUserStats();
 
         final allAch = [...streakAch, if (firstAch != null) firstAch, if (logAch != null) logAch];

@@ -15,6 +15,7 @@ class PrivacyScreen extends StatelessWidget {
             const AppScreenHeader(
               title: 'Privacy',
               subtitle: 'How MindMate handles your data.',
+              icon: Icons.shield_rounded,
               showBack: true,
             ),
             Expanded(

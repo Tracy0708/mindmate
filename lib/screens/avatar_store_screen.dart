@@ -107,6 +107,7 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
             const AppScreenHeader(
               title: 'Avatar Store',
               subtitle: 'Spend points to unlock avatars.',
+              icon: Icons.storefront_rounded,
               showBack: true,
             ),
             Expanded(
@@ -156,7 +157,7 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
                       crossAxisCount: 2,
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
-                      childAspectRatio: 0.62,
+                      childAspectRatio: 0.74,
                     ),
                     itemCount: _availableAvatars.length,
                     itemBuilder: (context, index) {
@@ -185,9 +186,23 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            AppEmoji(emoji, size: 48),
+                            // Dim locked avatars so unlocked ones stand out.
+                            Opacity(
+                              opacity: isUnlocked ? 1.0 : 0.4,
+                              child: AppEmoji(emoji, size: 48),
+                            ),
                             const SizedBox(height: 12),
-                            Text(name, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textDark, fontSize: 13), textAlign: TextAlign.center),
+                            Text(
+                              name,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: isUnlocked ? AppColors.textDark : AppColors.textMedium,
+                                fontSize: 13,
+                              ),
+                            ),
                             const SizedBox(height: 12),
                             if (isEquipped)
                               Container(

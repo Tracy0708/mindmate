@@ -17,6 +17,7 @@ class HelpSupportScreen extends StatelessWidget {
             const AppScreenHeader(
               title: 'Help & Support',
               subtitle: 'Answers and ways to reach us.',
+              icon: Icons.help_outline_rounded,
               showBack: true,
             ),
             Expanded(
@@ -67,7 +68,7 @@ class HelpSupportScreen extends StatelessWidget {
                     _FaqTile(
                       question: 'Can I change my avatar?',
                       answer:
-                          'Yes! Go to your Profile and tap "Avatar Library". Browse available avatars, unlock them using your earned points, and tap "Equip" to set your active avatar.',
+                          'Yes! Go to your Profile and tap "Avatar Store". Browse available avatars, unlock them using your earned points, and tap "Equip" to set your active avatar.',
                     ),
                     Divider(height: 1, color: AppColors.fieldBorder),
                     _FaqTile(

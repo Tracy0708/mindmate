@@ -182,6 +182,7 @@ class _NotificationSettingsScreenState
             const AppScreenHeader(
               title: 'Notifications',
               subtitle: 'Tune what reaches you and when.',
+              icon: Icons.tune_rounded,
               showBack: true,
               padding: EdgeInsets.fromLTRB(24, 8, 24, 8),
             ),

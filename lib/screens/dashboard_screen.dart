@@ -578,7 +578,7 @@ class _HistoryFeed extends StatelessWidget {
       child: ListView.separated(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: history.length > 10 ? 10 : history.length,
+        itemCount: history.length > 5 ? 5 : history.length,
         separatorBuilder: (_, __) => Divider(height: 1, color: AppColors.fieldBorder.withOpacity(0.5), indent: 68),
         itemBuilder: (_, i) {
           final item = _buildItem(history[i]);

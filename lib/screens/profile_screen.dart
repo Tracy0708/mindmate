@@ -405,7 +405,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('Avatar Library',
+                                      Text('Avatar Store',
                                           style: TextStyle(
                                               fontSize: 17,
                                               fontWeight: FontWeight.w800,

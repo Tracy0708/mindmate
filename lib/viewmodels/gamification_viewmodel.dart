@@ -139,7 +139,9 @@ class GamificationViewModel extends ChangeNotifier {
     String? title;
     int points = 0;
     if (logCount == 10) { title = 'Goal Setter'; points = 100; }
-    else if (logCount == 30) { title = 'Routine Builder'; points = 250; }
+    else if (logCount == 30) { title = 'Consistent'; points = 250; }
+    else if (logCount == 50) { title = 'Committed'; points = 400; }
+    else if (logCount == 100) { title = 'Century Logger'; points = 750; }
     else return null;
 
     try {
@@ -163,7 +165,8 @@ class GamificationViewModel extends ChangeNotifier {
     int points = 0;
     if (actCount == 1) { title = 'Beginner'; points = 50; }
     else if (actCount == 5) { title = 'Pro'; points = 150; }
-    else if (actCount == 10) { title = 'Zen Master'; points = 300; }
+    else if (actCount == 10) { title = 'Enthusiast'; points = 300; }
+    else if (actCount == 25) { title = 'Champion'; points = 600; }
     else return null;
 
     try {

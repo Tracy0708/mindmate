@@ -134,8 +134,10 @@ class GamificationService {
   ) async {
     final streakAchievements = <GamificationHistory>[];
     final streakMilestones = {
-      7: 'Weekly Warrior',
-      30: 'Monthly Master',
+      3: 'Getting Started',
+      7: 'Streak Master',
+      14: 'Two Weeks Strong',
+      30: 'Dedicated',
       100: 'Centurion',
       365: 'Yearly Champion',
     };

@@ -45,6 +45,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               const AppScreenHeader(
                 title: 'Insights',
                 subtitle: 'Your mood, trends, and progress.',
+                icon: Icons.insights_rounded,
               ),
               Expanded(
                 child: vm.isLoading
@@ -124,7 +125,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
       if (vm.logs.isNotEmpty) ...[
         _sectionHeader('Mood History'),
         const SizedBox(height: 12),
-        ...vm.logs.take(10).map((log) => _timelineItem(log)),
+        ...vm.logs.take(5).map((log) => _timelineItem(log)),
       ],
     ]);
   }

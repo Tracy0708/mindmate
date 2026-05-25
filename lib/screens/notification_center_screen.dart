@@ -61,17 +61,26 @@ class NotificationCenterScreen extends StatelessWidget {
             AppScreenHeader(
               title: 'Notifications',
               subtitle: 'Quiet, useful, never noisy',
+              icon: Icons.notifications_rounded,
               showBack: true,
               trailing: uid == null
                   ? null
-                  : TextButton(
-                      onPressed: () => service.markAllAsRead(uid),
-                      child: const Text(
-                        'Mark all read',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
+                  : Tooltip(
+                      message: 'Mark all read',
+                      child: Material(
+                        color: AppColors.primary.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(14),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () => service.markAllAsRead(uid),
+                          child: const SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: Center(
+                              child: Icon(Icons.done_all_rounded,
+                                  color: AppColors.primary, size: 22),
+                            ),
+                          ),
                         ),
                       ),
                     ),

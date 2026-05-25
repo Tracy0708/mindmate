@@ -95,7 +95,8 @@ class EmotionService {
 
   // ─── Get the current logging streak ───
   Future<int> getStreak(String userId) async {
-    final logs = await getRecentLogs(userId, days: 30);
+    // Look back far enough to detect long streaks (e.g. 100-day badge).
+    final logs = await getRecentLogs(userId, days: 366);
     if (logs.isEmpty) return 0;
 
     int streak = 0;

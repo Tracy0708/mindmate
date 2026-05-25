@@ -22,6 +22,7 @@ class EmotionViewModel extends ChangeNotifier {
   RecommendedActivity? _recommendedActivity;
   int _streak = 0;
   int _logCount = 0;
+  int _totalLogCount = 0;
   int _completedActivityCount = 0;
   int _breathingSessionCount = 0;
 
@@ -36,6 +37,8 @@ class EmotionViewModel extends ChangeNotifier {
   RecommendedActivity? get recommendedActivity => _recommendedActivity;
   int get streak => _streak;
   int get logCount => _logCount;
+  /// Cumulative mood logs (last 365 days), used for higher log-tier badges.
+  int get totalLogCount => _totalLogCount;
   int get completedActivityCount => _completedActivityCount;
   int get breathingSessionCount => _breathingSessionCount;
 
@@ -55,6 +58,7 @@ class EmotionViewModel extends ChangeNotifier {
       _recentLogs = await _emotionService.getRecentLogs(userId);
       _streak = await _emotionService.getStreak(userId);
       _logCount = await _emotionService.getLogCount(userId, days: 30);
+      _totalLogCount = await _emotionService.getLogCount(userId, days: 365);
       _completedActivityCount = await _emotionService.getCompletedActivityCount(userId);
       _breathingSessionCount = await _emotionService.getBreathingSessionCount(userId);
 
@@ -116,6 +120,7 @@ class EmotionViewModel extends ChangeNotifier {
       // Update streak and check streak milestones
       _streak = await _emotionService.getStreak(userId);
       _logCount = await _emotionService.getLogCount(userId, days: 30);
+      _totalLogCount = await _emotionService.getLogCount(userId, days: 365);
 
       // Check streak-based gamification achievements
       try {
@@ -320,6 +325,7 @@ class EmotionViewModel extends ChangeNotifier {
     _recommendedActivity = null;
     _streak = 0;
     _logCount = 0;
+    _totalLogCount = 0;
     _completedActivityCount = 0;
     _breathingSessionCount = 0;
     notifyListeners();
