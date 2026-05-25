@@ -6,6 +6,7 @@ import '../main.dart';
 import '../models/emotion_log.dart';
 import '../services/emotion_service.dart';
 import '../viewmodels/emotion_viewmodel.dart';
+import '../widgets/app_screen_header.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -120,13 +121,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.creamLight,
-      appBar: AppBar(
-        title: const Text('Mood Calendar', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 24)),
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-      ),
-      body: Column(
+      body: SafeArea(
+        child: Column(
         children: [
+          const AppScreenHeader(
+            title: 'Calendar',
+            subtitle: 'Your mood, day by day.',
+          ),
           // Filters
           SizedBox(
             height: 48,
@@ -240,6 +241,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ),
           ),
         ],
+        ),
       ),
     );
   }

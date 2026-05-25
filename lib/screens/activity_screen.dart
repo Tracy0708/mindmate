@@ -269,7 +269,7 @@ class _ActivityScreenState extends State<ActivityScreen>
     return Scaffold(
       backgroundColor: AppColors.creamLight,
       appBar: AppBar(
-        title: Text(widget.activity.title, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 20)),
+        title: Text(widget.activity.title, style: const TextStyle(color: AppColors.textDark, fontWeight: FontWeight.w700, fontSize: 20)),
         centerTitle: true,
         leading: IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
         actions: [

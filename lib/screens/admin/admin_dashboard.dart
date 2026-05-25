@@ -8,8 +8,10 @@ import '../../models/user_model.dart';
 import '../../main.dart';
 import '../../services/interactive_message_service.dart';
 import '../../services/admin_realtime_notification_service.dart';
-import '../../services/notification_service.dart';
 import '../../services/fcm_service.dart';
+import '../../widgets/app_screen_header.dart';
+import '../../widgets/notification_bell.dart';
+import '../../widgets/app_settings_tile.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import 'user_management_screen.dart';
@@ -205,77 +207,12 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                   children: [
                     // ── HEADER ──
                     const SizedBox(height: 12),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${_greeting()}, Admin 👋',
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppColors.textDark,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _todayLabel(),
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.textMedium,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        StreamBuilder<int>(
-                          stream: NotificationService().getUnreadCount(
-                            FirebaseAuth.instance.currentUser?.uid ?? '',
-                          ),
-                          builder: (context, snapshot) {
-                            final count = snapshot.data ?? 0;
-                            return Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                IconButton(
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  icon: const Icon(Icons.notifications_outlined,
-                                      color: AppColors.textDark, size: 26),
-                                  onPressed: () =>
-                                      Navigator.pushNamed(context, '/notifications'),
-                                ),
-                                if (count > 0)
-                                  Positioned(
-                                    right: -2,
-                                    top: -2,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(3),
-                                      decoration: const BoxDecoration(
-                                        color: AppColors.errorRed,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      constraints: const BoxConstraints(
-                                          minWidth: 16, minHeight: 16),
-                                      child: Text(
-                                        count > 99 ? '99+' : '$count',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            );
-                          },
-                        ),
-                      ],
+                    AppScreenHeader(
+                      padding: EdgeInsets.zero,
+                      eyebrow: '${_greeting()} 👋',
+                      title: 'Admin',
+                      subtitle: _todayLabel(),
+                      trailing: const NotificationBell(iconSize: 26),
                     ),
                     const SizedBox(height: 6),
                     if (vm.errorMessage != null)
@@ -439,25 +376,6 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
-                          const Divider(height: 1, color: AppColors.fieldBorder),
-                          const SizedBox(height: 14),
-                          const Row(
-                            children: [
-                              Icon(Icons.info_outline_rounded,
-                                  size: 14, color: AppColors.textLight),
-                              SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  'Pull down to refresh, or tap the refresh icon above.',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.textLight,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
                         ],
                       ),
                     ),
@@ -486,7 +404,7 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Export a full platform report (last 30 days) as a PDF — includes user stats, emotion distribution, daily trends, and at-risk users.',
+                            'Full platform report (last 30 days) as a PDF.',
                             style: TextStyle(
                               fontSize: 12,
                               color: AppColors.textMedium,
@@ -987,7 +905,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                 ),
                 const SizedBox(height: 6),
                 const Text(
-                  'Per-user mood pattern analysis to identify users who may need counselling follow-up.',
+                  'Spot users who may need a counselling follow-up.',
                   style: TextStyle(
                     fontSize: 12,
                     color: AppColors.textMedium,
@@ -2084,7 +2002,7 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
                               width: 100,
                               height: 100,
                               decoration: const BoxDecoration(
-                                color: Color(0xFFFFE0A0),
+                                color: AppColors.primaryLight,
                                 shape: BoxShape.circle,
                               ),
                               alignment: Alignment.center,
@@ -2220,27 +2138,27 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
                               ],
                             ),
                             child: Column(children: [
-                              _AdminSettingsItem(
+                              AppSettingsTile(
                                 icon: Icons.notifications_active_outlined,
                                 label: 'Notification Settings',
                                 onTap: () => Navigator.pushNamed(
                                     context, '/admin-notifications-settings'),
                               ),
-                              _AdminSettingsItem(
+                              AppSettingsTile(
                                 icon: Icons.shield_outlined,
                                 label: 'Privacy',
                                 onTap: () =>
                                     Navigator.pushNamed(context, '/privacy'),
                               ),
-                              _AdminSettingsItem(
+                              AppSettingsTile(
                                 icon: Icons.help_outline,
                                 label: 'Help & Support',
                                 onTap: () => Navigator.pushNamed(
                                     context, '/help-support'),
                               ),
-                              _AdminSettingsItem(
+                              AppSettingsTile(
                                 icon: Icons.logout,
-                                label: 'Sign Out',
+                                label: 'Log out',
                                 isDestructive: true,
                                 onTap: () async {
                                   await FCMService().clearTokenForCurrentUser();
@@ -2267,46 +2185,6 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
                   );
                 },
               ),
-      ),
-    );
-  }
-}
-
-class _AdminSettingsItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isDestructive;
-  final VoidCallback? onTap;
-
-  const _AdminSettingsItem({
-    required this.icon,
-    required this.label,
-    this.isDestructive = false,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isDestructive ? AppColors.errorRed : AppColors.textDark;
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Row(children: [
-          Icon(icon,
-              color: isDestructive ? color : AppColors.textMedium, size: 22),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(label,
-                style: TextStyle(
-                    color: color,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500)),
-          ),
-          if (!isDestructive)
-            const Icon(Icons.chevron_right,
-                color: AppColors.textLight, size: 20),
-        ]),
       ),
     );
   }

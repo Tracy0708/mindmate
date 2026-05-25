@@ -16,7 +16,8 @@ import 'calendar_screen.dart';
 import 'activity_screen.dart';
 import 'insights_screen.dart';
 import 'gamification_screen.dart';
-import '../services/notification_service.dart';
+import '../widgets/app_screen_header.dart';
+import '../widgets/notification_bell.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -194,66 +195,26 @@ class _HomeTabState extends State<_HomeTab> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
                 // ── GREETING HEADER ──
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text('$_greeting 👋', style: const TextStyle(fontSize: 14, color: AppColors.textMedium, fontWeight: FontWeight.w500)),
-                        Text(_userName, 
-                          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: AppColors.textDark, letterSpacing: 0.5),
-                          maxLines: 1, 
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ]),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
-                      child: Row(children: [
-                        const Icon(Icons.local_fire_department, color: AppColors.primary, size: 16),
-                        const SizedBox(width: 4),
-                        Text('$streak day${streak == 1 ? '' : 's'}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 13)),
-                      ]),
-                    ),
-                    const SizedBox(width: 8),
-                    StreamBuilder<int>(
-                      stream: NotificationService().getUnreadCount(_authService.currentUser?.uid ?? ''),
-                      builder: (context, snapshot) {
-                        final count = snapshot.data ?? 0;
-                        return Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            IconButton(
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              icon: const Icon(Icons.notifications_outlined, color: AppColors.textDark, size: 24),
-                              onPressed: () => Navigator.pushNamed(context, '/notifications'),
-                            ),
-                            if (count > 0)
-                              Positioned(
-                                right: -2,
-                                top: -2,
-                                child: Container(
-                                  padding: const EdgeInsets.all(3),
-                                  decoration: const BoxDecoration(
-                                    color: AppColors.errorRed,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                                  child: Text(
-                                    count > 99 ? '99+' : '$count',
-                                    style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
+                AppScreenHeader(
+                  padding: EdgeInsets.zero,
+                  eyebrow: '$_greeting 👋',
+                  title: _userName,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
+                        child: Row(children: [
+                          const Icon(Icons.local_fire_department, color: AppColors.primary, size: 16),
+                          const SizedBox(width: 4),
+                          Text('$streak day${streak == 1 ? '' : 's'}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 13)),
+                        ]),
+                      ),
+                      const SizedBox(width: 8),
+                      const NotificationBell(),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 20),
 

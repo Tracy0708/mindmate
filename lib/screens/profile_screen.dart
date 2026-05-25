@@ -7,6 +7,7 @@ import '../services/interactive_message_service.dart';
 import '../services/gamification_service.dart';
 import '../viewmodels/emotion_viewmodel.dart';
 import '../viewmodels/gamification_viewmodel.dart';
+import '../widgets/app_settings_tile.dart';
 import 'avatar_store_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -461,7 +462,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ],
                           ),
                           child: Column(children: [
-                            _SettingsItem(
+                            AppSettingsTile(
                               icon: Icons.notifications_none,
                               label: 'Notifications',
                               trailingLabel: _notificationsEnabled ? 'On' : 'Off',
@@ -470,21 +471,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 _loadProfile();
                               },
                             ),
-                            _SettingsItem(
+                            AppSettingsTile(
                               icon: Icons.shield_outlined,
                               label: 'Privacy',
                               onTap: () =>
                                   Navigator.pushNamed(context, '/privacy'),
                             ),
-                            _SettingsItem(
+                            AppSettingsTile(
                               icon: Icons.help_outline,
                               label: 'Help & Support',
                               onTap: () => Navigator.pushNamed(
                                   context, '/help-support'),
                             ),
-                            _SettingsItem(
+                            AppSettingsTile(
                               icon: Icons.logout,
-                              label: 'Logout',
+                              label: 'Log out',
                               isDestructive: true,
                               onTap: () async {
                                 await AuthService().signOut();
@@ -506,53 +507,3 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-// ─── SETTINGS ITEM ───
-class _SettingsItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String? trailingLabel;
-  final bool isDestructive;
-  final VoidCallback? onTap;
-
-  const _SettingsItem({
-    required this.icon,
-    required this.label,
-    this.trailingLabel,
-    this.isDestructive = false,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isDestructive ? AppColors.errorRed : AppColors.textDark;
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Row(children: [
-          Icon(icon, color: isDestructive ? color : AppColors.textMedium, size: 22),
-          const SizedBox(width: 16),
-          Expanded(
-              child: Text(label,
-                  style: TextStyle(
-                      color: color, fontSize: 15, fontWeight: FontWeight.w500))),
-          if (trailingLabel != null)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(trailingLabel!,
-                  style: const TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13)),
-            ),
-          if (!isDestructive && trailingLabel == null)
-            const Icon(Icons.chevron_right, color: AppColors.textLight, size: 20),
-        ]),
-      ),
-    );
-  }
-}

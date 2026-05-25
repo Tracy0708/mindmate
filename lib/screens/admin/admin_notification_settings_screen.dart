@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/auth_service.dart';
 import '../../services/local_notification_service.dart';
 import '../../main.dart';
+import '../../widgets/app_screen_header.dart';
+import '../../widgets/app_notification_toggle.dart';
 
 class AdminNotificationSettingsScreen extends StatefulWidget {
   const AdminNotificationSettingsScreen({super.key});
@@ -180,29 +182,24 @@ class _AdminNotificationSettingsScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.creamLight,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: AppColors.textDark, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('Admin Notifications',
-            style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: AppColors.primary)),
-        centerTitle: true,
-      ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primary))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+      body: SafeArea(
+        child: Column(
+          children: [
+            const AppScreenHeader(
+              title: 'Admin Notifications',
+              subtitle: 'Choose which alerts reach you.',
+              showBack: true,
+              padding: EdgeInsets.fromLTRB(24, 8, 24, 8),
+            ),
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppColors.primary))
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(18),
@@ -324,7 +321,7 @@ class _AdminNotificationSettingsScreenState
                           color: AppColors.textDark)),
                   const SizedBox(height: 6),
                   const Text(
-                    'Select which events trigger a push notification to your device.',
+                    'Pick which events alert you.',
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.textMedium,
@@ -346,7 +343,7 @@ class _AdminNotificationSettingsScreenState
                     ),
                     child: Column(
                       children: [
-                        _NotificationToggle(
+                        AppNotificationToggle(
                           icon: Icons.warning_rounded,
                           iconColor: AppColors.errorRed,
                           title: 'High Risk Alerts',
@@ -357,7 +354,7 @@ class _AdminNotificationSettingsScreenState
                               _onSubToggle('highRiskAlerts', v),
                         ),
                         const Divider(height: 1, indent: 68),
-                        _NotificationToggle(
+                        AppNotificationToggle(
                           icon: Icons.gpp_maybe_rounded,
                           iconColor: const Color(0xFFDD8A00),
                           title: 'Abnormal Behavior',
@@ -368,7 +365,7 @@ class _AdminNotificationSettingsScreenState
                               _onSubToggle('abnormalBehavior', v),
                         ),
                         const Divider(height: 1, indent: 68),
-                        _NotificationToggle(
+                        AppNotificationToggle(
                           icon: Icons.person_add_alt_1_rounded,
                           iconColor: const Color(0xFF26A69A),
                           title: 'New Signups',
@@ -378,7 +375,7 @@ class _AdminNotificationSettingsScreenState
                           onChanged: (v) => _onSubToggle('newSignups', v),
                         ),
                         const Divider(height: 1, indent: 68),
-                        _NotificationToggle(
+                        AppNotificationToggle(
                           icon: Icons.analytics_rounded,
                           iconColor: const Color(0xFF5C6BC0),
                           title: 'System Reports',
@@ -401,7 +398,7 @@ class _AdminNotificationSettingsScreenState
                           color: AppColors.textDark)),
                   const SizedBox(height: 6),
                   const Text(
-                    'When should we send your daily system overview?',
+                    'When to send the daily overview.',
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.textMedium,
@@ -477,71 +474,10 @@ class _AdminNotificationSettingsScreenState
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40),
-                ],
-              ),
-            ),
-    );
-  }
-}
-
-class _NotificationToggle extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String subtitle;
-  final bool value;
-  final bool enabled;
-  final ValueChanged<bool> onChanged;
-
-  const _NotificationToggle({
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.enabled,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 200),
-      opacity: enabled ? 1.0 : 0.4,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: iconColor, size: 22),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textDark)),
-                  const SizedBox(height: 2),
-                  Text(subtitle,
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.textMedium)),
-                ],
-              ),
-            ),
-            Switch(
-              value: value,
-              activeThumbColor: AppColors.primary,
-              onChanged: enabled ? onChanged : null,
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
             ),
           ],
         ),
@@ -549,3 +485,4 @@ class _NotificationToggle extends StatelessWidget {
     );
   }
 }
+

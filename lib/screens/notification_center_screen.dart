@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../main.dart';
 import '../models/notification_model.dart';
 import '../services/notification_service.dart';
+import '../widgets/app_screen_header.dart';
 
 class NotificationCenterScreen extends StatelessWidget {
   const NotificationCenterScreen({super.key});
@@ -54,33 +55,33 @@ class NotificationCenterScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.creamLight,
-      appBar: AppBar(
-        backgroundColor: AppColors.creamLight,
-        title: const Text('Notifications'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textDark),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          if (uid != null)
-            TextButton(
-              onPressed: () => service.markAllAsRead(uid),
-              child: const Text(
-                'Mark all read',
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 13,
-                ),
-              ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            AppScreenHeader(
+              title: 'Notifications',
+              subtitle: 'Quiet, useful, never noisy',
+              showBack: true,
+              trailing: uid == null
+                  ? null
+                  : TextButton(
+                      onPressed: () => service.markAllAsRead(uid),
+                      child: const Text(
+                        'Mark all read',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
             ),
-        ],
-      ),
-      body: uid == null
-          ? const Center(
-              child: Text('Not signed in.',
-                  style: TextStyle(color: AppColors.textMedium)))
-          : StreamBuilder<List<NotificationModel>>(
+            Expanded(
+              child: uid == null
+                  ? const Center(
+                      child: Text('Not signed in.',
+                          style: TextStyle(color: AppColors.textMedium)))
+                  : StreamBuilder<List<NotificationModel>>(
               stream: service.getUserNotifications(uid),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -238,6 +239,10 @@ class NotificationCenterScreen extends StatelessWidget {
                 );
               },
             ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

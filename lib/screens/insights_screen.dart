@@ -7,6 +7,7 @@ import '../models/emotion_insight.dart';
 import '../models/emotion_log.dart';
 import '../viewmodels/insights_viewmodel.dart';
 import '../services/emotion_service.dart';
+import '../widgets/app_screen_header.dart';
 import 'activity_screen.dart';
 import 'dashboard_screen.dart';
 
@@ -36,24 +37,31 @@ class _InsightsScreenState extends State<InsightsScreen> {
     return Consumer<InsightsViewModel>(builder: (context, vm, _) {
       return Scaffold(
         backgroundColor: AppColors.creamLight,
-        appBar: AppBar(
-          title: const Text('Mental Health Insights', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 22)),
-          centerTitle: true,
-          automaticallyImplyLeading: false,
+        body: SafeArea(
+          child: Column(
+            children: [
+              const AppScreenHeader(
+                title: 'Insights',
+                subtitle: 'Your mood, trends, and progress.',
+              ),
+              Expanded(
+                child: vm.isLoading
+                    ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                    : vm.errorMessage != null
+                        ? _errorView(vm)
+                        : RefreshIndicator(
+                            color: AppColors.primary,
+                            onRefresh: () => vm.fetchInsights(),
+                            child: SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                              padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+                              child: _buildContent(vm),
+                            ),
+                          ),
+              ),
+            ],
+          ),
         ),
-        body: vm.isLoading
-            ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-            : vm.errorMessage != null
-                ? _errorView(vm)
-                : RefreshIndicator(
-                    color: AppColors.primary,
-                    onRefresh: () => vm.fetchInsights(),
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-                      child: _buildContent(vm),
-                    ),
-                  ),
       );
     });
   }

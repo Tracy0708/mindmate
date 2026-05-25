@@ -168,83 +168,40 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: TextButton.icon(
-                                  onPressed: _isLoading
-                                      ? null
-                                      : () {
-                                          if (Navigator.canPop(context)) {
-                                            Navigator.pop(context);
-                                          } else {
-                                            Navigator.pushReplacementNamed(context, '/');
-                                          }
-                                        },
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: AppColors.textMedium,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 6),
-                                  ),
-                                  icon: const Icon(Icons.arrow_back_rounded,
-                                      size: 18),
-                                  label: const Text('Back to login'),
-                                ),
-                              ),
-                              const SizedBox(height: 6),
                               Center(
                                 child: Container(
-                                  width: 92,
-                                  height: 92,
+                                  width: 72,
+                                  height: 72,
                                   decoration: BoxDecoration(
+                                    color: AppColors.primary
+                                        .withValues(alpha: 0.12),
                                     shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        AppColors.primary.withValues(alpha:0.20),
-                                        AppColors.primary.withValues(alpha:0.06),
-                                      ],
-                                    ),
-                                    border: Border.all(
-                                        color:
-                                            AppColors.primary.withValues(alpha:0.55),
-                                        width: 2),
                                   ),
                                   child: const Icon(
                                       Icons.admin_panel_settings_rounded,
-                                      size: 44,
+                                      size: 38,
                                       color: AppColors.textDark),
                                 ),
                               ),
-                              const SizedBox(height: 18),
+                              const SizedBox(height: 14),
                               const Center(
                                 child: Text(
                                   'MINDMATE',
                                   style: TextStyle(
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.w900,
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w800,
                                     color: AppColors.primary,
-                                    letterSpacing: 2.4,
+                                    letterSpacing: 2,
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 4),
                               const Center(
                                 child: Text(
                                   'Admin Portal',
                                   style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.textDark,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              const Center(
-                                child: Text(
-                                  'Sign in with an admin account to monitor users, review usage, and manage access.',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    height: 1.45,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
                                     color: AppColors.textMedium,
                                   ),
                                 ),
@@ -286,17 +243,17 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                   filled: true,
                                   fillColor: const Color(0xFFFFFCF8),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(14),
                                     borderSide: const BorderSide(
                                         color: AppColors.fieldBorder),
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(14),
                                     borderSide: const BorderSide(
                                         color: AppColors.fieldBorder),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(14),
                                     borderSide: const BorderSide(
                                         color: AppColors.primary, width: 2),
                                   ),
@@ -334,17 +291,17 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                   filled: true,
                                   fillColor: const Color(0xFFFFFCF8),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(14),
                                     borderSide: const BorderSide(
                                         color: AppColors.fieldBorder),
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(14),
                                     borderSide: const BorderSide(
                                         color: AppColors.fieldBorder),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(14),
                                     borderSide: const BorderSide(
                                         color: AppColors.primary, width: 2),
                                   ),
@@ -353,7 +310,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                               const SizedBox(height: 24),
                               SizedBox(
                                 width: double.infinity,
-                                height: 54,
+                                height: 52,
                                 child: ElevatedButton.icon(
                                   onPressed: _isLoading ? null : _handleLogin,
                                   style: ElevatedButton.styleFrom(
@@ -361,7 +318,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                     foregroundColor: AppColors.textDark,
                                     elevation: 0,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
+                                      borderRadius: BorderRadius.circular(14),
                                     ),
                                   ),
                                   icon: _isLoading
@@ -382,26 +339,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                     ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 18),
-                              Row(
-                                children: [
-                                  Icon(Icons.security_rounded,
-                                      size: 16,
-                                      color: AppColors.textMedium
-                                          .withValues(alpha:0.9)),
-                                  const SizedBox(width: 8),
-                                  const Expanded(
-                                    child: Text(
-                                      'Only admin accounts stored in Firebase can enter this portal.',
-                                      style: TextStyle(
-                                        color: AppColors.textMedium,
-                                        fontSize: 12,
-                                        height: 1.35,
-                                      ),
-                                    ),
-                                  ),
-                                ],
                               ),
                               const SizedBox(height: 12),
                               TextButton(

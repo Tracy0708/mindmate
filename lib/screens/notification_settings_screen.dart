@@ -2,6 +2,8 @@
 import '../services/auth_service.dart';
 import '../services/local_notification_service.dart';
 import '../main.dart';
+import '../widgets/app_screen_header.dart';
+import '../widgets/app_notification_toggle.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
@@ -174,29 +176,24 @@ class _NotificationSettingsScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.creamLight,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new,
-              color: AppColors.textDark, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text('Notifications',
-            style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: AppColors.primary)),
-        centerTitle: true,
-      ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primary))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+      body: SafeArea(
+        child: Column(
+          children: [
+            const AppScreenHeader(
+              title: 'Notifications',
+              subtitle: 'Tune what reaches you and when.',
+              showBack: true,
+              padding: EdgeInsets.fromLTRB(24, 8, 24, 8),
+            ),
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: AppColors.primary))
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(18),
@@ -318,7 +315,7 @@ class _NotificationSettingsScreenState
                           color: AppColors.textDark)),
                   const SizedBox(height: 6),
                   const Text(
-                    'Choose which reminders are actually helpful so the app stays supportive instead of noisy.',
+                    'Pick which reminders you want.',
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.textMedium,
@@ -340,7 +337,7 @@ class _NotificationSettingsScreenState
                     ),
                     child: Column(
                       children: [
-                        _NotificationToggle(
+                        AppNotificationToggle(
                           icon: Icons.mood,
                           iconColor: const Color(0xFFFFB300),
                           title: 'Daily Mood Reminder',
@@ -351,7 +348,7 @@ class _NotificationSettingsScreenState
                               _onSubToggle('dailyMoodReminder', v),
                         ),
                         const Divider(height: 1, indent: 68),
-                        _NotificationToggle(
+                        AppNotificationToggle(
                           icon: Icons.air,
                           iconColor: const Color(0xFF26A69A),
                           title: 'Breathing Exercise',
@@ -362,7 +359,7 @@ class _NotificationSettingsScreenState
                               _onSubToggle('breathingReminder', v),
                         ),
                         const Divider(height: 1, indent: 68),
-                        _NotificationToggle(
+                        AppNotificationToggle(
                           icon: Icons.bar_chart,
                           iconColor: const Color(0xFF5C6BC0),
                           title: 'Weekly Summary',
@@ -372,7 +369,7 @@ class _NotificationSettingsScreenState
                           onChanged: (v) => _onSubToggle('weeklySummary', v),
                         ),
                         const Divider(height: 1, indent: 68),
-                        _NotificationToggle(
+                        AppNotificationToggle(
                           icon: Icons.format_quote,
                           iconColor: const Color(0xFFE91E63),
                           title: 'Motivational Quotes',
@@ -395,7 +392,7 @@ class _NotificationSettingsScreenState
                           color: AppColors.textDark)),
                   const SizedBox(height: 6),
                   const Text(
-                    'Your daily mood reminder and breathing reminder follow this time.',
+                    'Used for daily reminders.',
                     style: TextStyle(
                       fontSize: 13,
                       color: AppColors.textMedium,
@@ -473,71 +470,10 @@ class _NotificationSettingsScreenState
                   ),
                   const SizedBox(height: 28),
 
-                  const SizedBox(height: 40),
-                ],
-              ),
-            ),
-    );
-  }
-}
-
-class _NotificationToggle extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String subtitle;
-  final bool value;
-  final bool enabled;
-  final ValueChanged<bool> onChanged;
-
-  const _NotificationToggle({
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.enabled,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 200),
-      opacity: enabled ? 1.0 : 0.4,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: iconColor, size: 22),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textDark)),
-                  const SizedBox(height: 2),
-                  Text(subtitle,
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.textMedium)),
-                ],
-              ),
-            ),
-            Switch(
-              value: value,
-              activeThumbColor: AppColors.primary,
-              onChanged: enabled ? onChanged : null,
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
             ),
           ],
         ),
@@ -545,3 +481,4 @@ class _NotificationToggle extends StatelessWidget {
     );
   }
 }
+
