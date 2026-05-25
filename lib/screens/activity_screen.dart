@@ -257,9 +257,15 @@ class _ActivityScreenState extends State<ActivityScreen>
     if (mounted && success) {
       final gamVm = Provider.of<GamificationViewModel>(context, listen: false);
       await gamVm.awardActivityPoints(widget.activity.title);
+      final actAch = await gamVm.checkActivityMilestones(vm.completedActivityCount);
       await gamVm.fetchUserStats();
 
-      InteractiveMessageService.showSuccess(context, title: 'Activity Complete! 🎉', message: 'Great job taking care of yourself. (+25 pts)');
+      if (mounted) {
+        InteractiveMessageService.showSuccess(context, title: 'Activity Complete! 🎉', message: 'Great job taking care of yourself. (+25 pts)');
+        if (actAch != null) {
+          InteractiveMessageService.showSuccess(context, title: 'Achievement Unlocked! 🏆', message: 'You earned ${actAch.achievement} (+${actAch.pointsEarned} pts)');
+        }
+      }
     }
   }
 

@@ -900,18 +900,11 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 12),
-                const _SectionHeader(
+                const AppScreenHeader(
+                  padding: EdgeInsets.zero,
                   icon: Icons.monitor_heart_rounded,
                   title: 'Mood Risk Analytics',
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Spot users who may need a counselling follow-up.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textMedium,
-                    height: 1.4,
-                  ),
+                  subtitle: 'Spot users who may need a counselling follow-up.',
                 ),
                 const SizedBox(height: 4),
                 Container(

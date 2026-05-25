@@ -188,6 +188,7 @@ class _AdminNotificationSettingsScreenState
             const AppScreenHeader(
               title: 'Admin Notifications',
               subtitle: 'Choose which alerts reach you.',
+              icon: Icons.notifications_active_rounded,
               showBack: true,
               padding: EdgeInsets.fromLTRB(24, 8, 24, 8),
             ),

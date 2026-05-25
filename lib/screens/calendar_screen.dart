@@ -35,7 +35,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     'Tired': '😴',
   };
 
-  static const _filters = ['All Moods', 'Happy', 'Sad', 'Anxious', 'Angry', 'Calm', 'Tired'];
+  static const _filters = ['All Moods', 'Happy', 'Sad', 'Anxious', 'Angry', 'Calm'];
 
   @override
   void initState() {
@@ -128,6 +128,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           const AppScreenHeader(
             title: 'Calendar',
             subtitle: 'Your mood, day by day.',
+            icon: Icons.calendar_month_rounded,
           ),
           // Filters
           SizedBox(

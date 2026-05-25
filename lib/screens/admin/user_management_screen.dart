@@ -4,6 +4,7 @@ import '../../viewmodels/admin_viewmodel.dart';
 import '../../models/user_model.dart';
 import '../../main.dart';
 import '../../services/interactive_message_service.dart';
+import '../../widgets/app_screen_header.dart';
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({super.key});
@@ -29,44 +30,28 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 12),
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.white.withOpacity(0.96), const Color(0xFFFFF8E7)],
-                    begin: Alignment.topLeft, end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.fieldBorder.withOpacity(0.45)),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 18, offset: const Offset(0, 8))],
-                ),
-                child: Row(
-                  children: [
-                    const Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text('User Management', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: AppColors.textDark)),
-                        SizedBox(height: 4),
-                        Text('Search, add, edit and manage user accounts.', style: TextStyle(fontSize: 12, color: AppColors.textMedium)),
-                      ]),
-                    ),
-                    // Create User button
-                    ElevatedButton.icon(
-                      onPressed: () => _showCreateUserDialog(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.textDark,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        elevation: 0,
+            // Header — standardized AppScreenHeader with a compact "Add User" action.
+            AppScreenHeader(
+              title: 'User Management',
+              subtitle: 'Search, add, edit and manage user accounts.',
+              icon: Icons.people_rounded,
+              trailing: Tooltip(
+                message: 'Add User',
+                child: Material(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(14),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: () => _showCreateUserDialog(context),
+                    child: const SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: Center(
+                        child: Icon(Icons.person_add_alt_1_rounded,
+                            color: AppColors.textDark, size: 22),
                       ),
-                      icon: const Icon(Icons.person_add, size: 18),
-                      label: const Text('Add User', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
