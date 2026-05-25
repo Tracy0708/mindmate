@@ -8,6 +8,7 @@ import '../services/emotion_service.dart';
 import '../viewmodels/emotion_viewmodel.dart';
 import '../viewmodels/gamification_viewmodel.dart';
 import '../services/interactive_message_service.dart';
+import '../widgets/app_emoji.dart';
 
 class ActivityScreen extends StatefulWidget {
   final RecommendedActivity activity;
@@ -297,7 +298,7 @@ class _ActivityScreenState extends State<ActivityScreen>
             borderRadius: BorderRadius.circular(20),
           ),
           child: Column(children: [
-            Text(widget.activity.emoji, style: const TextStyle(fontSize: 48)),
+            AppEmoji(widget.activity.emoji, size: 48),
             const SizedBox(height: 12),
             Text(widget.activity.title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark)),
             const SizedBox(height: 8),

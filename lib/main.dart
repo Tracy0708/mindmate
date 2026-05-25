@@ -66,9 +66,9 @@ class AppColors {
   static const primaryLight = Color(0xFFFFF9C4);  // pale lemon
   static const cream = Color(0xFFFFFDE7);         // warm white
   static const creamLight = Color(0xFFFFFFFA);    // off-white
-  static const textDark = Color(0xFF33300A);      // dark olive-black
-  static const textMedium = Color(0xFF5C5210);    // warm olive
-  static const textLight = Color(0xFF8C7B20);     // muted gold-olive
+  static const textDark = Color(0xFF3E2723);      // dark brown (primary text)
+  static const textMedium = Color(0xFF5D4037);    // mid brown (secondary text)
+  static const textLight = Color(0xFF8D6E63);     // soft brown (hints/tertiary)
   static const fieldBorder = Color(0xFFE8E0A0);   // soft yellow border
   static const errorRed = Color(0xFFE53935);
   // Aliases kept for service files — do not remove
@@ -127,6 +127,7 @@ class MyApp extends StatelessWidget {
   ThemeData _lightTheme() {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Nunito',
       brightness: Brightness.light,
       colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
@@ -237,6 +238,7 @@ class MyApp extends StatelessWidget {
   ThemeData _darkTheme() {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Nunito',
       brightness: Brightness.dark,
       colorScheme: const ColorScheme.dark(
         primary: AppColors.primary,

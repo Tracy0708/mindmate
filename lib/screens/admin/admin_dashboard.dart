@@ -12,6 +12,7 @@ import '../../services/fcm_service.dart';
 import '../../widgets/app_screen_header.dart';
 import '../../widgets/notification_bell.dart';
 import '../../widgets/app_settings_tile.dart';
+import '../../widgets/app_emoji.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import 'user_management_screen.dart';
@@ -1884,7 +1885,7 @@ class _EmotionBreakdownChips extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 13)),
+              AppEmoji(emoji, size: 13),
               const SizedBox(width: 5),
               Text(
                 emotion,

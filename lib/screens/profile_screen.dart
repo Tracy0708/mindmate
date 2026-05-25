@@ -8,6 +8,7 @@ import '../services/gamification_service.dart';
 import '../viewmodels/emotion_viewmodel.dart';
 import '../viewmodels/gamification_viewmodel.dart';
 import '../widgets/app_settings_tile.dart';
+import '../widgets/app_emoji.dart';
 import 'avatar_store_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -123,7 +124,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         color: AppColors.primaryLight, shape: BoxShape.circle),
                     alignment: Alignment.center,
                     child: _avatarEmoji.isNotEmpty
-                        ? Text(_avatarEmoji, style: const TextStyle(fontSize: 40))
+                        ? AppEmoji(_avatarEmoji, size: 40)
                         : Text(_initials,
                             style: const TextStyle(
                                 fontSize: 32,
@@ -318,7 +319,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 color: AppColors.primaryLight, shape: BoxShape.circle),
                             alignment: Alignment.center,
                             child: _avatarEmoji.isNotEmpty
-                                ? Text(_avatarEmoji, style: const TextStyle(fontSize: 50))
+                                ? AppEmoji(_avatarEmoji, size: 50)
                                 : Text(_initials,
                                     style: const TextStyle(
                                         fontSize: 40,

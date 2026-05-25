@@ -2,12 +2,14 @@
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_twemoji/flutter_twemoji.dart';
 import '../main.dart';
 import '../models/emotion_insight.dart';
 import '../models/emotion_log.dart';
 import '../viewmodels/insights_viewmodel.dart';
 import '../services/emotion_service.dart';
 import '../widgets/app_screen_header.dart';
+import '../widgets/app_emoji.dart';
 import 'activity_screen.dart';
 import 'dashboard_screen.dart';
 
@@ -189,7 +191,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         borderRadius: BorderRadius.circular(24), border: Border.all(color: AppColors.primary.withOpacity(0.2)),
       ),
       child: Column(children: [
-        Text(emoji, style: const TextStyle(fontSize: 48)),
+        AppEmoji(emoji, size: 48),
         const SizedBox(height: 12),
         if (insight.mostFrequentEmotion != 'None')
           Text('Most frequent: ${insight.mostFrequentEmotion}', style: const TextStyle(fontSize: 13, color: AppColors.textMedium, fontWeight: FontWeight.w600)),
@@ -305,7 +307,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             return Row(mainAxisSize: MainAxisSize.min, children: [
               Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
               const SizedBox(width: 6),
-              Text('$emoji ${e.key}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+              TwemojiText(text: '$emoji ${e.key}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark)),
               const SizedBox(width: 4),
               Text('${e.value}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textMedium)),
             ]);
@@ -397,7 +399,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         Container(
           width: 44, height: 44,
           decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
-          child: Center(child: Text(emoji, style: const TextStyle(fontSize: 22))),
+          child: Center(child: AppEmoji(emoji, size: 22)),
         ),
         const SizedBox(width: 14),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

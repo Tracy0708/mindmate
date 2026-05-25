@@ -27,6 +27,7 @@ dependencies:
   flutter_timezone: ^3.0.0
   js: ^0.6.7
   flutter_tts: ^4.2.5
+  flutter_twemoji: ^1.1.0
 
 dev_dependencies:
   flutter_test:
@@ -49,6 +50,11 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:
