@@ -8,6 +8,7 @@ import '../viewmodels/emotion_viewmodel.dart';
 import '../viewmodels/gamification_viewmodel.dart';
 import '../models/gamification_history.dart';
 import '../widgets/daily_checkin_dialog.dart';
+import '../widgets/app_emoji.dart';
 import '../services/emotion_service.dart';
 import 'emotion_tracking_screen.dart';
 import 'chatbot_screen.dart';
@@ -442,7 +443,7 @@ class _TodayCard extends StatelessWidget {
       ),
       child: isLogged
           ? Row(children: [
-              Text(emojiMap[mood.emotionType] ?? '🙂', style: const TextStyle(fontSize: 48)),
+              AppEmoji(emojiMap[mood.emotionType] ?? '🙂', size: 48),
               const SizedBox(width: 16),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text("You're feeling ${mood.emotionType}", style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.textDark)),

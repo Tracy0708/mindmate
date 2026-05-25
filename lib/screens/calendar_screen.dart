@@ -7,6 +7,7 @@ import '../models/emotion_log.dart';
 import '../services/emotion_service.dart';
 import '../viewmodels/emotion_viewmodel.dart';
 import '../widgets/app_screen_header.dart';
+import '../widgets/app_emoji.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -159,7 +160,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (emoji != null) ...[Text(emoji), const SizedBox(width: 6)],
+                          if (emoji != null) ...[AppEmoji(emoji, size: 14), const SizedBox(width: 6)],
                           Text(
                             filter,
                             style: TextStyle(
@@ -325,7 +326,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       Stack(
                         clipBehavior: Clip.none,
                         children: [
-                          Text(emoji, style: const TextStyle(fontSize: 16)),
+                          AppEmoji(emoji, size: 16),
                           if (log!.isMixedMood)
                             Positioned(
                               top: -3,
@@ -371,7 +372,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         children: [
           Row(
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 36)),
+              AppEmoji(emoji, size: 36),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(

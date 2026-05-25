@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
+import '../widgets/app_emoji.dart';
 import '../viewmodels/emotion_viewmodel.dart';
 import '../services/interactive_message_service.dart';
 import '../viewmodels/gamification_viewmodel.dart';
@@ -160,7 +161,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
                       AnimatedScale(
                         scale: isSelected ? 1.2 : 1.0,
                         duration: const Duration(milliseconds: 200),
-                        child: Text(mood['emoji']!, style: const TextStyle(fontSize: 32)),
+                        child: AppEmoji(mood['emoji']!, size: 32),
                       ),
                       const SizedBox(height: 8),
                       Text(mood['label']!, style: TextStyle(color: isSelected ? AppColors.primary : AppColors.textDark, fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600, fontSize: 13)),
@@ -332,7 +333,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
                 boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 16, offset: const Offset(0, 6))],
               ),
               child: Column(children: [
-                Text(activity.emoji, style: const TextStyle(fontSize: 48)),
+                AppEmoji(activity.emoji, size: 48),
                 const SizedBox(height: 16),
                 const Text('We recommend', style: TextStyle(fontSize: 13, color: AppColors.textMedium, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
@@ -413,7 +414,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
         centerTitle: true,
       ),
       body: Center(child: Padding(padding: const EdgeInsets.all(32), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text(emoji, style: const TextStyle(fontSize: 64)),
+        AppEmoji(emoji, size: 64),
         const SizedBox(height: 16),
         Text('You\'re feeling ${log.emotionType}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textDark)),
         const SizedBox(height: 4),

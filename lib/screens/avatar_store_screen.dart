@@ -6,6 +6,7 @@ import '../viewmodels/gamification_viewmodel.dart';
 import '../main.dart';
 import '../services/interactive_message_service.dart';
 import '../widgets/app_screen_header.dart';
+import '../widgets/app_emoji.dart';
 
 class AvatarStoreScreen extends StatefulWidget {
   const AvatarStoreScreen({super.key});
@@ -26,6 +27,14 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
     {'id': 'bear', 'emoji': '🐻', 'name': 'Brave Bear', 'cost': 300},
     {'id': 'panda', 'emoji': '🐼', 'name': 'Peaceful Panda', 'cost': 400},
     {'id': 'lion', 'emoji': '🦁', 'name': 'Courageous Lion', 'cost': 500},
+    {'id': 'butterfly', 'emoji': '🦋', 'name': 'Gentle Butterfly', 'cost': 600},
+    {'id': 'turtle', 'emoji': '🐢', 'name': 'Patient Turtle', 'cost': 700},
+    {'id': 'dolphin', 'emoji': '🐬', 'name': 'Playful Dolphin', 'cost': 800},
+    {'id': 'deer', 'emoji': '🦌', 'name': 'Graceful Deer', 'cost': 900},
+    {'id': 'koala', 'emoji': '🐨', 'name': 'Restful Koala', 'cost': 1000},
+    {'id': 'hedgehog', 'emoji': '🦔', 'name': 'Cozy Hedgehog', 'cost': 1100},
+    {'id': 'swan', 'emoji': '🦢', 'name': 'Serene Swan', 'cost': 1200},
+    {'id': 'otter', 'emoji': '🦦', 'name': 'Cheerful Otter', 'cost': 1300},
   ];
 
   @override
@@ -176,7 +185,7 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(emoji, style: const TextStyle(fontSize: 48)),
+                            AppEmoji(emoji, size: 48),
                             const SizedBox(height: 12),
                             Text(name, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textDark, fontSize: 13), textAlign: TextAlign.center),
                             const SizedBox(height: 12),
