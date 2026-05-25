@@ -68,7 +68,7 @@ class NotificationCenterScreen extends StatelessWidget {
                   : Tooltip(
                       message: 'Mark all read',
                       child: Material(
-                        color: AppColors.primary.withValues(alpha: 0.15),
+                        color: AppColors.primary,
                         borderRadius: BorderRadius.circular(14),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(14),
@@ -78,7 +78,7 @@ class NotificationCenterScreen extends StatelessWidget {
                             height: 44,
                             child: Center(
                               child: Icon(Icons.done_all_rounded,
-                                  color: AppColors.primary, size: 22),
+                                  color: AppColors.textDark, size: 22),
                             ),
                           ),
                         ),
