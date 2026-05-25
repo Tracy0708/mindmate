@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../main.dart';
 import '../viewmodels/gamification_viewmodel.dart';
 import '../viewmodels/emotion_viewmodel.dart';
+import '../widgets/app_screen_header.dart';
 
 class GamificationScreen extends StatefulWidget {
   const GamificationScreen({super.key});
@@ -90,29 +91,18 @@ class _GamificationScreenState extends State<GamificationScreen> {
 
         return Scaffold(
           backgroundColor: AppColors.creamLight,
-          appBar: AppBar(
-            title: Row(
-              mainAxisSize: MainAxisSize.min,
+          body: SafeArea(
+            child: Column(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.2), shape: BoxShape.circle),
-                  child: const Icon(Icons.emoji_events, color: AppColors.primary),
+                const AppScreenHeader(
+                  title: 'Badge Center',
+                  subtitle: 'Unlock achievements on your journey.',
+                  showBack: true,
                 ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Badge Center', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 20)),
-                    Text('Unlock achievements on your journey', style: TextStyle(color: AppColors.textMedium.withOpacity(0.8), fontSize: 13, fontWeight: FontWeight.w500)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          body: gamVm.isLoading
-              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-              : RefreshIndicator(
+                Expanded(
+                  child: gamVm.isLoading
+                      ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                      : RefreshIndicator(
                   color: AppColors.primary,
                   onRefresh: () => gamVm.fetchUserStats(),
                   child: SingleChildScrollView(
@@ -184,6 +174,10 @@ class _GamificationScreenState extends State<GamificationScreen> {
                     ),
                   ),
                 ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );

@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import '../main.dart';
+import '../widgets/app_screen_header.dart';
 
 class PrivacyScreen extends StatelessWidget {
   const PrivacyScreen({super.key});
@@ -8,29 +9,21 @@ class PrivacyScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.creamLight,
-      appBar: AppBar(
-        backgroundColor: AppColors.creamLight,
-        title: const Text('Privacy'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textDark),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 4),
-            const Text(
-              'Your privacy matters to us. Here\'s how MindMate handles your data.',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textMedium,
-                height: 1.5,
-              ),
+            const AppScreenHeader(
+              title: 'Privacy',
+              subtitle: 'How MindMate handles your data.',
+              showBack: true,
             ),
-            const SizedBox(height: 24),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 4),
 
             // ── DATA WE COLLECT ──
             _PrivacyCard(
@@ -188,6 +181,10 @@ class PrivacyScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

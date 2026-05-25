@@ -2,6 +2,7 @@
 import 'package:flutter/services.dart';
 import '../main.dart';
 import '../services/interactive_message_service.dart';
+import '../widgets/app_screen_header.dart';
 
 class HelpSupportScreen extends StatelessWidget {
   const HelpSupportScreen({super.key});
@@ -10,29 +11,20 @@ class HelpSupportScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.creamLight,
-      appBar: AppBar(
-        backgroundColor: AppColors.creamLight,
-        title: const Text('Help & Support'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textDark),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 4),
-            const Text(
-              'We\'re here to help. Find answers below or reach out to our team.',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textMedium,
-                height: 1.5,
-              ),
+            const AppScreenHeader(
+              title: 'Help & Support',
+              subtitle: 'Answers and ways to reach us.',
+              showBack: true,
             ),
-            const SizedBox(height: 24),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
 
             // ── CRISIS RESOURCES ──
             _CrisisCard(context: context),
@@ -200,6 +192,10 @@ class HelpSupportScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

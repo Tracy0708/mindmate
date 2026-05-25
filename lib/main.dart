@@ -517,9 +517,17 @@ class _LoginPageState extends State<LoginPage>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // Logo
-                      const Icon(Icons.psychology_alt,
-                          size: 56, color: AppColors.textDark),
-                      const SizedBox(height: 8),
+                      Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.psychology_alt_rounded,
+                            size: 38, color: AppColors.textDark),
+                      ),
+                      const SizedBox(height: 14),
                       const Text(
                         'MINDMATE',
                         style: TextStyle(
@@ -529,7 +537,15 @@ class _LoginPageState extends State<LoginPage>
                           letterSpacing: 2,
                         ),
                       ),
-                      const SizedBox(height: 36),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Welcome back',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textMedium,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
 
                       // Email
                       TextFormField(

@@ -46,6 +46,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       appBar: AppBar(
         toolbarHeight: 70,
         backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
         title: Row(
           children: [
             Container(

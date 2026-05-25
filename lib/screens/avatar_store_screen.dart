@@ -5,6 +5,7 @@ import '../models/user_model.dart';
 import '../viewmodels/gamification_viewmodel.dart';
 import '../main.dart';
 import '../services/interactive_message_service.dart';
+import '../widgets/app_screen_header.dart';
 
 class AvatarStoreScreen extends StatefulWidget {
   const AvatarStoreScreen({super.key});
@@ -91,16 +92,19 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.creamLight,
-      appBar: AppBar(
-        title: const Text('Avatar Store', style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.w800)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textDark),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : Column(
-              children: [
+      body: SafeArea(
+        child: Column(
+          children: [
+            const AppScreenHeader(
+              title: 'Avatar Store',
+              subtitle: 'Spend points to unlock avatars.',
+              showBack: true,
+            ),
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                  : Column(
+                      children: [
                 // Points Header
                 Container(
                   margin: const EdgeInsets.all(24),
@@ -241,6 +245,10 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
                 ),
               ],
             ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
