@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_twemoji/flutter_twemoji.dart';
 import '../main.dart';
 
 enum MessageType { success, error, info, warning, confirmation }
@@ -79,16 +80,16 @@ class InteractiveMessageService {
           color: isDangerous ? AppColors.errorRed : AppColors.golden,
           size: 48,
         ),
-        title: Text(
-          title,
+        title: TwemojiText(
+          text: title,
           style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w800,
             color: AppColors.brownDark,
           ),
         ),
-        content: Text(
-          message,
+        content: TwemojiText(
+          text: message,
           style: const TextStyle(
             fontSize: 14,
             color: AppColors.brownMedium,
@@ -203,8 +204,8 @@ class _MessageContent extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                title,
+              TwemojiText(
+                text: title,
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -213,15 +214,13 @@ class _MessageContent extends StatelessWidget {
               ),
               if (message != null) ...[
                 const SizedBox(height: 4),
-                Text(
-                  message!,
+                TwemojiText(
+                  text: message!,
                   style: const TextStyle(
                     fontSize: 12,
                     color: Colors.white70,
                     height: 1.4,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ],
