@@ -30,8 +30,12 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
   static const _emojiMap = {'Happy':'😊','Sad':'😢','Anxious':'😰','Angry':'😠','Calm':'😌','Tired':'😴'};
   static const _emotionColors = {
-    'Happy': Color(0xFF4CAF50), 'Sad': Color(0xFF42A5F5), 'Anxious': Color(0xFFFF7043),
-    'Angry': Color(0xFFE53935), 'Calm': Color(0xFF26A69A), 'Tired': Color(0xFF7E57C2),
+    'Happy': Color(0xFFF4A261),   // warm peach-amber
+    'Sad': Color(0xFF6B9AC4),     // dusty cornflower blue
+    'Anxious': Color(0xFFE07A5F), // terracotta
+    'Angry': Color(0xFFBF616A),   // muted rose-red
+    'Calm': Color(0xFF81B29A),    // sage green
+    'Tired': Color(0xFF9B8EA8),   // soft mauve
   };
 
   @override
@@ -254,17 +258,37 @@ class _InsightsScreenState extends State<InsightsScreen> {
         borderData: FlBorderData(show: false),
         lineBarsData: [
           LineChartBarData(
-            spots: spots, isCurved: true, curveSmoothness: 0.3,
-            color: AppColors.primary, barWidth: 3, dotData: FlDotData(show: scores.length <= 14),
-            belowBarData: BarAreaData(show: true, color: AppColors.primary.withOpacity(0.08)),
+            spots: spots, isCurved: true, curveSmoothness: 0.4,
+            gradient: const LinearGradient(
+              colors: [AppColors.primaryDark, AppColors.primary],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            barWidth: 2.5,
+            dotData: FlDotData(
+              show: scores.length <= 14,
+              getDotPainter: (spot, pct, bar, index) => FlDotCirclePainter(
+                radius: 4, color: Colors.white, strokeWidth: 2, strokeColor: AppColors.primaryDark,
+              ),
+            ),
+            belowBarData: BarAreaData(
+              show: true,
+              gradient: LinearGradient(
+                colors: [AppColors.primary.withValues(alpha: 0.28), AppColors.primary.withValues(alpha: 0.0)],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
           ),
         ],
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
+            tooltipBorderRadius: BorderRadius.circular(10),
+            getTooltipColor: (_) => AppColors.textDark,
             getTooltipItems: (spots) => spots.map((s) {
               final i = s.spotIndex;
               final date = i < scores.length ? DateFormat('MMM d').format(scores[i].date) : '';
-              return LineTooltipItem('$date\nScore: ${s.y.toStringAsFixed(1)}', const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12));
+              return LineTooltipItem('$date\nScore: ${s.y.toStringAsFixed(1)}', const TextStyle(color: AppColors.primaryLight, fontWeight: FontWeight.w600, fontSize: 12));
             }).toList(),
           ),
         ),
@@ -288,16 +312,16 @@ class _InsightsScreenState extends State<InsightsScreen> {
       final pct = (count / total * 100);
       sections.add(PieChartSectionData(
         value: count.toDouble(), title: '${pct.round()}%',
-        color: _emotionColors[emotion] ?? Colors.grey, radius: 50,
-        titleStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
+        color: _emotionColors[emotion] ?? Colors.grey, radius: 58,
+        titleStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white, shadows: [Shadow(blurRadius: 2, color: Colors.black26)]),
       ));
     });
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))]),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4))]),
       child: Column(children: [
-        Center(child: SizedBox(height: 160, width: 160, child: PieChart(PieChartData(sections: sections, centerSpaceRadius: 30, sectionsSpace: 2)))),
+        Center(child: SizedBox(height: 180, width: 180, child: PieChart(PieChartData(sections: sections, centerSpaceRadius: 44, sectionsSpace: 3)))),
         const SizedBox(height: 16),
         Wrap(
           spacing: 16,
@@ -324,10 +348,10 @@ class _InsightsScreenState extends State<InsightsScreen> {
       shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2, mainAxisSpacing: 12, crossAxisSpacing: 12, childAspectRatio: 1.5,
       children: [
-        _statCard('${insight.totalLogs}', 'Total Logs', Icons.edit_note, const Color(0xFF42A5F5)),
-        _statCard('${insight.positiveDays}', 'Positive Days', Icons.sentiment_satisfied, const Color(0xFF4CAF50)),
-        _statCard(insight.averageIntensity.toStringAsFixed(1), 'Avg Score', Icons.speed, AppColors.primary),
-        _statCard('${insight.negativeDays}', 'Tough Days', Icons.sentiment_dissatisfied, const Color(0xFFE53935)),
+        _statCard('${insight.totalLogs}', 'Total Logs', Icons.edit_note, const Color(0xFF6B9AC4)),
+        _statCard('${insight.positiveDays}', 'Positive Days', Icons.sentiment_satisfied, const Color(0xFF81B29A)),
+        _statCard(insight.averageIntensity.toStringAsFixed(1), 'Avg Score', Icons.speed, AppColors.primaryDark),
+        _statCard('${insight.negativeDays}', 'Tough Days', Icons.sentiment_dissatisfied, const Color(0xFFBF616A)),
       ],
     );
   }

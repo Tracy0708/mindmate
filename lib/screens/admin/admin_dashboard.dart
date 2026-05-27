@@ -275,21 +275,21 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                         _StatCard(
                           value: '${report?['activeUsers'] ?? 0}',
                           label: 'Active',
-                          color: const Color(0xFF26A69A),
+                          color: const Color(0xFF81B29A),
                           icon: Icons.check_circle_rounded,
                           subtitle: 'Non-disabled users',
                         ),
                         _StatCard(
                           value: '${report?['disabledUsers'] ?? 0}',
                           label: 'Suspended',
-                          color: AppColors.errorRed,
+                          color: const Color(0xFFBF616A),
                           icon: Icons.block_rounded,
                           subtitle: 'Disabled accounts',
                         ),
                         _StatCard(
                           value: '${report?['adminUsers'] ?? 0}',
                           label: 'Admins',
-                          color: const Color(0xFF7E57C2),
+                          color: const Color(0xFF9B8EA8),
                           icon: Icons.admin_panel_settings_rounded,
                           subtitle: 'Admin-role accounts',
                         ),
@@ -1505,7 +1505,7 @@ class _EmotionBarChart extends StatelessWidget {
       final count = (counts[emotion] as int? ?? 0).toDouble();
       final isPositive = _positiveEmotions.contains(emotion);
       final barColor =
-          isPositive ? const Color(0xFF66BB6A) : const Color(0xFFEF5350);
+          isPositive ? const Color(0xFF81B29A) : const Color(0xFFBF616A);
 
       return BarChartGroupData(
         x: idx,
@@ -1624,10 +1624,10 @@ class _EmotionBarChart extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _ChartLegendDot(
-                  color: const Color(0xFF66BB6A), label: 'Positive'),
+                  color: const Color(0xFF81B29A), label: 'Positive'),
               const SizedBox(width: 16),
               _ChartLegendDot(
-                  color: const Color(0xFFEF5350), label: 'Negative'),
+                  color: const Color(0xFFBF616A), label: 'Negative'),
             ],
           ),
         ],
@@ -1736,22 +1736,33 @@ class _DailyTrendChart extends StatelessWidget {
                   LineChartBarData(
                     spots: spots,
                     isCurved: true,
-                    curveSmoothness: 0.35,
-                    color: AppColors.primary,
+                    curveSmoothness: 0.4,
+                    gradient: const LinearGradient(
+                      colors: [AppColors.primaryDark, AppColors.primary],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
                     barWidth: 2.5,
                     dotData: FlDotData(
                       show: true,
                       getDotPainter: (spot, percent, bar, index) =>
                           FlDotCirclePainter(
                         radius: 3.5,
-                        color: AppColors.primary,
-                        strokeColor: Colors.white,
+                        color: Colors.white,
+                        strokeColor: AppColors.primaryDark,
                         strokeWidth: 1.5,
                       ),
                     ),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: AppColors.primary.withOpacity(0.08),
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primary.withValues(alpha: 0.25),
+                          AppColors.primary.withValues(alpha: 0.0),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
                     ),
                   ),
                 ],
@@ -1767,6 +1778,8 @@ class _DailyTrendChart extends StatelessWidget {
                 borderData: FlBorderData(show: false),
                 lineTouchData: LineTouchData(
                   touchTooltipData: LineTouchTooltipData(
+                    tooltipBorderRadius: BorderRadius.circular(10),
+                    getTooltipColor: (_) => AppColors.textDark,
                     getTooltipItems: (touchedSpots) {
                       return touchedSpots.map((spot) {
                         final i = spot.x.toInt();
@@ -1775,7 +1788,7 @@ class _DailyTrendChart extends StatelessWidget {
                         return LineTooltipItem(
                           '$label\n${spot.y.toInt()} logs',
                           const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.primaryLight,
                             fontWeight: FontWeight.w700,
                             fontSize: 11,
                           ),
@@ -1864,7 +1877,7 @@ class _EmotionBreakdownChips extends StatelessWidget {
         final count = emotionByType[emotion] ?? 0;
         final isPositive = _positiveEmotions.contains(emotion);
         final color = isPositive
-            ? const Color(0xFF66BB6A)
+            ? const Color(0xFF81B29A)
             : AppColors.textMedium;
         final emoji = _emotionEmoji[emotion] ?? '';
 
