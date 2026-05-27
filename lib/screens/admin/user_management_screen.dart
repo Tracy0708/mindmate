@@ -63,8 +63,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: AppColors.fieldBorder.withOpacity(0.55)),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 12, offset: const Offset(0, 5))],
+                  border: Border.all(color: AppColors.fieldBorder.withValues(alpha: 0.55)),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 12, offset: const Offset(0, 5))],
                 ),
                 child: TextField(
                   onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
@@ -109,7 +109,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(24),
-                              border: Border.all(color: AppColors.fieldBorder.withOpacity(0.4)),
+                              border: Border.all(color: AppColors.fieldBorder.withValues(alpha: 0.4)),
                             ),
                             child: Column(mainAxisSize: MainAxisSize.min, children: [
                               Icon(_searchQuery.isEmpty ? Icons.group_off_rounded : Icons.manage_search_rounded,
@@ -128,7 +128,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           child: Row(children: [
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(999)),
+                              decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(999)),
                               child: Text('${users.length} user${users.length == 1 ? '' : 's'}',
                                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textDark)),
                             ),
@@ -373,89 +373,122 @@ class _UserCard extends StatelessWidget {
   final VoidCallback onEdit;
   const _UserCard({required this.user, required this.onDelete, required this.onEdit});
 
+  static const _cardAccent = Color(0xFFF9A825); // amber — consistent across all cards
+
+  String get _initials {
+    final parts = user.userName.trim().split(' ');
+    if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    return user.userName.isEmpty ? '?' : user.userName[0].toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDisabled = user.isDisabled;
-    final accentColor = isDisabled ? AppColors.errorRed : AppColors.textDark;
+    final avatarColor = isDisabled ? AppColors.errorRed : _cardAccent;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: accentColor.withOpacity(0.12)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 6))],
+        border: Border.all(color: avatarColor.withValues(alpha: 0.15)),
+        boxShadow: [
+          BoxShadow(color: avatarColor.withValues(alpha: 0.08), blurRadius: 16, offset: const Offset(0, 6)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8, offset: const Offset(0, 2)),
+        ],
       ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Container(
-            width: 46, height: 46,
-            decoration: BoxDecoration(
-              color: accentColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(Icons.person_rounded, color: accentColor),
-          ),
-          const SizedBox(width: 12),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(user.userName, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-            Text(user.userEmail, style: const TextStyle(fontSize: 12, color: AppColors.textMedium)),
-          ])),
-          _Chip(label: isDisabled ? 'Disabled' : 'Active', color: isDisabled ? AppColors.errorRed : Colors.green),
-        ]),
-        const SizedBox(height: 12),
-        Row(children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () => _showDetail(context),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                side: const BorderSide(color: AppColors.fieldBorder),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              icon: const Icon(Icons.visibility_rounded, size: 16),
-              label: const Text('View', style: TextStyle(fontSize: 12, color: AppColors.textDark, fontWeight: FontWeight.w600)),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: onEdit,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                side: const BorderSide(color: AppColors.primary),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              icon: const Icon(Icons.edit_outlined, size: 16, color: AppColors.primary),
-              label: const Text('Edit', style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Consumer<AdminViewModel>(
-              builder: (context, vm, _) => ElevatedButton.icon(
-                onPressed: () => _toggleDisable(context, vm),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isDisabled ? Colors.green : Colors.orange,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 0,
+      child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              // Initials avatar
+              Container(
+                width: 48, height: 48,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [avatarColor, avatarColor.withValues(alpha: 0.7)],
+                    begin: Alignment.topLeft, end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [BoxShadow(color: avatarColor.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 3))],
                 ),
-                icon: Icon(isDisabled ? Icons.lock_open : Icons.block, size: 16),
-                label: Text(isDisabled ? 'Enable' : 'Disable', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                child: Center(
+                  child: Text(_initials, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          IconButton(
-            onPressed: onDelete,
-            icon: const Icon(Icons.delete_outline, color: AppColors.errorRed),
-            tooltip: 'Delete user',
-          ),
-        ]),
-      ]),
+              const SizedBox(width: 12),
+              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(user.userName,
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textDark),
+                    overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 2),
+                Text(user.userEmail,
+                    style: const TextStyle(fontSize: 12, color: AppColors.textMedium),
+                    overflow: TextOverflow.ellipsis),
+              ])),
+              const SizedBox(width: 8),
+              _Chip(label: isDisabled ? 'Disabled' : 'Active', color: isDisabled ? AppColors.errorRed : const Color(0xFF43A047)),
+            ]),
+            const SizedBox(height: 12),
+            Row(children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _showDetail(context),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 9),
+                    side: BorderSide(color: avatarColor.withValues(alpha: 0.4)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    backgroundColor: avatarColor.withValues(alpha: 0.05),
+                  ),
+                  icon: Icon(Icons.visibility_rounded, size: 15, color: avatarColor),
+                  label: Text('View', style: TextStyle(fontSize: 12, color: avatarColor, fontWeight: FontWeight.w700)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onEdit,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 9),
+                    side: const BorderSide(color: Color(0xFFF9A825)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    backgroundColor: const Color(0xFFF9A825).withValues(alpha: 0.06),
+                  ),
+                  icon: const Icon(Icons.edit_outlined, size: 15, color: Color(0xFFF9A825)),
+                  label: const Text('Edit', style: TextStyle(fontSize: 12, color: Color(0xFFF9A825), fontWeight: FontWeight.w700)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Consumer<AdminViewModel>(
+                  builder: (context, vm, _) {
+                    final btnColor = isDisabled ? const Color(0xFF43A047) : const Color(0xFFFF7043);
+                    return ElevatedButton.icon(
+                      onPressed: () => _toggleDisable(context, vm),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: btnColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 9),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
+                      icon: Icon(isDisabled ? Icons.lock_open_rounded : Icons.block_rounded, size: 15),
+                      label: Text(isDisabled ? 'Enable' : 'Disable', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                onPressed: onDelete,
+                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.errorRed, size: 20),
+                tooltip: 'Delete user',
+                padding: const EdgeInsets.all(8),
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+              ),
+            ]),
+          ]),
+        ),
     );
   }
 
@@ -489,7 +522,17 @@ class _UserCard extends StatelessWidget {
                 final stats = snapshot.data;
                 final isLoading = snapshot.connectionState == ConnectionState.waiting;
                 final isDisabled = user.isDisabled;
-                final accentColor = isDisabled ? AppColors.errorRed : AppColors.textDark;
+
+                final avatarInitials = () {
+                  final parts = user.userName.trim().split(' ');
+                  if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+                  return user.userName.isEmpty ? '?' : user.userName[0].toUpperCase();
+                }();
+
+                final headerGradient = isDisabled
+                    ? const [Color(0xFFC62828), Color(0xFFE53935)]
+                    : const [Color(0xFF3949AB), Color(0xFF7B1FA2)];
+                final headerShadowColor = isDisabled ? const Color(0xFFC62828) : const Color(0xFF3949AB);
 
                 return ListView(
                   controller: sc,
@@ -506,41 +549,62 @@ class _UserCard extends StatelessWidget {
 
                     // ── HEADER CARD ──
                     Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(22),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Colors.white, accentColor.withOpacity(0.06)],
+                          colors: headerGradient,
                           begin: Alignment.topLeft, end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: accentColor.withOpacity(0.15)),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 6))],
+                        boxShadow: [
+                          BoxShadow(color: headerShadowColor.withValues(alpha: 0.35), blurRadius: 24, offset: const Offset(0, 10)),
+                          BoxShadow(color: headerShadowColor.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 3)),
+                        ],
                       ),
-                      child: Row(children: [
+                      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
                         Container(
-                          width: 64, height: 64,
+                          width: 70, height: 70,
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [accentColor.withOpacity(0.18), accentColor.withOpacity(0.06)],
-                            ),
+                            color: Colors.white.withValues(alpha: 0.18),
                             shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 2.5),
                           ),
-                          child: Icon(Icons.person_rounded, color: accentColor, size: 32),
+                          child: Center(
+                            child: Text(avatarInitials,
+                                style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900)),
+                          ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 18),
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(user.userName, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.textDark)),
-                          const SizedBox(height: 3),
-                          Text(user.userEmail, style: const TextStyle(fontSize: 13, color: AppColors.textMedium)),
-                          const SizedBox(height: 10),
-                          Wrap(spacing: 8, children: [
-                            _Chip(label: isDisabled ? 'Disabled' : 'Active', color: isDisabled ? AppColors.errorRed : Colors.green),
-                            _Chip(label: user.role == 'admin' ? 'Admin' : 'User', color: AppColors.textDark),
+                          Text(user.userName,
+                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white)),
+                          const SizedBox(height: 4),
+                          Row(children: [
+                            const Icon(Icons.email_outlined, size: 13, color: Colors.white70),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(user.userEmail,
+                                  style: const TextStyle(fontSize: 12, color: Colors.white70),
+                                  overflow: TextOverflow.ellipsis),
+                            ),
+                          ]),
+                          const SizedBox(height: 12),
+                          Wrap(spacing: 8, runSpacing: 6, children: [
+                            _DetailChip(
+                              label: isDisabled ? 'Disabled' : 'Active',
+                              icon: isDisabled ? Icons.block_rounded : Icons.check_circle_outline_rounded,
+                              bgColor: isDisabled ? Colors.red.shade800 : const Color(0xFF2E7D32),
+                            ),
+                            _DetailChip(
+                              label: user.role == 'admin' ? 'Admin' : 'User',
+                              icon: user.role == 'admin' ? Icons.admin_panel_settings_outlined : Icons.person_outline,
+                              bgColor: Colors.white.withValues(alpha: 0.2),
+                            ),
                           ]),
                         ])),
                       ]),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 22),
 
                     // ── PROFILE INFO ──
                     _sectionTitle('Profile Information'),
@@ -549,24 +613,26 @@ class _UserCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.fieldBorder.withOpacity(0.5)),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+                        border: Border.all(color: AppColors.fieldBorder.withValues(alpha: 0.5)),
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
                       ),
                       child: Column(children: [
-                        _infoTile(Icons.badge_outlined, 'Full Name', user.userName),
+                        _infoTile(Icons.badge_outlined, 'Full Name', user.userName, color: const Color(0xFF3949AB)),
                         _divider(),
-                        _infoTile(Icons.email_outlined, 'Email', user.userEmail),
+                        _infoTile(Icons.email_outlined, 'Email', user.userEmail, color: const Color(0xFFF57C00)),
                         _divider(),
-                        _infoTile(Icons.fingerprint, 'User ID', user.userID, mono: true),
+                        _infoTile(Icons.fingerprint, 'User ID', user.userID, mono: true, color: const Color(0xFF7B1FA2)),
                         _divider(),
-                        _infoTile(Icons.manage_accounts_outlined, 'Role', user.role == 'admin' ? 'Administrator' : 'Regular User'),
+                        _infoTile(Icons.manage_accounts_outlined, 'Role',
+                            user.role == 'admin' ? 'Administrator' : 'Regular User',
+                            color: const Color(0xFF00796B)),
                         if (user.age != null) ...[
                           _divider(),
-                          _infoTile(Icons.cake_outlined, 'Age', '${user.age} years old'),
+                          _infoTile(Icons.cake_outlined, 'Age', '${user.age} years old', color: const Color(0xFFE91E63)),
                         ],
                         if (user.gender != null) ...[
                           _divider(),
-                          _infoTile(Icons.people_outline, 'Gender', user.gender!),
+                          _infoTile(Icons.people_outline, 'Gender', user.gender!, color: const Color(0xFF6200EE)),
                         ],
                         _divider(),
                         _infoTile(
@@ -575,27 +641,30 @@ class _UserCard extends StatelessWidget {
                           user.lastLogin != null
                               ? '${user.lastLogin!.day}/${user.lastLogin!.month}/${user.lastLogin!.year} at ${user.lastLogin!.hour.toString().padLeft(2, '0')}:${user.lastLogin!.minute.toString().padLeft(2, '0')}'
                               : 'Never',
+                          color: const Color(0xFF2E7D32),
                         ),
                       ]),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 22),
 
-                    // ── USAGE STATS ──
+                    // ── USAGE STATS — consistent 2×2 grid ──
                     _sectionTitle('Usage Statistics'),
                     const SizedBox(height: 10),
-                    Row(children: [
-                      Expanded(child: _statCard('Mood Logs', isLoading ? '—' : '${stats?['moodLogs'] ?? 0}', Icons.mood_rounded, const Color(0xFF42A5F5))),
-                      const SizedBox(width: 12),
-                      Expanded(child: _statCard('Activities Done', isLoading ? '—' : '${stats?['completedActivities'] ?? 0}', Icons.spa_rounded, const Color(0xFF9C27B0))),
-                      const SizedBox(width: 12),
-                      Expanded(child: _statCard('Last Active', isLoading ? '—' : _fmtDate(stats?['lastActive'] as DateTime?), Icons.calendar_today_rounded, const Color(0xFF66BB6A))),
-                    ]),
+                    IntrinsicHeight(
+                      child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                        Expanded(child: _statCard('Mood Logs', isLoading ? '—' : '${stats?['moodLogs'] ?? 0}', Icons.mood_rounded, const Color(0xFF3949AB))),
+                        const SizedBox(width: 12),
+                        Expanded(child: _statCard('Activities', isLoading ? '—' : '${stats?['completedActivities'] ?? 0}', Icons.spa_rounded, const Color(0xFF7B1FA2))),
+                      ]),
+                    ),
                     const SizedBox(height: 12),
-                    Row(children: [
-                      Expanded(child: _statCard('Status', isDisabled ? 'Disabled' : 'Active', Icons.shield_outlined, isDisabled ? AppColors.errorRed : Colors.green)),
-                      const SizedBox(width: 12),
-                      Expanded(child: _statCard('Type', user.role == 'admin' ? 'Admin' : 'User', Icons.person_outline, AppColors.primary)),
-                    ]),
+                    IntrinsicHeight(
+                      child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                        Expanded(child: _statCard('Last Active', isLoading ? '—' : _fmtDate(stats?['lastActive'] as DateTime?), Icons.calendar_today_rounded, const Color(0xFF00796B))),
+                        const SizedBox(width: 12),
+                        Expanded(child: _statCard('Account', isDisabled ? 'Disabled' : 'Active', Icons.shield_rounded, isDisabled ? AppColors.errorRed : const Color(0xFF2E7D32))),
+                      ]),
+                    ),
                     const SizedBox(height: 24),
 
                     // ── MANAGEMENT ACTIONS ──
@@ -605,8 +674,8 @@ class _UserCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.fieldBorder.withOpacity(0.5)),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+                        border: Border.all(color: AppColors.fieldBorder.withValues(alpha: 0.5)),
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
                       ),
                       child: Column(children: [
                         // Reset Password
@@ -688,24 +757,35 @@ class _UserCard extends StatelessWidget {
     );
   }
 
-  Widget _sectionTitle(String title) => Text(title,
-      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textDark));
+  Widget _sectionTitle(String title) => Row(
+    children: [
+      Container(
+        width: 4, height: 18,
+        decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2)),
+      ),
+      const SizedBox(width: 10),
+      Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+    ],
+  );
 
-  Widget _divider() => Divider(height: 1, indent: 56, color: AppColors.fieldBorder.withOpacity(0.4));
+  Widget _divider() => Divider(height: 1, indent: 56, color: AppColors.fieldBorder.withValues(alpha: 0.4));
 
-  Widget _infoTile(IconData icon, String label, String value, {bool mono = false}) {
+  Widget _infoTile(IconData icon, String label, String value, {bool mono = false, Color color = AppColors.primary}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(children: [
         Container(
-          width: 36, height: 36,
-          decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.10), shape: BoxShape.circle),
-          child: Icon(icon, size: 18, color: AppColors.primary),
+          width: 38, height: 38,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: Icon(icon, size: 18, color: color),
         ),
         const SizedBox(width: 14),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textMedium, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 2),
+          Text(label, style: TextStyle(fontSize: 11, color: color.withValues(alpha: 0.8), fontWeight: FontWeight.w700, letterSpacing: 0.2)),
+          const SizedBox(height: 3),
           Text(value,
               style: TextStyle(
                   fontSize: mono ? 11 : 14,
@@ -724,19 +804,34 @@ class _UserCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: color.withOpacity(0.15)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 12, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6, offset: const Offset(0, 2)),
+        ],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: color.withOpacity(0.12), shape: BoxShape.circle),
-          child: Icon(icon, color: color, size: 18),
-        ),
-        const SizedBox(height: 10),
-        Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: color)),
-        const SizedBox(height: 3),
-        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textMedium, fontWeight: FontWeight.w600)),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          Container(
+            width: 8, height: 8,
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.35), shape: BoxShape.circle),
+          ),
+        ]),
+        const SizedBox(height: 14),
+        Text(value,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.textDark),
+            maxLines: 1, overflow: TextOverflow.ellipsis),
+        const SizedBox(height: 4),
+        Text(label,
+            style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w700, letterSpacing: 0.3)),
       ]),
     );
   }
@@ -756,8 +851,8 @@ class _UserCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(children: [
           Container(
-            width: 40, height: 40,
-            decoration: BoxDecoration(color: iconColor.withOpacity(0.12), shape: BoxShape.circle),
+            width: 42, height: 42,
+            decoration: BoxDecoration(color: iconColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
             child: Icon(icon, color: iconColor, size: 20),
           ),
           const SizedBox(width: 14),
@@ -769,7 +864,8 @@ class _UserCard extends StatelessWidget {
             const SizedBox(height: 2),
             Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textMedium)),
           ])),
-          Icon(Icons.chevron_right, color: isDestructive ? AppColors.errorRed.withOpacity(0.5) : AppColors.textLight, size: 20),
+          Icon(Icons.chevron_right_rounded,
+              color: isDestructive ? AppColors.errorRed.withValues(alpha: 0.5) : AppColors.textLight, size: 20),
         ]),
       ),
     );
@@ -789,7 +885,28 @@ class _Chip extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(999), border: Border.all(color: color.withOpacity(0.2))),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: color.withValues(alpha: 0.25)),
+        ),
         child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+      );
+}
+
+class _DetailChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color bgColor;
+  const _DetailChip({required this.label, required this.icon, required this.bgColor});
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(999)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(icon, size: 11, color: Colors.white),
+          const SizedBox(width: 5),
+          Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white)),
+        ]),
       );
 }
