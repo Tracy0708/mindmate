@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_twemoji/flutter_twemoji.dart';
 import 'dart:async';
 import '../main.dart';
 import '../services/auth_service.dart';
@@ -475,7 +476,7 @@ class _TodayCard extends StatelessWidget {
                   onPressed: onLogMood,
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 0, padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24)),
                   child: const Row(mainAxisAlignment: MainAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: [
-                    Text('😊', style: TextStyle(fontSize: 18)),
+                    AppEmoji('😊', size: 18),
                     SizedBox(width: 8),
                     Text('Log My Mood', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark)),
                   ]),
@@ -564,7 +565,7 @@ class _HistoryFeed extends StatelessWidget {
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20),
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))]),
         child: const Center(child: Column(children: [
-          Text('🌱', style: TextStyle(fontSize: 36)),
+          AppEmoji('🌱', size: 36),
           SizedBox(height: 10),
           Text('Your activity will appear here', style: TextStyle(color: AppColors.textMedium, fontSize: 14)),
           Text('Start logging moods or doing activities!', style: TextStyle(color: AppColors.textLight, fontSize: 12)),
@@ -593,7 +594,7 @@ class _HistoryFeed extends StatelessWidget {
               const SizedBox(width: 14),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(item.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textDark)),
-                if (item.subtitle.isNotEmpty) Text(item.subtitle, style: TextStyle(fontSize: 12, color: item.color, fontWeight: FontWeight.w600)),
+                if (item.subtitle.isNotEmpty) TwemojiText(text: item.subtitle, style: TextStyle(fontSize: 12, color: item.color, fontWeight: FontWeight.w600)),
               ])),
               Text(item.time, style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
             ]),

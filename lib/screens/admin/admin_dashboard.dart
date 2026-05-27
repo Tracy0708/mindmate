@@ -1601,10 +1601,7 @@ class _EmotionBarChart extends StatelessWidget {
                         }
                         return Padding(
                           padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            _emojis[i],
-                            style: const TextStyle(fontSize: 14),
-                          ),
+                          child: AppEmoji(_emojis[i], size: 14),
                         );
                       },
                     ),

@@ -421,7 +421,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
               child: const Row(
                 children: [
-                  Text('💬', style: TextStyle(fontSize: 16)),
+                  AppEmoji('💬', size: 16),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
