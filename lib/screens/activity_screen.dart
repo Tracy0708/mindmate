@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:provider/provider.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:flutter_twemoji/flutter_twemoji.dart';
 import '../main.dart';
 import '../services/emotion_service.dart';
 import '../viewmodels/emotion_viewmodel.dart';
@@ -524,7 +525,7 @@ class _ActivityScreenState extends State<ActivityScreen>
     return Center(child: Padding(padding: const EdgeInsets.all(32), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       Container(width: 100, height: 100, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.15), shape: BoxShape.circle), child: const Icon(Icons.check_circle, size: 64, color: AppColors.primary)),
       const SizedBox(height: 24),
-      const Text('Well Done! 🎉', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.textDark)),
+      const TwemojiText(text: 'Well Done! 🎉', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.textDark)),
       const SizedBox(height: 12),
       Text('You completed ${widget.activity.title} in ${_formatTime(_elapsedSeconds)}', textAlign: TextAlign.center, style: const TextStyle(fontSize: 15, color: AppColors.textMedium, height: 1.5)),
       const SizedBox(height: 8),

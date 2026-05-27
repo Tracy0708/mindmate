@@ -398,7 +398,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 decoration: BoxDecoration(
                                     color: AppColors.primary.withOpacity(0.15),
                                     shape: BoxShape.circle),
-                                child: const Text('🦊', style: TextStyle(fontSize: 28)),
+                                child: const AppEmoji('🦊', size: 28),
                               ),
                               const SizedBox(width: 16),
                               const Expanded(

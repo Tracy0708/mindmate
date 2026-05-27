@@ -118,7 +118,7 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
                 children: [
                   Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
                   const SizedBox(height: 24),
-                  const Text('💬', style: TextStyle(fontSize: 48)),
+                  const AppEmoji('💬', size: 48),
                   const SizedBox(height: 16),
                   const Text(
                     "It's okay to feel mixed emotions",

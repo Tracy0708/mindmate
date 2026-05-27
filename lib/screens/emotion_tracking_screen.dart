@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_twemoji/flutter_twemoji.dart';
 import '../main.dart';
 import '../widgets/app_emoji.dart';
 import '../viewmodels/emotion_viewmodel.dart';
@@ -289,7 +290,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('💬', style: TextStyle(fontSize: 24)),
+                    const AppEmoji('💬', size: 24),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -435,7 +436,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
           ]),
         ),
         const SizedBox(height: 32),
-        const Text('✅ You\'ve already checked in today!', style: TextStyle(fontSize: 15, color: AppColors.textMedium, fontWeight: FontWeight.w600)),
+        const TwemojiText(text: '✅ You\'ve already checked in today!', style: TextStyle(fontSize: 15, color: AppColors.textMedium, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         const Text('Come back tomorrow for your next check-in.', style: TextStyle(fontSize: 13, color: AppColors.textLight)),
         if (log.isMixedMood) ...[
@@ -449,7 +450,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
               border: Border.all(color: const Color(0xFFFFB74D).withValues(alpha: 0.5)),
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('💬  It\'s okay to feel mixed emotions', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+              const TwemojiText(text: '💬  It\'s okay to feel mixed emotions', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textDark)),
               const SizedBox(height: 6),
               const Text('Your note sounds heavier than your selected mood. Would you like to talk it through?', style: TextStyle(fontSize: 13, color: AppColors.textMedium, height: 1.4)),
               const SizedBox(height: 12),

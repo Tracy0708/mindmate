@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../widgets/app_emoji.dart';
 import '../viewmodels/chatbot_viewmodel.dart';
 import '../models/chatbot_session.dart';
 import '../main.dart';
@@ -260,7 +261,7 @@ class _SuggestionChip extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Text(icon, style: const TextStyle(fontSize: 16)),
+            AppEmoji(icon, size: 16),
             const SizedBox(width: 8),
             Text(label, style: const TextStyle(color: AppColors.textDark, fontWeight: FontWeight.w600, fontSize: 13)),
           ],

@@ -240,9 +240,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
           leftTitles: AxisTitles(sideTitles: SideTitles(
             showTitles: true, reservedSize: 30, interval: 1,
             getTitlesWidget: (v, _) {
-              if (v == 1) return const Text('😠', style: TextStyle(fontSize: 12));
-              if (v == 3) return const Text('😐', style: TextStyle(fontSize: 12));
-              if (v == 5) return const Text('😊', style: TextStyle(fontSize: 12));
+              if (v == 1) return const AppEmoji('😠', size: 12);
+              if (v == 3) return const AppEmoji('😐', size: 12);
+              if (v == 5) return const AppEmoji('😊', size: 12);
               return const SizedBox.shrink();
             },
           )),
@@ -377,7 +377,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
         margin: const EdgeInsets.only(bottom: 12), padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.primary.withOpacity(0.2))),
         child: Row(children: [
-          Text(s.icon, style: const TextStyle(fontSize: 32)),
+          AppEmoji(s.icon, size: 32),
           const SizedBox(width: 16),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(s.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark)),
