@@ -746,7 +746,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                             border: Border.all(color: color.withOpacity(0.25)),
                           ),
                           child: Text(
-                            'Risk score ${riskScore.toStringAsFixed(0)}% (${_riskLevel(riskScore)}) based on recent mood pattern.',
+                            'Risk score ${riskScore.toStringAsFixed(0)}% · ${_riskLevel(riskScore)}',
                             style: TextStyle(
                               color: color,
                               fontWeight: FontWeight.w800,
@@ -905,28 +905,6 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                   icon: Icons.monitor_heart_rounded,
                   title: 'Mood Risk Analytics',
                   subtitle: 'Spot users who may need a counselling follow-up.',
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  margin: const EdgeInsets.only(top: 10),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.primary.withOpacity(0.25)),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.info_outline_rounded, size: 14, color: AppColors.primary),
-                      SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          'Score = negative mood ratio (58%) + recent trend (25%) + log volume (10%) + recency (7%)',
-                          style: TextStyle(fontSize: 11, color: AppColors.textMedium, height: 1.4),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
                 const SizedBox(height: 12),
                 _LookbackSelector(
@@ -1484,10 +1462,10 @@ class _EmotionBarChart extends StatelessWidget {
   });
 
   static const _emotions = [
-    'Happy', 'Calm', 'Tired', 'Anxious', 'Sad', 'Angry'
+    'Happy', 'Calm', 'Anxious', 'Sad', 'Angry'
   ];
   static const _positiveEmotions = {'Happy', 'Calm'};
-  static const _emojis = ['😊', '😌', '😴', '😰', '😢', '😠'];
+  static const _emojis = ['😊', '😌', '😰', '😢', '😠'];
 
   @override
   Widget build(BuildContext context) {
@@ -1853,13 +1831,12 @@ class _EmotionBreakdownChips extends StatelessWidget {
   const _EmotionBreakdownChips({required this.emotionByType});
 
   static const _allEmotions = [
-    'Happy', 'Calm', 'Tired', 'Anxious', 'Sad', 'Angry'
+    'Happy', 'Calm', 'Anxious', 'Sad', 'Angry'
   ];
   static const _positiveEmotions = {'Happy', 'Calm'};
   static const _emotionEmoji = {
     'Happy': '😊',
     'Calm': '😌',
-    'Tired': '😴',
     'Anxious': '😰',
     'Sad': '😢',
     'Angry': '😠',
