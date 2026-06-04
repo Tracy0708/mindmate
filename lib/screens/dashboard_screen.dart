@@ -74,7 +74,7 @@ class DashboardScreenState extends State<DashboardScreen> {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -5))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, -5))],
         ),
         child: Theme(
           data: Theme.of(context).copyWith(
@@ -317,7 +317,7 @@ class _GamificationHeroCard extends StatelessWidget {
           begin: Alignment.topCenter, end: Alignment.bottomCenter,
         ),
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.35), blurRadius: 20, offset: const Offset(0, 8))],
+        boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.35), blurRadius: 20, offset: const Offset(0, 8))],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
@@ -395,8 +395,8 @@ class _BadgeMiniRow extends StatelessWidget {
             decoration: BoxDecoration(
               color: b.unlocked ? Colors.white : const Color(0xFFF5F5F5),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: b.unlocked ? b.color.withOpacity(0.4) : Colors.grey.withOpacity(0.1)),
-              boxShadow: b.unlocked ? [BoxShadow(color: b.color.withOpacity(0.12), blurRadius: 8, offset: const Offset(0, 3))] : [],
+              border: Border.all(color: b.unlocked ? b.color.withValues(alpha: 0.4) : Colors.grey.withValues(alpha: 0.1)),
+              boxShadow: b.unlocked ? [BoxShadow(color: b.color.withValues(alpha: 0.12), blurRadius: 8, offset: const Offset(0, 3))] : [],
             ),
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(b.icon, size: 26, color: b.unlocked ? b.color : Colors.grey.shade400),
@@ -435,12 +435,12 @@ class _TodayCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: isLogged
-              ? [AppColors.primary.withOpacity(0.12), AppColors.primary.withOpacity(0.04)]
+              ? [AppColors.primary.withValues(alpha: 0.12), AppColors.primary.withValues(alpha: 0.04)]
               : [AppColors.primaryLight, AppColors.cream],
           begin: Alignment.topLeft, end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
       ),
       child: isLogged
           ? Row(children: [
@@ -455,13 +455,13 @@ class _TodayCard extends StatelessWidget {
                 const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.18), borderRadius: BorderRadius.circular(10)),
+                  decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(10)),
                   child: const Text('✅ Logged today', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 12)),
                 ),
               ])),
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: const Color(0xFF4CAF50).withOpacity(0.15), shape: BoxShape.circle),
+                decoration: BoxDecoration(color: const Color(0xFF4CAF50).withValues(alpha: 0.15), shape: BoxShape.circle),
                 child: const Icon(Icons.check, color: Color(0xFF4CAF50), size: 20),
               ),
             ])
@@ -505,12 +505,12 @@ class _QuickAction extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))],
           ),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: color.withOpacity(0.12), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
               child: Icon(icon, color: color, size: 22),
             ),
             const SizedBox(height: 8),
@@ -563,7 +563,7 @@ class _HistoryFeed extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(28),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))]),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))]),
         child: const Center(child: Column(children: [
           AppEmoji('🌱', size: 36),
           SizedBox(height: 10),
@@ -575,12 +575,12 @@ class _HistoryFeed extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))]),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))]),
       child: ListView.separated(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: history.length > 5 ? 5 : history.length,
-        separatorBuilder: (_, __) => Divider(height: 1, color: AppColors.fieldBorder.withOpacity(0.5), indent: 68),
+        separatorBuilder: (_, __) => Divider(height: 1, color: AppColors.fieldBorder.withValues(alpha: 0.5), indent: 68),
         itemBuilder: (_, i) {
           final item = _buildItem(history[i]);
           return Padding(
@@ -588,7 +588,7 @@ class _HistoryFeed extends StatelessWidget {
             child: Row(children: [
               Container(
                 width: 42, height: 42,
-                decoration: BoxDecoration(color: item.color.withOpacity(0.12), shape: BoxShape.circle),
+                decoration: BoxDecoration(color: item.color.withValues(alpha: 0.12), shape: BoxShape.circle),
                 child: Icon(item.icon, color: item.color, size: 20),
               ),
               const SizedBox(width: 14),

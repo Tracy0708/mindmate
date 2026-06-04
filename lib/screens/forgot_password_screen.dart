@@ -92,7 +92,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.15),
+              color: AppColors.primary.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.vpn_key_rounded,
@@ -103,7 +103,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.08),
+              color: AppColors.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Text(
@@ -171,7 +171,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
           width: 72,
           height: 72,
           decoration: BoxDecoration(
-            color: const Color(0xFF4CAF50).withOpacity(0.15),
+            color: const Color(0xFF4CAF50).withValues(alpha: 0.15),
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.mark_email_read_rounded,

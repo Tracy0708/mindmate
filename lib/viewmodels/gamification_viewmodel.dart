@@ -142,7 +142,7 @@ class GamificationViewModel extends ChangeNotifier {
     else if (logCount == 30) { title = 'Consistent'; points = 250; }
     else if (logCount == 50) { title = 'Committed'; points = 400; }
     else if (logCount == 100) { title = 'Century Logger'; points = 750; }
-    else return null;
+    else { return null; }
 
     try {
       final achievement = await _gamificationService.recordAchievement(
@@ -167,7 +167,7 @@ class GamificationViewModel extends ChangeNotifier {
     else if (actCount == 5) { title = 'Pro'; points = 150; }
     else if (actCount == 10) { title = 'Enthusiast'; points = 300; }
     else if (actCount == 25) { title = 'Champion'; points = 600; }
-    else return null;
+    else { return null; }
 
     try {
       final achievement = await _gamificationService.recordAchievement(

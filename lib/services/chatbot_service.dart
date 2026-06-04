@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import '../models/chatbot_session.dart';
 import '../models/ai_assistant.dart';
 
@@ -48,13 +49,10 @@ class ChatbotService {
       'messages': FieldValue.arrayUnion([userMessage]),
     });
 
-    // 2. Call Dialogflow API (Simulated since not set up)
-    // Note: Actual implementation would use http or a dialogflow package here.
-    await Future.delayed(const Duration(seconds: 1)); // Network simulation
-    String botResponse = "I'm a virtual assistant. (Dialogflow integration pending)";
-    if (content.toLowerCase().contains("stressed")) {
-      botResponse = "It sounds like you're feeling stressed. Would you like to try a breathing exercise?";
-    }
+    // 2. Call Gemini via Firebase Cloud Function
+    final callable = FirebaseFunctions.instance.httpsCallable('getChatbotResponse');
+    final result = await callable.call({'sessionId': sessionID, 'message': content});
+    final String botResponse = result.data['response'] as String;
 
     // 3. Save bot response to Firestore
     final botMessage = {

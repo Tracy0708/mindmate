@@ -63,7 +63,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha: 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, -2))
           ],
@@ -222,10 +222,10 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
-                          color: AppColors.errorRed.withOpacity(0.08),
+                          color: AppColors.errorRed.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                              color: AppColors.errorRed.withOpacity(0.25)),
+                              color: AppColors.errorRed.withValues(alpha: 0.25)),
                         ),
                         child: Row(
                           children: [
@@ -310,7 +310,7 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
+                            color: Colors.black.withValues(alpha: 0.04),
                             blurRadius: 14,
                             offset: const Offset(0, 6),
                           )
@@ -395,7 +395,7 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
+                            color: Colors.black.withValues(alpha: 0.04),
                             blurRadius: 14,
                             offset: const Offset(0, 6),
                           )
@@ -521,7 +521,7 @@ class _DashboardInfoTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFFFFAEE),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.fieldBorder.withOpacity(0.5)),
+        border: Border.all(color: AppColors.fieldBorder.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -561,7 +561,7 @@ class _SectionHeader extends StatelessWidget {
       Container(
         padding: const EdgeInsets.all(7),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.15),
+          color: AppColors.primary.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(icon, color: AppColors.primary, size: 17),
@@ -598,10 +598,10 @@ class _StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.15)),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 10,
               offset: const Offset(0, 4))
         ],
@@ -612,7 +612,7 @@ class _StatCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.14),
+              color: color.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 18),
@@ -741,9 +741,9 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: color.withOpacity(0.10),
+                            color: color.withValues(alpha: 0.10),
                             borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: color.withOpacity(0.25)),
+                            border: Border.all(color: color.withValues(alpha: 0.25)),
                           ),
                           child: Text(
                             'Risk score ${riskScore.toStringAsFixed(0)}% · ${_riskLevel(riskScore)}',
@@ -920,7 +920,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
+                        color: Colors.black.withValues(alpha: 0.03),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -943,12 +943,12 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                                color: AppColors.fieldBorder.withOpacity(0.7)),
+                                color: AppColors.fieldBorder.withValues(alpha: 0.7)),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                                color: AppColors.fieldBorder.withOpacity(0.7)),
+                                color: AppColors.fieldBorder.withValues(alpha: 0.7)),
                           ),
                         ),
                       ),
@@ -990,7 +990,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide(
                                       color: AppColors.fieldBorder
-                                          .withOpacity(0.7)),
+                                          .withValues(alpha: 0.7)),
                                 ),
                               ),
                             ),
@@ -1033,10 +1033,10 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.errorRed.withOpacity(0.07),
+                      color: AppColors.errorRed.withValues(alpha: 0.07),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                          color: AppColors.errorRed.withOpacity(0.22)),
+                          color: AppColors.errorRed.withValues(alpha: 0.22)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1068,7 +1068,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                       borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha: 0.04),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         )
@@ -1099,10 +1099,10 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: color.withOpacity(0.2)),
+                          border: Border.all(color: color.withValues(alpha: 0.2)),
                           boxShadow: [
                             BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
+                                color: Colors.black.withValues(alpha: 0.04),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4))
                           ],
@@ -1115,7 +1115,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                                 Container(
                                   width: 40, height: 40,
                                   decoration: BoxDecoration(
-                                    color: color.withOpacity(0.12),
+                                    color: color.withValues(alpha: 0.12),
                                     shape: BoxShape.circle,
                                   ),
                                   alignment: Alignment.center,
@@ -1156,7 +1156,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 10, vertical: 5),
                                   decoration: BoxDecoration(
-                                    color: color.withOpacity(0.12),
+                                    color: color.withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -1187,7 +1187,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                                       value: riskScore / 100,
                                       minHeight: 6,
                                       backgroundColor:
-                                          color.withOpacity(0.12),
+                                          color.withValues(alpha: 0.12),
                                       valueColor:
                                           AlwaysStoppedAnimation<Color>(color),
                                     ),
@@ -1283,7 +1283,7 @@ class _RiskStatPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.10),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
@@ -1330,7 +1330,7 @@ class _LookbackSelector extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isSelected
                     ? AppColors.primary
-                    : AppColors.primary.withOpacity(0.10),
+                    : AppColors.primary.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -1419,9 +1419,9 @@ class _RiskMiniCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.20)),
+        border: Border.all(color: color.withValues(alpha: 0.20)),
       ),
       child: Column(
         children: [
@@ -1506,7 +1506,7 @@ class _EmotionBarChart extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1535,7 +1535,7 @@ class _EmotionBarChart extends StatelessWidget {
                   drawVerticalLine: false,
                   horizontalInterval: yMax / 4,
                   getDrawingHorizontalLine: (_) => FlLine(
-                    color: AppColors.fieldBorder.withOpacity(0.5),
+                    color: AppColors.fieldBorder.withValues(alpha: 0.5),
                     strokeWidth: 1,
                   ),
                 ),
@@ -1595,14 +1595,14 @@ class _EmotionBarChart extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _ChartLegendDot(
-                  color: const Color(0xFF81B29A), label: 'Positive'),
-              const SizedBox(width: 16),
+                  color: Color(0xFF81B29A), label: 'Positive'),
+              SizedBox(width: 16),
               _ChartLegendDot(
-                  color: const Color(0xFFBF616A), label: 'Negative'),
+                  color: Color(0xFFBF616A), label: 'Negative'),
             ],
           ),
         ],
@@ -1681,7 +1681,7 @@ class _DailyTrendChart extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1746,7 +1746,7 @@ class _DailyTrendChart extends StatelessWidget {
                   drawVerticalLine: false,
                   horizontalInterval: yMax / 4,
                   getDrawingHorizontalLine: (_) => FlLine(
-                    color: AppColors.fieldBorder.withOpacity(0.5),
+                    color: AppColors.fieldBorder.withValues(alpha: 0.5),
                     strokeWidth: 1,
                   ),
                 ),
@@ -1858,9 +1858,9 @@ class _EmotionBreakdownChips extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.10),
+            color: color.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.25)),
+            border: Border.all(color: color.withValues(alpha: 0.25)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1880,7 +1880,7 @@ class _EmotionBreakdownChips extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
+                  color: color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -2037,7 +2037,7 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.03),
+                                color: Colors.black.withValues(alpha: 0.03),
                                 blurRadius: 14,
                                 offset: const Offset(0, 6),
                               )

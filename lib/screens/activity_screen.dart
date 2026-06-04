@@ -248,6 +248,7 @@ class _ActivityScreenState extends State<ActivityScreen>
     _speak('Well done. You completed the activity.');
     HapticFeedback.heavyImpact();
 
+    if (!mounted) return;
     final vm = Provider.of<EmotionViewModel>(context, listen: false);
     final success = await vm.logCompletedActivity(
       title: widget.activity.title,
@@ -301,7 +302,7 @@ class _ActivityScreenState extends State<ActivityScreen>
         Container(
           width: double.infinity, padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.15), AppColors.primary.withOpacity(0.05)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+            gradient: LinearGradient(colors: [AppColors.primary.withValues(alpha: 0.15), AppColors.primary.withValues(alpha: 0.05)], begin: Alignment.topLeft, end: Alignment.bottomRight),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Column(children: [
@@ -314,16 +315,16 @@ class _ActivityScreenState extends State<ActivityScreen>
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.2), borderRadius: BorderRadius.circular(20)),
+                decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(20)),
                 child: Text('~${widget.activity.durationMinutes} min', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 13)),
               ),
               if (_isStepBased) ...[
                 const SizedBox(width: 10),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(color: const Color(0xFF42A5F5).withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
+                  decoration: BoxDecoration(color: const Color(0xFF42A5F5).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(Icons.volume_up, size: 14, color: const Color(0xFF42A5F5).withOpacity(0.8)),
+                    Icon(Icons.volume_up, size: 14, color: const Color(0xFF42A5F5).withValues(alpha: 0.8)),
                     const SizedBox(width: 4),
                     const Text('Voice guided', style: TextStyle(color: Color(0xFF42A5F5), fontWeight: FontWeight.w600, fontSize: 12)),
                   ]),
@@ -363,9 +364,9 @@ class _ActivityScreenState extends State<ActivityScreen>
           width: 200 * _breathAnimation.value, height: 200 * _breathAnimation.value,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: RadialGradient(colors: [AppColors.primary.withOpacity(0.3), AppColors.primary.withOpacity(0.1)]),
-            border: Border.all(color: AppColors.primary.withOpacity(0.5), width: 3),
-            boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 30 * _breathAnimation.value, spreadRadius: 10 * _breathAnimation.value)],
+            gradient: RadialGradient(colors: [AppColors.primary.withValues(alpha: 0.3), AppColors.primary.withValues(alpha: 0.1)]),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.5), width: 3),
+            boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.2), blurRadius: 30 * _breathAnimation.value, spreadRadius: 10 * _breathAnimation.value)],
           ),
           child: Center(child: Text(_breathPhase, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textDark))),
         ),
@@ -390,9 +391,9 @@ class _ActivityScreenState extends State<ActivityScreen>
         controller: _journalController, maxLines: 10,
         decoration: InputDecoration(
           hintText: '1. I\'m grateful for...\n\n2. I appreciate...\n\n3. I\'m thankful for...',
-          hintStyle: TextStyle(color: AppColors.textMedium.withOpacity(0.5)),
+          hintStyle: TextStyle(color: AppColors.textMedium.withValues(alpha: 0.5)),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.primary)),
-          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.primary.withOpacity(0.5))),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.5))),
           focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
           filled: true, fillColor: Colors.white,
         ),
@@ -415,7 +416,7 @@ class _ActivityScreenState extends State<ActivityScreen>
       // Progress bar
       LinearProgressIndicator(
         value: progress,
-        backgroundColor: AppColors.primary.withOpacity(0.15),
+        backgroundColor: AppColors.primary.withValues(alpha: 0.15),
         valueColor: const AlwaysStoppedAnimation(AppColors.primary),
         minHeight: 6,
         borderRadius: BorderRadius.circular(3),
@@ -426,7 +427,7 @@ class _ActivityScreenState extends State<ActivityScreen>
         // Countdown indicator
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.12), borderRadius: BorderRadius.circular(10)),
+          decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Icons.timer, size: 14, color: AppColors.primary),
             const SizedBox(width: 4),
@@ -453,7 +454,7 @@ class _ActivityScreenState extends State<ActivityScreen>
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(24),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 16, offset: const Offset(0, 6))],
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 6))],
           ),
           child: Column(children: [
             // Voice indicator
@@ -461,9 +462,9 @@ class _ActivityScreenState extends State<ActivityScreen>
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Icon(Icons.graphic_eq, size: 18, color: AppColors.primary.withOpacity(0.6)),
+                  Icon(Icons.graphic_eq, size: 18, color: AppColors.primary.withValues(alpha: 0.6)),
                   const SizedBox(width: 6),
-                  Text('Listening...', style: TextStyle(fontSize: 12, color: AppColors.primary.withOpacity(0.6), fontWeight: FontWeight.w500)),
+                  Text('Listening...', style: TextStyle(fontSize: 12, color: AppColors.primary.withValues(alpha: 0.6), fontWeight: FontWeight.w500)),
                 ]),
               ),
             Text(
@@ -488,7 +489,7 @@ class _ActivityScreenState extends State<ActivityScreen>
               foregroundColor: AppColors.primary,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              side: BorderSide(color: _currentStep > 0 ? AppColors.primary : AppColors.primary.withOpacity(0.3)),
+              side: BorderSide(color: _currentStep > 0 ? AppColors.primary : AppColors.primary.withValues(alpha: 0.3)),
             ),
           ),
         ),
@@ -523,7 +524,7 @@ class _ActivityScreenState extends State<ActivityScreen>
   // ─── COMPLETED VIEW ───
   Widget _completedView() {
     return Center(child: Padding(padding: const EdgeInsets.all(32), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Container(width: 100, height: 100, decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.15), shape: BoxShape.circle), child: const Icon(Icons.check_circle, size: 64, color: AppColors.primary)),
+      Container(width: 100, height: 100, decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15), shape: BoxShape.circle), child: const Icon(Icons.check_circle, size: 64, color: AppColors.primary)),
       const SizedBox(height: 24),
       const TwemojiText(text: 'Well Done! 🎉', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.textDark)),
       const SizedBox(height: 12),

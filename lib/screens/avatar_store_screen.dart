@@ -126,7 +126,7 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
                       end: Alignment.bottomCenter,
                     ),
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.25), blurRadius: 12, offset: const Offset(0, 4))],
+                    boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.25), blurRadius: 12, offset: const Offset(0, 4))],
                   ),
                   child: Row(
                     children: [
@@ -173,14 +173,14 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
                       return Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                         decoration: BoxDecoration(
-                          color: isEquipped ? AppColors.primary.withOpacity(0.1) : Colors.white,
+                          color: isEquipped ? AppColors.primary.withValues(alpha: 0.1) : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: isEquipped ? AppColors.primary : (isUnlocked ? AppColors.fieldBorder : Colors.transparent),
                             width: isEquipped ? 2 : 1,
                           ),
                           boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
+                            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))
                           ],
                         ),
                         child: Column(
@@ -209,7 +209,7 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
                                 width: double.infinity,
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.15),
+                                  color: AppColors.primary.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(color: AppColors.primary, width: 1.5),
                                 ),
@@ -248,7 +248,7 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
                                     ),
                                     borderRadius: BorderRadius.circular(16),
                                     boxShadow: [
-                                      BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3)),
+                                      BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 3)),
                                     ],
                                   ),
                                   child: Row(

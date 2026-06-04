@@ -175,7 +175,7 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
           padding: EdgeInsets.only(left: 24, right: 24, top: 20, bottom: MediaQuery.of(context).viewInsets.bottom + 24),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             // Handle
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.textLight.withOpacity(0.3), borderRadius: BorderRadius.circular(2))),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.textLight.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 20),
             // Title
             const Text('How are you feeling today?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark)),
@@ -195,8 +195,8 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primary.withOpacity(0.15) : Colors.white,
-                      border: Border.all(color: isSelected ? AppColors.primary : AppColors.primary.withOpacity(0.3), width: isSelected ? 2 : 1),
+                      color: isSelected ? AppColors.primary.withValues(alpha: 0.15) : Colors.white,
+                      border: Border.all(color: isSelected ? AppColors.primary : AppColors.primary.withValues(alpha: 0.3), width: isSelected ? 2 : 1),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -254,9 +254,9 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
             TextField(
               controller: _noteController, maxLines: 2,
               decoration: InputDecoration(
-                hintText: 'Quick note (optional)', hintStyle: TextStyle(color: AppColors.textMedium.withOpacity(0.5)),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: AppColors.primary.withOpacity(0.5))),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: AppColors.primary.withOpacity(0.3))),
+                hintText: 'Quick note (optional)', hintStyle: TextStyle(color: AppColors.textMedium.withValues(alpha: 0.5)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.5))),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.3))),
                 focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
                 filled: true, fillColor: Colors.white,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
