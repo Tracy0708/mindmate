@@ -8,7 +8,7 @@ class PrivacyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.creamLight,
+      backgroundColor: AppColors.cream,
       body: SafeArea(
         child: Column(
           children: [

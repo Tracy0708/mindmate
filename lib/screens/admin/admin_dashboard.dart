@@ -48,7 +48,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.creamLight,
+      backgroundColor: AppColors.cream,
       body: IndexedStack(
         index: _selectedTab,
         children: const [
@@ -193,7 +193,7 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Container(
-        color: AppColors.creamLight,
+        color: AppColors.cream,
         child: RefreshIndicator(
           color: AppColors.primary,
           onRefresh: () => context.read<AdminViewModel>().generateReport(),
@@ -1925,7 +1925,7 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      backgroundColor: AppColors.creamLight,
+      backgroundColor: AppColors.cream,
       body: SafeArea(
         child: currentUser == null
             ? const Center(

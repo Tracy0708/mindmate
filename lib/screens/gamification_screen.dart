@@ -149,7 +149,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
         ];
 
         return Scaffold(
-          backgroundColor: AppColors.creamLight,
+          backgroundColor: AppColors.cream,
           body: SafeArea(
             child: Column(
               children: [

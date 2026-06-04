@@ -276,7 +276,7 @@ class _ActivityScreenState extends State<ActivityScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.creamLight,
+      backgroundColor: AppColors.cream,
       appBar: AppBar(
         title: Text(widget.activity.title, style: const TextStyle(color: AppColors.textDark, fontWeight: FontWeight.w700, fontSize: 20)),
         centerTitle: true,

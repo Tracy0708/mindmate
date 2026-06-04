@@ -42,7 +42,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
   Widget build(BuildContext context) {
     return Consumer<InsightsViewModel>(builder: (context, vm, _) {
       return Scaffold(
-        backgroundColor: AppColors.creamLight,
+        backgroundColor: AppColors.cream,
         body: SafeArea(
           child: Column(
             children: [

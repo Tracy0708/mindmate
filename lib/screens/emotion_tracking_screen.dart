@@ -131,7 +131,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
   // ─── Mood Selection View (NF2, NF3, NF4, NF5) ───
   Widget _buildMoodSelectionView(EmotionViewModel vm) {
     return Scaffold(
-      backgroundColor: AppColors.creamLight,
+      backgroundColor: AppColors.cream,
       appBar: AppBar(
         title: const Text('How Are You Feeling?', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 24)),
         centerTitle: true,
@@ -250,7 +250,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
   Widget _buildRecommendationView(EmotionViewModel vm) {
     final activity = vm.recommendedActivity!;
     return Scaffold(
-      backgroundColor: AppColors.creamLight,
+      backgroundColor: AppColors.cream,
       appBar: AppBar(
         title: const Text('Your Recommendation', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 22)),
         centerTitle: true,
@@ -410,7 +410,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
     final log = vm.todaysLog!;
     final emoji = _moods.firstWhere((m) => m['label'] == log.emotionType, orElse: () => {'emoji': '🙂'})['emoji']!;
     return Scaffold(
-      backgroundColor: AppColors.creamLight,
+      backgroundColor: AppColors.cream,
       appBar: AppBar(
         title: const Text('Today\'s Check-in', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 22)),
         centerTitle: true,
