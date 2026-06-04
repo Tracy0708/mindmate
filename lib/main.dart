@@ -495,7 +495,47 @@ class _LoginPageState extends State<LoginPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.cream,
-      body: SafeArea(
+      body: Stack(
+        children: [
+          // Background — warm gradient + soft decorative blobs (shared with admin login)
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFFFF9EC),
+                  Color(0xFFFFF1D1),
+                  Color(0xFFFFFBF3),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            top: -60,
+            right: -20,
+            child: Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primary.withValues(alpha: 0.10),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -40,
+            left: -30,
+            child: Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.textDark.withValues(alpha: 0.06),
+              ),
+            ),
+          ),
+          SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -503,7 +543,7 @@ class _LoginPageState extends State<LoginPage>
               opacity: _fadeAnim,
               child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
+                    const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
@@ -519,18 +559,40 @@ class _LoginPageState extends State<LoginPage>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Logo
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.12),
-                          shape: BoxShape.circle,
+                      // Logo — your image asset, with a gradient-badge fallback.
+                      // Scaled up inside a clip to crop the PNG's transparent padding.
+                      SizedBox(
+                        width: 96,
+                        height: 96,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Transform.scale(
+                            scale: 1.35,
+                            child: Image.asset(
+                              'assets/images/MindMate_Logo.png',
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                width: 96,
+                                height: 96,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  AppColors.primaryLight,
+                                  AppColors.primary,
+                                ],
+                              ),
+                            ),
+                                child: const Icon(Icons.favorite_rounded,
+                                    size: 40, color: Colors.white),
+                              ),
+                            ),
+                          ),
                         ),
-                        child: const Icon(Icons.psychology_alt_rounded,
-                            size: 38, color: AppColors.textDark),
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 4),
                       const Text(
                         'MINDMATE',
                         style: TextStyle(
@@ -548,7 +610,7 @@ class _LoginPageState extends State<LoginPage>
                           color: AppColors.textMedium,
                         ),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 18),
 
                       // Email
                       TextFormField(
@@ -561,7 +623,7 @@ class _LoginPageState extends State<LoginPage>
                             ? 'Please enter your email'
                             : null,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
 
                       // Password
                       TextFormField(
@@ -584,14 +646,18 @@ class _LoginPageState extends State<LoginPage>
                             ? 'Please enter your password'
                             : null,
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
 
                       // Login button
                       SizedBox(
                         width: double.infinity,
-                        height: 52,
+                        height: 48,
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _signIn,
+                          style: ElevatedButton.styleFrom(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 32),
+                          ),
                           child: _isLoading
                               ? const SizedBox(
                                   height: 22,
@@ -601,7 +667,7 @@ class _LoginPageState extends State<LoginPage>
                               : const Text('Log in'),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 14),
 
                       // Divider
                       Row(
@@ -622,14 +688,18 @@ class _LoginPageState extends State<LoginPage>
                                       AppColors.fieldBorder.withValues(alpha: 0.6))),
                         ],
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 14),
 
                       // Google
                       SizedBox(
                         width: double.infinity,
-                        height: 52,
+                        height: 48,
                         child: OutlinedButton.icon(
                           onPressed: _isLoading ? null : _signInWithGoogle,
+                          style: OutlinedButton.styleFrom(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 20),
+                          ),
                           icon: Image.network(
                               'https://www.google.com/favicon.ico',
                               height: 20,
@@ -639,7 +709,7 @@ class _LoginPageState extends State<LoginPage>
                               style: TextStyle(fontWeight: FontWeight.w600)),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 14),
 
                       // Links
                       Row(
@@ -670,7 +740,7 @@ class _LoginPageState extends State<LoginPage>
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 4),
                       TextButton(
                         onPressed: () =>
                             Navigator.pushNamed(context, '/admin-login'),
@@ -690,6 +760,8 @@ class _LoginPageState extends State<LoginPage>
             ),
           ),
         ),
+          ),
+        ],
       ),
     );
   }
