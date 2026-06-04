@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../main.dart';
 import '../viewmodels/profile_viewmodel.dart';
 import '../viewmodels/theme_viewmodel.dart';
 import '../services/auth_service.dart';
@@ -14,6 +15,7 @@ class SettingsScreen extends StatelessWidget {
     final settings = vm.settings;
 
     return Scaffold(
+      backgroundColor: AppColors.cream,
       appBar: AppBar(
         title: const Text('Settings'),
         centerTitle: true,

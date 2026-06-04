@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../main.dart';
 import '../services/interactive_message_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -37,6 +38,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.cream,
       appBar: AppBar(
         title: const Text('Edit Profile'),
       ),

@@ -121,7 +121,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final monthLabel = DateFormat('MMMM yyyy').format(_currentMonth);
 
     return Scaffold(
-      backgroundColor: AppColors.creamLight,
+      backgroundColor: AppColors.cream,
       body: SafeArea(
         child: Column(
         children: [

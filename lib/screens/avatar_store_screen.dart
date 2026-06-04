@@ -100,7 +100,7 @@ class _AvatarStoreScreenState extends State<AvatarStoreScreen> {
     final gamVm = Provider.of<GamificationViewModel>(context);
 
     return Scaffold(
-      backgroundColor: AppColors.creamLight,
+      backgroundColor: AppColors.cream,
       body: SafeArea(
         child: Column(
           children: [

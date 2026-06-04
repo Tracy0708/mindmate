@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../main.dart';
 import '../viewmodels/gamification_viewmodel.dart';
 
 class ProgressHistoryScreen extends StatelessWidget {
@@ -8,6 +9,7 @@ class ProgressHistoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.cream,
       appBar: AppBar(
         title: const Text('Progress History'),
       ),
