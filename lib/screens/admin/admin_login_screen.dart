@@ -169,21 +169,35 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Center(
-                                child: Container(
-                                  width: 72,
-                                  height: 72,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary
-                                        .withValues(alpha: 0.12),
-                                    shape: BoxShape.circle,
+                                child: SizedBox(
+                                  width: 130,
+                                  height: 130,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Transform.scale(
+                                      scale: 1.1,
+                                      child: Image.asset(
+                                        'assets/images/MindMate_Logo_Admin.png',
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (_, __, ___) => Container(
+                                          width: 120,
+                                          height: 120,
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary
+                                                .withValues(alpha: 0.12),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                              Icons.admin_panel_settings_rounded,
+                                              size: 38,
+                                              color: AppColors.textDark),
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                  child: const Icon(
-                                      Icons.admin_panel_settings_rounded,
-                                      size: 38,
-                                      color: AppColors.textDark),
                                 ),
                               ),
-                              const SizedBox(height: 14),
+                              const SizedBox(height: 4),
                               const Center(
                                 child: Text(
                                   'MINDMATE',
@@ -227,44 +241,16 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                 ),
                               ),
                               const SizedBox(height: 22),
-                              const Text('Email Address',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.textDark)),
-                              const SizedBox(height: 8),
                               TextField(
                                 controller: _emailCtrl,
                                 keyboardType: TextInputType.emailAddress,
                                 textInputAction: TextInputAction.next,
-                                decoration: InputDecoration(
-                                  hintText: 'admin@mindmate.com',
-                                  prefixIcon: const Icon(Icons.email_rounded,
-                                      color: AppColors.textMedium),
-                                  filled: true,
-                                  fillColor: const Color(0xFFFFFCF8),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.fieldBorder),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.fieldBorder),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.primary, width: 2),
-                                  ),
+                                decoration: const InputDecoration(
+                                  hintText: 'Email address',
+                                  prefixIcon: Icon(Icons.email_outlined),
                                 ),
                               ),
                               const SizedBox(height: 18),
-                              const Text('Password',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.textDark)),
-                              const SizedBox(height: 8),
                               TextField(
                                 controller: _passCtrl,
                                 obscureText: _obscurePassword,
@@ -275,9 +261,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                   }
                                 },
                                 decoration: InputDecoration(
-                                  hintText: 'Enter your password',
-                                  prefixIcon: const Icon(Icons.lock_rounded,
-                                      color: AppColors.textMedium),
+                                  hintText: 'Password',
+                                  prefixIcon: const Icon(Icons.lock_outline),
                                   suffixIcon: IconButton(
                                     onPressed: () => setState(() =>
                                         _obscurePassword = !_obscurePassword),
@@ -287,23 +272,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                                           : Icons.visibility_outlined,
                                       color: AppColors.textLight,
                                     ),
-                                  ),
-                                  filled: true,
-                                  fillColor: const Color(0xFFFFFCF8),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.fieldBorder),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.fieldBorder),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                    borderSide: const BorderSide(
-                                        color: AppColors.primary, width: 2),
                                   ),
                                 ),
                               ),
