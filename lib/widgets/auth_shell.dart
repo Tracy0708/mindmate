@@ -43,10 +43,10 @@ class AuthShell extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.75),
+                        color: Colors.white.withValues(alpha: 0.75),
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.65),
+                          color: Colors.white.withValues(alpha: 0.65),
                         ),
                       ),
                       child: Column(
@@ -55,7 +55,7 @@ class AuthShell extends StatelessWidget {
                             width: 64,
                             height: 64,
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.14),
+                              color: AppColors.primary.withValues(alpha: 0.14),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -109,7 +109,7 @@ class AuthShell extends StatelessWidget {
                         borderRadius: BorderRadius.circular(28),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.06),
+                            color: Colors.black.withValues(alpha: 0.06),
                             blurRadius: 24,
                             offset: const Offset(0, 12),
                           ),

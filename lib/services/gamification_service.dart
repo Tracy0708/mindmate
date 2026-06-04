@@ -52,7 +52,7 @@ class GamificationService {
 
     return querySnapshot.docs.fold<int>(
       0,
-      (sum, doc) => sum + (doc.data()['pointsEarned'] as int),
+      (acc, doc) => acc + (doc.data()['pointsEarned'] as int),
     );
   }
 

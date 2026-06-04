@@ -231,22 +231,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   }
                                   if (ctx.mounted) Navigator.pop(ctx);
                                   _loadProfile();
-                                  if (mounted) {
-                                    InteractiveMessageService.showSuccess(
-                                      context,
-                                      title: 'Profile updated! ✨',
-                                      message: 'Your changes have been saved',
-                                    );
-                                  }
+                                  if (!context.mounted) return;
+                                  InteractiveMessageService.showSuccess(
+                                    context,
+                                    title: 'Profile updated! ✨',
+                                    message: 'Your changes have been saved',
+                                  );
                                 } catch (e) {
-                                  if (mounted) {
-                                    InteractiveMessageService.showError(
-                                      context,
-                                      title: 'Update failed',
-                                      message: e.toString(),
-                                      onRetry: () {},
-                                    );
-                                  }
+                                  if (!context.mounted) return;
+                                  InteractiveMessageService.showError(
+                                    context,
+                                    title: 'Update failed',
+                                    message: e.toString(),
+                                    onRetry: () {},
+                                  );
                                 } finally {
                                   setDialogState(() => isSaving = false);
                                 }
@@ -376,17 +374,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
-                                  AppColors.primary.withOpacity(0.15),
-                                  AppColors.primary.withOpacity(0.04),
+                                  AppColors.primary.withValues(alpha: 0.15),
+                                  AppColors.primary.withValues(alpha: 0.04),
                                 ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               ),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: AppColors.primary.withOpacity(0.25)),
+                              border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.primary.withOpacity(0.08),
+                                  color: AppColors.primary.withValues(alpha: 0.08),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -396,7 +394,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                    color: AppColors.primary.withOpacity(0.15),
+                                    color: AppColors.primary.withValues(alpha: 0.15),
                                     shape: BoxShape.circle),
                                 child: const AppEmoji('🦊', size: 28),
                               ),
@@ -431,7 +429,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.2),
+                                color: AppColors.primary.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(10)),
                             child: const Icon(Icons.settings,
                                 color: AppColors.primary, size: 20),
@@ -456,7 +454,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
+                                color: Colors.black.withValues(alpha: 0.04),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),
                               ),

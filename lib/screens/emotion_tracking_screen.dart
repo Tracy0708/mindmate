@@ -80,6 +80,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
         }
       }
 
+      if (!mounted) return;
       InteractiveMessageService.showSuccess(context, title: 'Mood saved! 😊', message: 'You\'re feeling $_selectedMood');
       setState(() => _showRecommendation = true);
       _animController.forward(from: 0);
@@ -153,10 +154,10 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primary.withOpacity(0.15) : Colors.white,
-                      border: Border.all(color: isSelected ? AppColors.primary : AppColors.primary.withOpacity(0.3), width: isSelected ? 2.5 : 1),
+                      color: isSelected ? AppColors.primary.withValues(alpha: 0.15) : Colors.white,
+                      border: Border.all(color: isSelected ? AppColors.primary : AppColors.primary.withValues(alpha: 0.3), width: isSelected ? 2.5 : 1),
                       borderRadius: BorderRadius.circular(16),
-                      boxShadow: isSelected ? [BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 12, offset: const Offset(0, 4))] : [],
+                      boxShadow: isSelected ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.2), blurRadius: 12, offset: const Offset(0, 4))] : [],
                     ),
                     child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                       AnimatedScale(
@@ -222,9 +223,9 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
             TextField(
               controller: _noteController, maxLines: 5,
               decoration: InputDecoration(
-                hintText: 'What made you feel this way?', hintStyle: TextStyle(color: AppColors.textMedium.withOpacity(0.6)),
+                hintText: 'What made you feel this way?', hintStyle: TextStyle(color: AppColors.textMedium.withValues(alpha: 0.6)),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.primary, width: 1)),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.primary.withOpacity(0.5), width: 1)),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.5), width: 1)),
                 focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
                 filled: true, fillColor: Colors.white,
               ),
@@ -263,9 +264,9 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
             Container(
               width: double.infinity, padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF4CAF50).withOpacity(0.1),
+                color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF4CAF50).withOpacity(0.3)),
+                border: Border.all(color: const Color(0xFF4CAF50).withValues(alpha: 0.3)),
               ),
               child: Row(children: [
                 const Icon(Icons.check_circle, color: Color(0xFF4CAF50), size: 28),
@@ -285,7 +286,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFF8E1),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFFFB74D).withOpacity(0.5)),
+                  border: Border.all(color: const Color(0xFFFFB74D).withValues(alpha: 0.5)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,7 +332,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 16, offset: const Offset(0, 6))],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 16, offset: const Offset(0, 6))],
               ),
               child: Column(children: [
                 AppEmoji(activity.emoji, size: 48),
@@ -344,7 +345,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
+                  decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
                   child: Text('~${activity.durationMinutes} min', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 13)),
                 ),
                 const SizedBox(height: 24),
@@ -370,9 +371,9 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
               Container(
                 width: double.infinity, padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.12), AppColors.primary.withOpacity(0.04)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                  gradient: LinearGradient(colors: [AppColors.primary.withValues(alpha: 0.12), AppColors.primary.withValues(alpha: 0.04)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                 ),
                 child: Column(children: [
                   const Icon(Icons.smart_toy_rounded, size: 40, color: AppColors.primary),
@@ -428,7 +429,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
         const SizedBox(height: 32),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          decoration: BoxDecoration(color: const Color(0xFF4CAF50).withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
+          decoration: BoxDecoration(color: const Color(0xFF4CAF50).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Icons.local_fire_department, size: 18, color: Color(0xFF4CAF50)),
             const SizedBox(width: 6),

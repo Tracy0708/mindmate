@@ -224,7 +224,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.08),
+              color: AppColors.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Row(
@@ -326,7 +326,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             children: [
               Expanded(
                   child:
-                      Divider(color: AppColors.fieldBorder.withOpacity(0.6))),
+                      Divider(color: AppColors.fieldBorder.withValues(alpha: 0.6))),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Text('Or register with',
@@ -335,7 +335,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
               Expanded(
                   child:
-                      Divider(color: AppColors.fieldBorder.withOpacity(0.6))),
+                      Divider(color: AppColors.fieldBorder.withValues(alpha: 0.6))),
             ],
           ),
           const SizedBox(height: 24),
@@ -405,7 +405,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           height: 18,
           decoration: BoxDecoration(
             color:
-                met ? AppColors.primary : AppColors.textLight.withOpacity(0.3),
+                met ? AppColors.primary : AppColors.textLight.withValues(alpha: 0.3),
             shape: BoxShape.circle,
           ),
           child: met
@@ -500,7 +500,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           width: 72,
           height: 72,
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.15),
+            color: AppColors.primary.withValues(alpha: 0.15),
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.check_circle_outline,
@@ -525,7 +525,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.08),
+            color: AppColors.primary.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(14),
           ),
           child: Column(

@@ -181,7 +181,7 @@ class _GamificationScreenState extends State<GamificationScreen> {
                               end: Alignment.bottomCenter,
                             ),
                             borderRadius: BorderRadius.circular(20),
-                            boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 16, offset: const Offset(0, 6))],
+                            boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 16, offset: const Offset(0, 6))],
                           ),
                           child: Column(
                             children: [
@@ -338,7 +338,7 @@ class _BadgeCard extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
-          color: unlocked ? AppColors.primary.withOpacity(0.15) : Colors.grey.withOpacity(0.1),
+          color: unlocked ? AppColors.primary.withValues(alpha: 0.15) : Colors.grey.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
         child: Icon(d, size: 30, color: c),
@@ -350,9 +350,9 @@ class _BadgeCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: unlocked ? Colors.white : const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: unlocked ? AppColors.primary.withOpacity(0.3) : Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: unlocked ? AppColors.primary.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.1)),
         boxShadow: unlocked
-            ? [BoxShadow(color: AppColors.primary.withOpacity(0.1), blurRadius: 12, offset: const Offset(0, 4))]
+            ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.1), blurRadius: 12, offset: const Offset(0, 4))]
             : [],
       ),
       child: Column(

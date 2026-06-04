@@ -273,7 +273,7 @@ class AuthService {
           .update({'settings.notificationPrefs': prefs}).timeout(
               const Duration(seconds: 10));
     } catch (e) {
-      print('--- Notification Prefs Update Error: $e ---');
+      developer.log('Notification Prefs Update Error: $e');
     }
   }
 
@@ -286,7 +286,7 @@ class AuthService {
       await _firestore.collection('users').doc(user.uid).update(
           {'settings.reminderTime': time}).timeout(const Duration(seconds: 10));
     } catch (e) {
-      print('--- Reminder Time Update Error: $e ---');
+      developer.log('Reminder Time Update Error: $e');
     }
   }
 
@@ -299,7 +299,7 @@ class AuthService {
       await _firestore.collection('users').doc(user.uid).update(
           {'settings.equippedAvatar': avatarId}).timeout(const Duration(seconds: 10));
     } catch (e) {
-      print('--- Avatar Update Error: $e ---');
+      developer.log('Avatar Update Error: $e');
     }
   }
 
@@ -313,7 +313,7 @@ class AuthService {
         'settings.unlockedAvatars': FieldValue.arrayUnion([avatarId])
       }).timeout(const Duration(seconds: 10));
     } catch (e) {
-      print('--- Avatar Unlock Error: $e ---');
+      developer.log('Avatar Unlock Error: $e');
     }
   }
 

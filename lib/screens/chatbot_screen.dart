@@ -53,7 +53,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.15),
+                color: AppColors.primary.withValues(alpha: 0.15),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.smart_toy, color: AppColors.primary, size: 28),
@@ -68,7 +68,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 ),
                 Text(
                   'Online • Ready to chat',
-                  style: TextStyle(fontSize: 13, color: AppColors.textMedium.withOpacity(0.8), fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: 13, color: AppColors.textMedium.withValues(alpha: 0.8), fontWeight: FontWeight.w500),
                 ),
               ],
             ),
@@ -127,7 +127,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                                       bottomLeft: !isUser ? const Radius.circular(4) : const Radius.circular(20),
                                     ),
                                     boxShadow: [
-                                      BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4)),
+                                      BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4)),
                                     ],
                                   ),
                                   child: Column(
@@ -200,7 +200,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(30),
                           boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4)),
+                            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4)),
                           ],
                         ),
                         child: TextField(
@@ -256,7 +256,7 @@ class _SuggestionChip extends StatelessWidget {
         margin: const EdgeInsets.only(right: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.15),
+          color: AppColors.primary.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(

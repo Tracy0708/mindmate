@@ -5,8 +5,18 @@ const { initializeApp } = require('firebase-admin/app');
 const { FieldValue, getFirestore } = require('firebase-admin/firestore');
 const { getMessaging } = require('firebase-admin/messaging');
 const { getAuth } = require('firebase-admin/auth');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 initializeApp();
+
+const MINDMATE_SYSTEM_PROMPT = `You are MindMate AI, a compassionate mental health companion embedded in a wellbeing app.
+Guidelines:
+- Listen with empathy and validate the user's feelings without judgment
+- Offer practical, evidence-based coping strategies (breathing exercises, grounding techniques, journaling prompts)
+- Keep replies concise: 2–3 sentences for most responses, more detail only when clearly needed
+- Gently suggest professional help when the user expresses persistent or severe distress
+- Never diagnose, prescribe medication, or claim to replace a licensed therapist or counselor
+- Respond in a warm, supportive, conversational tone`;
 
 const NEGATIVE_EMOTIONS = new Set([
   'sad',
@@ -280,6 +290,50 @@ exports.deleteUser = onCall(async (request) => {
     console.error(`Failed to delete user ${uid}:`, error.message);
     throw new Error(`Failed to delete user: ${error.message}`);
   }
+});
+
+// Callable function to get an AI response from Gemini for the chatbot
+exports.getChatbotResponse = onCall(async (request) => {
+  if (!request.auth) {
+    throw new Error('Authentication required');
+  }
+
+  const { sessionId, message } = request.data;
+  if (!sessionId || !message || typeof message !== 'string') {
+    throw new Error('sessionId and message are required');
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || apiKey === 'your_gemini_api_key_here') {
+    throw new Error('GEMINI_API_KEY is not configured');
+  }
+
+  const db = getFirestore();
+  const sessionDoc = await db.collection('chatbot_sessions').doc(sessionId).get();
+  if (!sessionDoc.exists) {
+    throw new Error('Session not found');
+  }
+
+  const allMessages = sessionDoc.data()?.messages || [];
+  // Exclude the current user message (last item — already saved before this call)
+  // and keep at most 20 prior messages for context
+  const historyMessages = allMessages.slice(0, -1).slice(-20);
+
+  const history = historyMessages.map((msg) => ({
+    role: msg.isUser ? 'user' : 'model',
+    parts: [{ text: msg.content }],
+  }));
+
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-2.5-flash',
+    systemInstruction: MINDMATE_SYSTEM_PROMPT,
+  });
+
+  const chat = model.startChat({ history });
+  const result = await chat.sendMessage(message);
+
+  return { response: result.response.text() };
 });
 
 // Scheduled function to clean up orphaned Firestore documents
