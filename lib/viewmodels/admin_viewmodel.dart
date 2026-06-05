@@ -45,6 +45,22 @@ class AdminViewModel extends ChangeNotifier {
     return _adminService.getPlatformEmotionStats(lookbackDays: lookbackDays);
   }
 
+  /// AI chatbot usage analytics — aggregate metadata only (no conversation content).
+  Future<Map<String, dynamic>> getChatbotUsageStats({
+    int lookbackDays = 21,
+  }) {
+    return _adminService.getChatbotUsageStats(lookbackDays: lookbackDays);
+  }
+
+  /// Unacknowledged crisis flags for the admin follow-up queue (no transcripts).
+  Stream<List<Map<String, dynamic>>> getCrisisFlags({int limit = 50}) {
+    return _adminService.getCrisisFlags(limit: limit);
+  }
+
+  Future<void> acknowledgeCrisisFlag(String flagId) {
+    return _adminService.acknowledgeCrisisFlag(flagId);
+  }
+
   Future<void> generateReport() async {
     _isLoading = true;
     _errorMessage = null;

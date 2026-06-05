@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // True when the signed-in user is an admin (role flag on their user doc).
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ── Privacy-locked: crisis flags ──────────────────────────────────────────
+    // These docs hold NO conversation content. Only admins may read them and
+    // mark them acknowledged. Flags are CREATED only by the getChatbotResponse
+    // Cloud Function via the Admin SDK (which bypasses rules); no client may
+    // create or delete them.
+    match /crisis_flags/{flagId} {
+      allow read: if isAdmin();
+      allow update: if isAdmin();
+      allow create, delete: if false;
+    }
+
+    // ── Existing behavior: any authenticated user ─────────────────────────────
+    // Mirrors the previous blanket `match /{document=**}` grant, but enumerated
+    // per-collection on purpose: Firestore rules are ADDITIVE and a broad grant
+    // can never be revoked by a more specific rule, so a single recursive
+    // catch-all would also expose crisis_flags. If you add a new collection,
+    // add a matching line here.
+    match /users/{document=**}               { allow read, write: if request.auth != null; }
+    match /notifications/{document=**}        { allow read, write: if request.auth != null; }
+    match /chatbot_sessions/{document=**}     { allow read, write: if request.auth != null; }
+    match /ai_assistants/{document=**}        { allow read, write: if request.auth != null; }
+    match /gamification_history/{document=**} { allow read, write: if request.auth != null; }
+    match /admin_settings/{document=**}       { allow read, write: if request.auth != null; }
+
+    // collectionGroup('emotion_logs') queries (used by admin analytics) require
+    // an explicit recursive-prefix rule in addition to the /users/** rule above.
+    match /{path=**}/emotion_logs/{logId}    { allow read, write: if request.auth != null; }
+  }
+}

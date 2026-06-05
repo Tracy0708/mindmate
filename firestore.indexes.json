@@ -15,6 +15,14 @@
         { "fieldPath": "notificationStatus", "order": "ASCENDING" },
         { "fieldPath": "scheduledTime", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "crisis_flags",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "acknowledged", "order": "ASCENDING" },
+        { "fieldPath": "lastFlaggedAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

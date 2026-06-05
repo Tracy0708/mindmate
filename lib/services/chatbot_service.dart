@@ -3,6 +3,15 @@ import 'package:cloud_functions/cloud_functions.dart';
 import '../models/chatbot_session.dart';
 import '../models/ai_assistant.dart';
 
+/// Result of sending a chatbot message: the AI text plus any metadata the UI
+/// needs that isn't stored on the persisted message.
+class ChatbotReply {
+  final String response;
+  final bool crisisDetected;
+
+  const ChatbotReply({required this.response, this.crisisDetected = false});
+}
+
 class ChatbotService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String _sessionsCollection = 'chatbot_sessions';
@@ -17,6 +26,7 @@ class ChatbotService {
 
     final session = ChatbotSession(
       sessionID: docRef.id,
+      userID: userID,
       startTime: DateTime.now(),
       assistantID: assistantID,
     );
@@ -32,8 +42,10 @@ class ChatbotService {
     });
   }
 
-  // Send a message and get response from Dialogflow
-  Future<String> sendMessage({
+  // Send a message and get an AI response. The displayed bot text is saved to
+  // Firestore and surfaced via the session stream; this returns the metadata the
+  // UI needs that isn't persisted on the message (e.g. crisis detection).
+  Future<ChatbotReply> sendMessage({
     required String sessionID,
     required String content,
     required String userID,
@@ -53,6 +65,7 @@ class ChatbotService {
     final callable = FirebaseFunctions.instance.httpsCallable('getChatbotResponse');
     final result = await callable.call({'sessionId': sessionID, 'message': content});
     final String botResponse = result.data['response'] as String;
+    final bool crisisDetected = result.data['crisisDetected'] == true;
 
     // 3. Save bot response to Firestore
     final botMessage = {
@@ -65,7 +78,7 @@ class ChatbotService {
       'messages': FieldValue.arrayUnion([botMessage]),
     });
 
-    return botResponse;
+    return ChatbotReply(response: botResponse, crisisDetected: crisisDetected);
   }
 
   // Get all messages for a session

@@ -1,9 +1,15 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/app_emoji.dart';
 import '../viewmodels/chatbot_viewmodel.dart';
+import '../viewmodels/emotion_viewmodel.dart';
 import '../models/chatbot_session.dart';
+import '../models/emotion_log.dart';
+import '../models/crisis_hotline.dart';
+import '../services/interactive_message_service.dart';
 import '../main.dart';
 
 class ChatbotScreen extends StatefulWidget {
@@ -16,6 +22,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   final TextEditingController _msgController = TextEditingController();
   bool _hasText = false;
   late String _userId;
+  // Brief send cooldown so rapid taps can't trip the Gemini per-minute rate limit.
+  static const Duration _sendCooldown = Duration(seconds: 3);
+  bool _coolingDown = false;
+  Timer? _cooldownTimer;
 
   @override
   void initState() {
@@ -24,6 +34,9 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _msgController.addListener(_onTextChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ChatbotViewModel>(context, listen: false).startNewSession(_userId);
+      // Load the user's mood so the greeting and suggestion chips can adapt.
+      final emotionVm = Provider.of<EmotionViewModel>(context, listen: false);
+      if (!emotionVm.checkedToday) emotionVm.checkTodaysLog();
     });
   }
 
@@ -34,20 +47,34 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   @override
   void dispose() {
+    _cooldownTimer?.cancel();
     _msgController.removeListener(_onTextChanged);
     _msgController.dispose();
     super.dispose();
   }
 
   void _handleSend([String? preset]) {
+    if (_coolingDown) return;
+    final vm = Provider.of<ChatbotViewModel>(context, listen: false);
+    if (vm.isLoading) return;
+
     final text = preset ?? _msgController.text.trim();
     if (text.isEmpty) return;
-    Provider.of<ChatbotViewModel>(context, listen: false).sendMessage(_userId, text);
+
+    vm.sendMessage(_userId, text);
     if (preset == null) _msgController.clear();
+
+    // Briefly lock sending to avoid hammering the AI rate limit.
+    setState(() => _coolingDown = true);
+    _cooldownTimer?.cancel();
+    _cooldownTimer = Timer(_sendCooldown, () {
+      if (mounted) setState(() => _coolingDown = false);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final emotionVm = context.watch<EmotionViewModel>();
     return Scaffold(
       backgroundColor: AppColors.cream,
       appBar: AppBar(
@@ -114,6 +141,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             return Column(
               children: [
                 Expanded(child: _buildErrorState(vm)),
+                if (vm.crisisActive) _buildCrisisCard(),
                 _buildInputArea(vm),
               ],
             );
@@ -132,11 +160,13 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                         ? const Center(
                             child: CircularProgressIndicator(color: AppColors.primary))
                         : messages.isEmpty
-                            ? _buildEmptyState()
+                            ? _buildEmptyState(emotionVm)
                             : _buildMessageList(messages),
                   ),
                   if (vm.isLoading) const _TypingIndicator(),
-                  if (messages.isEmpty && !initialLoading) _buildSuggestionRow(),
+                  if (vm.crisisActive) _buildCrisisCard(),
+                  if (messages.isEmpty && !initialLoading)
+                    _buildSuggestionRow(emotionVm),
                   _buildInputArea(vm),
                 ],
               );
@@ -157,7 +187,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(EmotionViewModel emotionVm) {
+    final greeting = _moodGreeting(emotionVm);
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 36),
@@ -176,10 +207,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'How are you feeling today?',
+            Text(
+              greeting,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textDark),
             ),
             const SizedBox(height: 8),
@@ -194,56 +225,108 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     );
   }
 
+  /// A proactive, mood-aware greeting derived from the user's recent check-ins.
+  /// Falls back to the generic prompt when there's no mood data yet.
+  String _moodGreeting(EmotionViewModel vm) {
+    final recent = vm.recentLogs;
+    final today = vm.todaysLog;
+
+    if (recent.isEmpty && today == null) {
+      return 'How are you feeling today?';
+    }
+
+    // Negative trend: 3+ of the last 5 check-ins were effectively negative.
+    final lastFive = recent.take(5).toList();
+    final negativeCount =
+        lastFive.where((l) => l.isEffectivelyNegative).length;
+    if (lastFive.length >= 3 && negativeCount >= 3) {
+      return "I've noticed the past few days have felt heavy. "
+          "I'm here for you — want to talk about it?";
+    }
+
+    if (today != null) {
+      if (today.isEffectivelyNegative) {
+        return "I see you're feeling ${today.emotionType.toLowerCase()} today. "
+            "Want to talk it through?";
+      }
+      return "Glad you're feeling ${today.emotionType.toLowerCase()} today 🌱 "
+          "What's on your mind?";
+    }
+
+    if (vm.streak >= 2) {
+      return "You're on a ${vm.streak}-day check-in streak! "
+          "How are you feeling today?";
+    }
+    return "You haven't checked in today. How are you feeling?";
+  }
+
   Widget _buildErrorState(ChatbotViewModel vm) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: AppColors.errorRed.withValues(alpha: 0.08),
-                shape: BoxShape.circle,
+    // LayoutBuilder + scroll view so a long error message scrolls instead of
+    // overflowing, while still centering when the content is short.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: AppColors.errorRed.withValues(alpha: 0.08),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.cloud_off_rounded,
+                          color: AppColors.errorRed, size: 36),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Something went wrong',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textDark),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      vm.errorMessage ?? '',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textMedium,
+                          height: 1.4),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: () => vm.startNewSession(_userId),
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: const Text('Try Again',
+                          style: TextStyle(fontWeight: FontWeight.w700)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.textDark,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: const Icon(Icons.cloud_off_rounded, color: AppColors.errorRed, size: 36),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Something went wrong',
-              style: TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              vm.errorMessage ?? '',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  fontSize: 13, color: AppColors.textMedium, height: 1.4),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () => vm.startNewSession(_userId),
-              icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: const Text('Try Again',
-                  style: TextStyle(fontWeight: FontWeight.w700)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.textDark,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildSuggestionRow() {
+  Widget _buildSuggestionRow(EmotionViewModel emotionVm) {
+    final chips = _moodChips(emotionVm);
     return Container(
       height: 44,
       margin: const EdgeInsets.only(bottom: 10),
@@ -251,25 +334,132 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
-          _SuggestionChip(
-              icon: '😊',
-              label: "I'm feeling happy!",
-              onTap: () => _handleSend("I'm feeling happy!")),
-          _SuggestionChip(
-              icon: '😓',
-              label: "I'm stressed",
-              onTap: () => _handleSend("I'm feeling stressed")),
-          _SuggestionChip(
-              icon: '😴',
-              label: "I can't sleep",
-              onTap: () => _handleSend("I can't sleep")),
+          for (final chip in chips)
+            _SuggestionChip(
+                icon: chip.icon,
+                label: chip.label,
+                onTap: () => _handleSend(chip.prompt)),
+        ],
+      ),
+    );
+  }
+
+  /// Suggestion chips tailored to the user's current/dominant mood, falling back
+  /// to a generic set when there's no mood data.
+  List<_ChipData> _moodChips(EmotionViewModel vm) {
+    final mood = vm.todaysLog?.emotionType ?? _dominantEmotion(vm.recentLogs);
+
+    switch (mood) {
+      case 'Anxious':
+        return const [
+          _ChipData('😮‍💨', 'Help me calm down', 'Help me calm down'),
+          _ChipData('🫁', 'Breathing exercise',
+              'Can you guide me through a breathing exercise?'),
+          _ChipData('💭', 'My thoughts are racing',
+              'My thoughts are racing and I feel anxious'),
+        ];
+      case 'Sad':
+        return const [
+          _ChipData('💙', 'I want to talk',
+              "I'm feeling sad and want to talk through it"),
+          _ChipData('🌧️', 'Why do I feel down?',
+              "I've been feeling down lately"),
+          _ChipData(
+              '🤗', 'I need comfort', 'I could use some comfort right now'),
+        ];
+      case 'Angry':
+        return const [
+          _ChipData('😤', 'Help me cool off',
+              "I'm feeling angry and need to cool off"),
+          _ChipData('🧯', 'Manage frustration',
+              'Help me manage my frustration'),
+          _ChipData('💬', 'Let me vent', 'I just need to vent'),
+        ];
+      case 'Tired':
+        return const [
+          _ChipData('😴', "I can't sleep", "I can't sleep"),
+          _ChipData(
+              '🔋', 'I feel exhausted', 'I feel exhausted and drained'),
+          _ChipData('🌙', 'Wind-down tips',
+              'Can you give me tips to wind down before bed?'),
+        ];
+      case 'Happy':
+      case 'Calm':
+        return const [
+          _ChipData('😊', 'Share good news',
+              'I want to share something good that happened'),
+          _ChipData(
+              '🙏', 'Practice gratitude', 'Help me practice gratitude'),
+          _ChipData('✨', 'Keep the momentum',
+              'How can I keep this positive momentum going?'),
+        ];
+      default:
+        return const [
+          _ChipData('😊', "I'm feeling happy!", "I'm feeling happy!"),
+          _ChipData('😓', "I'm stressed", "I'm feeling stressed"),
+          _ChipData('😴', "I can't sleep", "I can't sleep"),
+        ];
+    }
+  }
+
+  /// Most frequently logged emotion across recent logs, or null if none.
+  String? _dominantEmotion(List<EmotionLog> logs) {
+    if (logs.isEmpty) return null;
+    final freq = <String, int>{};
+    for (final log in logs) {
+      freq[log.emotionType] = (freq[log.emotionType] ?? 0) + 1;
+    }
+    return freq.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
+  }
+
+  /// Crisis-escalation card surfaced when the AI flags crisis language.
+  /// Numbers come from the shared [kCrisisHotlines] source of truth.
+  Widget _buildCrisisCard() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF3E0),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFFB300).withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.emergency_rounded, color: Color(0xFFE65100), size: 20),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'You are not alone — help is available',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFFE65100),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'If you are in immediate danger, call 999. Reach out to a trained '
+            'counsellor any time — tap a number to copy it.',
+            style: TextStyle(fontSize: 12, color: AppColors.textMedium, height: 1.5),
+          ),
+          const SizedBox(height: 12),
+          for (int i = 0; i < kCrisisHotlines.length; i++) ...[
+            if (i > 0) const SizedBox(height: 8),
+            _CrisisHotlineRow(hotline: kCrisisHotlines[i]),
+          ],
         ],
       ),
     );
   }
 
   Widget _buildInputArea(ChatbotViewModel vm) {
-    final canSend = _hasText && !vm.isLoading;
+    final canSend = _hasText && !vm.isLoading && !_coolingDown;
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
       decoration: BoxDecoration(
@@ -543,6 +733,76 @@ class _TypingIndicatorState extends State<_TypingIndicator>
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── Mood-aware suggestion chip data ──────────────────────────────────────────
+
+class _ChipData {
+  final String icon;
+  final String label;
+  final String prompt;
+  const _ChipData(this.icon, this.label, this.prompt);
+}
+
+// ── Crisis hotline row (chatbot crisis card) ─────────────────────────────────
+
+class _CrisisHotlineRow extends StatelessWidget {
+  final CrisisHotline hotline;
+  const _CrisisHotlineRow({required this.hotline});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        Clipboard.setData(ClipboardData(text: hotline.number));
+        InteractiveMessageService.showInfo(
+          context,
+          title: 'Number copied',
+          message: '${hotline.number} copied to clipboard.',
+        );
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border:
+              Border.all(color: const Color(0xFFFFB300).withValues(alpha: 0.35)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.phone_outlined, color: Color(0xFFE65100), size: 16),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    hotline.label,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textMedium,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    hotline.number,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.copy_rounded, color: AppColors.textLight, size: 15),
+          ],
+        ),
       ),
     );
   }

@@ -291,6 +291,115 @@ class AdminService {
         .toList();
   }
 
+  // ─── AI Chatbot usage analytics (privacy-preserving — metadata only) ───
+  // Aggregates over chatbot_sessions WITHOUT ever reading message content.
+  Future<Map<String, dynamic>> getChatbotUsageStats({
+    int lookbackDays = 21,
+  }) async {
+    try {
+      final since = DateTime.now().subtract(Duration(days: lookbackDays));
+      final weekStart = DateTime.now().subtract(const Duration(days: 7));
+      final snapshot = await _firestore.collection('chatbot_sessions').get();
+
+      int totalSessions = 0;
+      int totalMessages = 0;
+      int sessionsThisWeek = 0;
+      int endedSessions = 0;
+      int totalDurationMinutes = 0;
+      final activeUsers = <String>{};
+
+      DateTime? parse(dynamic raw) {
+        if (raw is Timestamp) return raw.toDate();
+        if (raw is String) return DateTime.tryParse(raw);
+        return null;
+      }
+
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final start = parse(data['startTime']);
+        if (start == null || start.isBefore(since)) continue;
+
+        totalSessions++;
+        if (start.isAfter(weekStart)) sessionsThisWeek++;
+
+        // Count messages only — never inspect their content.
+        final messages = (data['messages'] as List?) ?? const [];
+        totalMessages += messages.length;
+
+        final userId = data['userID'];
+        if (userId is String && userId.isNotEmpty) activeUsers.add(userId);
+
+        final end = parse(data['endTime']);
+        if (end != null) {
+          endedSessions++;
+          totalDurationMinutes += end.difference(start).inMinutes;
+        }
+      }
+
+      return {
+        'totalSessions': totalSessions,
+        'totalMessages': totalMessages,
+        'activeChatUsers': activeUsers.length,
+        'sessionsThisWeek': sessionsThisWeek,
+        'avgMessagesPerSession': totalSessions == 0
+            ? '0.0'
+            : (totalMessages / totalSessions).toStringAsFixed(1),
+        'avgSessionMinutes': endedSessions == 0
+            ? '0.0'
+            : (totalDurationMinutes / endedSessions).toStringAsFixed(1),
+      };
+    } catch (e) {
+      developer.log('getChatbotUsageStats failed: $e',
+          name: 'AdminService', level: 900);
+      rethrow;
+    }
+  }
+
+  // ─── Crisis follow-up queue (flags only — never conversation content) ───
+  // Streams unacknowledged crisis flags, enriched with user name/email.
+  Stream<List<Map<String, dynamic>>> getCrisisFlags({int limit = 50}) {
+    return _firestore
+        .collection('crisis_flags')
+        .where('acknowledged', isEqualTo: false)
+        .orderBy('lastFlaggedAt', descending: true)
+        .limit(limit)
+        .snapshots()
+        .asyncMap((snapshot) async {
+      final results = <Map<String, dynamic>>[];
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final userId = (data['userId'] as String?) ?? '';
+        String name = 'Unknown user';
+        String email = '';
+        try {
+          final user = await getUserById(userId);
+          if (user != null) {
+            name = user.userName;
+            email = user.userEmail;
+          }
+        } catch (_) {}
+        final ts = data['lastFlaggedAt'];
+        results.add({
+          'flagId': doc.id,
+          'userId': userId,
+          'name': name,
+          'email': email,
+          'severity': data['severity'] ?? 'high',
+          'count': data['count'] ?? 1,
+          'lastFlaggedAt': ts is Timestamp ? ts.toDate() : null,
+        });
+      }
+      return results;
+    });
+  }
+
+  Future<void> acknowledgeCrisisFlag(String flagId) async {
+    await _firestore.collection('crisis_flags').doc(flagId).update({
+      'acknowledged': true,
+      'acknowledgedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   // Update user role
   Future<void> updateUserRole(String userId, String role) async {
     await _firestore.collection(_usersCollection).doc(userId).update({

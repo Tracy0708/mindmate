@@ -1020,6 +1020,10 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                   const SizedBox(height: 14),
                   _DailyTrendChart(platformStats: platformStats),
                   const SizedBox(height: 14),
+                  _CrisisQueueSection(),
+                  const SizedBox(height: 14),
+                  _ChatbotUsageCard(lookbackDays: _lookbackDays),
+                  const SizedBox(height: 14),
                 ],
                 if (isLoading)
                   const Center(
@@ -1306,6 +1310,315 @@ class _RiskStatPill extends StatelessWidget {
 }
 
 // ── Lookback period chip selector ──────────────────────────────────────────
+// ── AI Chatbot usage analytics (metadata only — never message content) ──────
+class _ChatbotUsageCard extends StatelessWidget {
+  final int lookbackDays;
+  const _ChatbotUsageCard({required this.lookbackDays});
+
+  Widget _metric(String value, String label, IconData icon) {
+    return Container(
+      width: 100,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFAEE),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.fieldBorder.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: AppColors.primary, size: 16),
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(value,
+                style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textDark)),
+          ),
+          const SizedBox(height: 2),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textMedium,
+                  fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.forum_rounded,
+                    color: AppColors.primary, size: 18),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('AI Chatbot Usage',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textDark)),
+                    Text('Activity only — conversations stay private.',
+                        style: TextStyle(
+                            fontSize: 12, color: AppColors.textMedium)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          FutureBuilder<Map<String, dynamic>>(
+            future: context
+                .read<AdminViewModel>()
+                .getChatbotUsageStats(lookbackDays: lookbackDays),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Center(
+                      child: CircularProgressIndicator(
+                          color: AppColors.primary)),
+                );
+              }
+              if (snapshot.hasError || !snapshot.hasData) {
+                return const Text('Could not load chatbot usage.',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textMedium));
+              }
+              final s = snapshot.data!;
+              return Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  _metric('${s['totalSessions'] ?? 0}', 'Sessions',
+                      Icons.chat_bubble_outline_rounded),
+                  _metric('${s['totalMessages'] ?? 0}', 'Messages',
+                      Icons.mark_chat_read_outlined),
+                  _metric('${s['activeChatUsers'] ?? 0}', 'Active users',
+                      Icons.people_alt_outlined),
+                  _metric('${s['sessionsThisWeek'] ?? 0}', 'Last 7 days',
+                      Icons.date_range_rounded),
+                  _metric('${s['avgMessagesPerSession'] ?? '0.0'}',
+                      'Avg msgs/chat', Icons.insights_rounded),
+                  _metric('${s['avgSessionMinutes'] ?? '0.0'}', 'Avg min/chat',
+                      Icons.timer_outlined),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Crisis follow-up queue (flags only — no transcripts shown) ──────────────
+class _CrisisQueueSection extends StatelessWidget {
+  String _formatTime(dynamic value) {
+    if (value is! DateTime) return '';
+    final d = value.toLocal();
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${two(d.month)}/${two(d.day)} ${two(d.hour)}:${two(d.minute)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: context.read<AdminViewModel>().getCrisisFlags(),
+      builder: (context, snapshot) {
+        final flags = snapshot.data ?? const <Map<String, dynamic>>[];
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+                color: AppColors.errorRed.withValues(alpha: 0.18)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.errorRed.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.emergency_rounded,
+                        color: AppColors.errorRed, size: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Crisis Follow-up',
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textDark)),
+                        Text('Reach out to these users. Conversations stay private.',
+                            style: TextStyle(
+                                fontSize: 12, color: AppColors.textMedium)),
+                      ],
+                    ),
+                  ),
+                  if (flags.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.errorRed.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text('${flags.length}',
+                          style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.errorRed)),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (snapshot.connectionState == ConnectionState.waiting)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(
+                      child: CircularProgressIndicator(
+                          color: AppColors.primary)),
+                )
+              else if (flags.isEmpty)
+                const Text('No active crisis flags. 🌿',
+                    style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textMedium,
+                        fontWeight: FontWeight.w600))
+              else
+                ...flags.map((flag) => _CrisisFlagTile(
+                      flag: flag,
+                      timeLabel: _formatTime(flag['lastFlaggedAt']),
+                    )),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CrisisFlagTile extends StatelessWidget {
+  final Map<String, dynamic> flag;
+  final String timeLabel;
+  const _CrisisFlagTile({required this.flag, required this.timeLabel});
+
+  @override
+  Widget build(BuildContext context) {
+    final name = (flag['name'] as String?) ?? 'Unknown user';
+    final email = (flag['email'] as String?) ?? '';
+    final count = flag['count'] ?? 1;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF5F5),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.errorRed.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textDark)),
+                if (email.isNotEmpty)
+                  Text(email,
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.textMedium)),
+                const SizedBox(height: 2),
+                Text(
+                  timeLabel.isEmpty
+                      ? '$count flag(s)'
+                      : 'Last flagged $timeLabel · $count flag(s)',
+                  style: const TextStyle(
+                      fontSize: 11, color: AppColors.textLight),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          TextButton(
+            onPressed: () async {
+              final messenger = ScaffoldMessenger.of(context);
+              await context
+                  .read<AdminViewModel>()
+                  .acknowledgeCrisisFlag(flag['flagId'] as String);
+              messenger.showSnackBar(
+                SnackBar(content: Text('Marked $name as followed up.')),
+              );
+            },
+            style: TextButton.styleFrom(
+              backgroundColor: AppColors.primary.withValues(alpha: 0.14),
+              foregroundColor: AppColors.textDark,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Acknowledge',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _LookbackSelector extends StatelessWidget {
   final int selected;
   final ValueChanged<int> onChanged;
