@@ -17,6 +17,7 @@ Guidelines:
 - Gently suggest professional help when the user expresses persistent or severe distress
 - Never diagnose, prescribe medication, or claim to replace a licensed therapist or counselor
 - Respond in a warm, supportive, conversational tone
+- You may be given the user's recent mood trend. Reference it naturally and gently (e.g. acknowledge a rough week or celebrate an improvement); never recite the raw numbers back or sound clinical
 
 CRISIS RESPONSE — if the user expresses thoughts of suicide, self-harm, or being in immediate danger:
 - Respond with calm empathy and take it seriously
@@ -86,6 +87,168 @@ function dateKey(date) {
 
 function previousDate(date, days) {
   return new Date(date.getTime() - days * 24 * 60 * 60 * 1000);
+}
+
+// ─── Mood-trend helpers (mirror lib/models/emotion_log.dart + insights_viewmodel.dart) ───
+
+// Emotions that map intensity directly to wellbeing (vs. inverting it)
+const POSITIVE_WELLBEING_EMOTIONS = new Set(['happy', 'calm']);
+// Strict negative set used by EmotionLog.isNegative
+const STRICT_NEGATIVE_EMOTIONS = new Set(['sad', 'anxious', 'angry']);
+
+function noteSentiment(data) {
+  const raw = data?.noteSentimentScore;
+  if (raw === null || raw === undefined) return null;
+  const num = Number(raw);
+  return Number.isNaN(num) ? null : num;
+}
+
+function wellbeingScore(data) {
+  const type = String(data?.emotionType ?? '').trim().toLowerCase();
+  const intensity = Number(data?.intensityScore ?? 3);
+  return POSITIVE_WELLBEING_EMOTIONS.has(type) ? intensity : 6 - intensity;
+}
+
+function resolvedScore(data) {
+  const note = noteSentiment(data);
+  const wb = wellbeingScore(data);
+  return note !== null ? wb * 0.4 + note * 0.6 : wb;
+}
+
+function isEffectivelyNegativeLog(data) {
+  const type = String(data?.emotionType ?? '').trim().toLowerCase();
+  const note = noteSentiment(data);
+  return STRICT_NEGATIVE_EMOTIONS.has(type) || (note !== null && resolvedScore(data) < 3.0);
+}
+
+// Build a compact, human-readable mood summary from recent logs (most-recent-first).
+// Returns null when there is not enough data to say anything useful.
+function buildMoodContext(logs) {
+  if (!Array.isArray(logs) || logs.length === 0) return null;
+
+  const withDates = logs
+    .map((data) => ({ data, date: parseLogDate(data) }))
+    .filter((entry) => entry.date !== null);
+  if (withDates.length === 0) return null;
+
+  // Most-recent-first
+  withDates.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+  const now = new Date();
+  const todayKey = dateKey(now);
+  const lines = [];
+
+  // Today's mood
+  const todays = withDates.find((entry) => dateKey(entry.date) === todayKey);
+  if (todays) {
+    lines.push(`- Today they logged feeling "${todays.data.emotionType}" (intensity ${todays.data.intensityScore}/5).`);
+  } else {
+    lines.push("- They have not logged a mood yet today.");
+  }
+
+  // Dominant emotion over the window
+  const freq = {};
+  for (const { data } of withDates) {
+    const type = String(data?.emotionType ?? 'Unknown');
+    freq[type] = (freq[type] || 0) + 1;
+  }
+  const dominant = Object.entries(freq).sort((a, b) => b[1] - a[1])[0];
+  if (dominant) {
+    lines.push(`- Their most frequent mood over the last 2 weeks is "${dominant[0]}".`);
+  }
+
+  // Trend direction: first-half vs second-half average resolvedScore (chronological)
+  if (withDates.length >= 4) {
+    const chrono = [...withDates].reverse();
+    const mid = Math.floor(chrono.length / 2);
+    const avg = (arr) => arr.reduce((sum, e) => sum + resolvedScore(e.data), 0) / arr.length;
+    const firstAvg = avg(chrono.slice(0, mid));
+    const secondAvg = avg(chrono.slice(mid));
+    const diff = secondAvg - firstAvg;
+    if (diff > 0.3) {
+      lines.push("- Their mood trend is improving compared to earlier this period.");
+    } else if (diff < -0.3) {
+      lines.push("- Their mood trend is declining compared to earlier this period.");
+    } else {
+      lines.push("- Their mood has been relatively stable this period.");
+    }
+  }
+
+  // Negative-trend flag: 3+ of the last 5 effectively negative
+  const lastFive = withDates.slice(0, 5);
+  if (lastFive.length >= 3) {
+    const negCount = lastFive.filter((e) => isEffectivelyNegativeLog(e.data)).length;
+    if (negCount >= 3) {
+      lines.push("- Several of their recent check-ins have been difficult — be especially gentle and supportive.");
+    }
+  }
+
+  // Logging streak (consecutive days up to today)
+  const keys = new Set(withDates.map((e) => dateKey(e.date)));
+  let streak = 0;
+  let cursor = new Date(now);
+  while (keys.has(dateKey(cursor))) {
+    streak += 1;
+    cursor = previousDate(cursor, 1);
+  }
+  if (streak >= 2) {
+    lines.push(`- They are on a ${streak}-day check-in streak.`);
+  }
+
+  return lines.join('\n');
+}
+
+// ─── Crisis detection (keyword-based, consistent with app's keyword sentiment) ───
+const CRISIS_PATTERNS = [
+  /\bkill(ing)? myself\b/,
+  /\bsuicid/,
+  /\bend (my|it all|my life)\b/,
+  /\b(want|wanna|going) to die\b/,
+  /\bself[-\s]?harm/,
+  /\b(hurt|harm|cut|cutting|kill) myself\b/,
+  /\bno (reason|point) (to|in) (live|living|life)\b/,
+  /\bdon'?t want to (live|be here|be alive)\b/,
+  /\bbetter off (without me|dead)\b/,
+  /\boverdose\b/,
+  /\btake my (own )?life\b/,
+  /\bcan'?t (go on|do this anymore)\b/,
+];
+
+function detectCrisis(message) {
+  const text = String(message || '').toLowerCase();
+  return CRISIS_PATTERNS.some((re) => re.test(text));
+}
+
+// Write a privacy-preserving crisis flag — NO message text or conversation content is stored.
+// Deduped to one open flag per user per day so the admin queue stays clean.
+async function recordCrisisFlag(uid) {
+  try {
+    const db = getFirestore();
+    const flagRef = db.collection('crisis_flags').doc(`${uid}_${dateKey(new Date())}`);
+    await flagRef.set(
+      {
+        userId: uid,
+        severity: 'high',
+        acknowledged: false,
+        lastFlaggedAt: FieldValue.serverTimestamp(),
+        count: FieldValue.increment(1),
+      },
+      { merge: true },
+    );
+
+    await createNotificationForEnabledAdmins({
+      type: 'crisis_flag',
+      prefKey: 'highRiskAlerts',
+      defaultEnabled: true,
+      title: '🚨 Crisis language detected',
+      message: 'A user may be in crisis. Review the Crisis follow-up queue and reach out.',
+      sourceUserID: uid,
+      dedupeKey: dateKey(new Date()),
+    });
+  } catch (error) {
+    // A flag failure must never break the user's chat response.
+    console.error('Failed to record crisis flag:', error.message);
+  }
 }
 
 async function createNotificationForEnabledAdmins({
@@ -334,16 +497,66 @@ exports.getChatbotResponse = onCall(async (request) => {
     parts: [{ text: msg.content }],
   }));
 
+  // Build a per-request system instruction enriched with the user's recent mood trend.
+  // Derived from the authenticated user's own emotion logs; never persisted into the chat.
+  let systemInstruction = MINDMATE_SYSTEM_PROMPT;
+  try {
+    const since = previousDate(new Date(), 14);
+    const logsSnapshot = await db
+      .collection('users')
+      .doc(request.auth.uid)
+      .collection('emotion_logs')
+      .where('timestamp', '>=', since)
+      .orderBy('timestamp', 'desc')
+      .get();
+
+    const moodContext = buildMoodContext(logsSnapshot.docs.map((d) => d.data()));
+    if (moodContext) {
+      systemInstruction = `${MINDMATE_SYSTEM_PROMPT}\n\nUSER MOOD CONTEXT (do not read this back verbatim; use it to tailor your empathy and suggestions):\n${moodContext}`;
+    }
+  } catch (error) {
+    // Mood context is best-effort — fall back to the base prompt on any failure.
+    console.error('Failed to build mood context:', error.message);
+  }
+
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
     model: 'gemini-2.5-flash',
-    systemInstruction: MINDMATE_SYSTEM_PROMPT,
+    systemInstruction,
   });
 
-  const chat = model.startChat({ history });
-  const result = await chat.sendMessage(message);
+  // Call Gemini, degrading gracefully on rate-limit / overload so the user sees a
+  // calm in-chat message instead of a generic error screen.
+  let responseText;
+  try {
+    const chat = model.startChat({ history });
+    const result = await chat.sendMessage(message);
+    responseText = result.response.text();
+  } catch (err) {
+    const detail = String(err?.message || err);
+    console.error('Gemini call failed:', detail);
+    if (/\b429\b|quota|RESOURCE_EXHAUSTED|rate limit/i.test(detail)) {
+      responseText =
+        "I'm getting a lot of messages right now and need a short breather. " +
+        "Please try again in a minute. 💛 If you need urgent support, the hotlines " +
+        "in Help & Support are available any time.";
+    } else if (/\b503\b|overloaded|unavailable/i.test(detail)) {
+      responseText =
+        "I'm having a brief connection hiccup on my end. Please try sending that again in a moment.";
+    } else {
+      responseText =
+        "Sorry, I couldn't respond just now. Please try again shortly — I'm still here for you.";
+    }
+  }
 
-  return { response: result.response.text() };
+  // Detect crisis language in the user's message and flag it for admin follow-up.
+  // The flag stores no message content (see recordCrisisFlag) to preserve privacy.
+  const crisisDetected = detectCrisis(message);
+  if (crisisDetected) {
+    await recordCrisisFlag(request.auth.uid);
+  }
+
+  return { response: responseText, crisisDetected };
 });
 
 // Scheduled function to clean up orphaned Firestore documents

@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../main.dart';
+import '../models/crisis_hotline.dart';
 import '../services/interactive_message_service.dart';
 import '../widgets/app_screen_header.dart';
 
@@ -261,23 +262,14 @@ class _CrisisCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _HotlineTile(
-            label: 'Befrienders KL',
-            number: '03-7627 2929',
-            onTap: () => _copyNumber('03-7627 2929'),
-          ),
-          const SizedBox(height: 10),
-          _HotlineTile(
-            label: 'Talian Kasih (MOW)',
-            number: '15999',
-            onTap: () => _copyNumber('15999'),
-          ),
-          const SizedBox(height: 10),
-          _HotlineTile(
-            label: 'Mental Health Psychosocial Support (MOH)',
-            number: '1800-82-0066',
-            onTap: () => _copyNumber('1800-82-0066'),
-          ),
+          for (int i = 0; i < kCrisisHotlines.length; i++) ...[
+            if (i > 0) const SizedBox(height: 10),
+            _HotlineTile(
+              label: kCrisisHotlines[i].label,
+              number: kCrisisHotlines[i].number,
+              onTap: () => _copyNumber(kCrisisHotlines[i].number),
+            ),
+          ],
           const SizedBox(height: 14),
           const Text(
             'Tap a number to copy it to your clipboard.',
