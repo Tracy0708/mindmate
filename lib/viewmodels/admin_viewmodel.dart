@@ -81,11 +81,15 @@ class AdminViewModel extends ChangeNotifier {
       _adminService.generateUsageReport(),
       _adminService.getPlatformEmotionStats(lookbackDays: lookbackDays),
       _adminService.getMoodRiskUsers(lookbackDays: lookbackDays, limit: 20),
+      _adminService.getChatbotUsageStats(lookbackDays: lookbackDays),
+      _adminService.getCrisisFlagLog(lookbackDays: lookbackDays),
     ]);
     return ReportPdfService().generateSystemReportPdf(
       usageReport: results[0] as Map<String, dynamic>,
       platformEmotionStats: results[1] as Map<String, dynamic>,
       moodRiskUsers: results[2] as List<Map<String, dynamic>>,
+      chatbotUsage: results[3] as Map<String, dynamic>,
+      crisisFlags: results[4] as List<Map<String, dynamic>>,
       lookbackDays: lookbackDays,
     );
   }
@@ -102,9 +106,19 @@ class AdminViewModel extends ChangeNotifier {
             lookbackDays: lookbackDays,
           )),
     );
+    final flagsPerUser = await Future.wait(
+      capped.map((u) => _adminService.getCrisisFlagsForUser(
+            u['userId'] as String,
+            lookbackDays: lookbackDays,
+          )),
+    );
     final usersWithLogs = List.generate(
       capped.length,
-      (i) => (riskUser: capped[i], logs: logsPerUser[i]),
+      (i) => (
+        riskUser: capped[i],
+        logs: logsPerUser[i],
+        crisisFlags: flagsPerUser[i],
+      ),
     );
     return ReportPdfService().generateUserMoodReportPdf(
       usersWithLogs: usersWithLogs,
@@ -116,12 +130,17 @@ class AdminViewModel extends ChangeNotifier {
     Map<String, dynamic> riskUser, {
     int lookbackDays = 21,
   }) async {
+    final userId = riskUser['userId'] as String;
     final logs = await _adminService.getUserEmotionLogs(
-      riskUser['userId'] as String,
+      userId,
+      lookbackDays: lookbackDays,
+    );
+    final flags = await _adminService.getCrisisFlagsForUser(
+      userId,
       lookbackDays: lookbackDays,
     );
     return ReportPdfService().generateUserMoodReportPdf(
-      usersWithLogs: [(riskUser: riskUser, logs: logs)],
+      usersWithLogs: [(riskUser: riskUser, logs: logs, crisisFlags: flags)],
       lookbackDays: lookbackDays,
     );
   }

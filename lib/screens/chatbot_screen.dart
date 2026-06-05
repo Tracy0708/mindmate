@@ -141,7 +141,6 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             return Column(
               children: [
                 Expanded(child: _buildErrorState(vm)),
-                if (vm.crisisActive) _buildCrisisCard(),
                 _buildInputArea(vm),
               ],
             );
@@ -159,13 +158,12 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                     child: initialLoading
                         ? const Center(
                             child: CircularProgressIndicator(color: AppColors.primary))
-                        : messages.isEmpty
+                        : (messages.isEmpty && !vm.crisisActive)
                             ? _buildEmptyState(emotionVm)
-                            : _buildMessageList(messages),
+                            : _buildMessageList(messages, vm.crisisActive),
                   ),
                   if (vm.isLoading) const _TypingIndicator(),
-                  if (vm.crisisActive) _buildCrisisCard(),
-                  if (messages.isEmpty && !initialLoading)
+                  if (messages.isEmpty && !initialLoading && !vm.crisisActive)
                     _buildSuggestionRow(emotionVm),
                   _buildInputArea(vm),
                 ],
@@ -177,13 +175,21 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     );
   }
 
-  Widget _buildMessageList(List<Map<String, dynamic>> messages) {
+  Widget _buildMessageList(
+      List<Map<String, dynamic>> messages, bool crisisActive) {
     final reversed = messages.reversed.toList();
+    // When a crisis is active, the hotline card rides along as the newest item
+    // at the bottom of the conversation (reverse list → index 0), so it scrolls
+    // with the chat instead of being pinned above the input.
     return ListView.builder(
       reverse: true,
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      itemCount: reversed.length,
-      itemBuilder: (context, index) => _MessageBubble(msg: reversed[index]),
+      itemCount: reversed.length + (crisisActive ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (crisisActive && index == 0) return _buildCrisisCard();
+        final msgIndex = crisisActive ? index - 1 : index;
+        return _MessageBubble(msg: reversed[msgIndex]);
+      },
     );
   }
 
@@ -413,10 +419,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   }
 
   /// Crisis-escalation card surfaced when the AI flags crisis language.
-  /// Numbers come from the shared [kCrisisHotlines] source of truth.
+  /// Numbers come from the shared [kCrisisHotlines] source of truth. Rendered
+  /// inline as the newest item in the conversation so it scrolls with the chat.
   Widget _buildCrisisCard() {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+      margin: const EdgeInsets.fromLTRB(0, 4, 0, 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFFFFF3E0),

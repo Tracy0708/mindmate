@@ -400,6 +400,92 @@ class AdminService {
     });
   }
 
+  /// Crisis flag log for the system report — which user, when flagged, and when
+  /// acknowledged. Metadata only; no conversation content is read.
+  Future<List<Map<String, dynamic>>> getCrisisFlagLog({
+    int lookbackDays = 21,
+  }) async {
+    try {
+      final since = DateTime.now().subtract(Duration(days: lookbackDays));
+      final snap = await _firestore
+          .collection('crisis_flags')
+          .orderBy('lastFlaggedAt', descending: true)
+          .limit(100)
+          .get();
+
+      final results = <Map<String, dynamic>>[];
+      for (final doc in snap.docs) {
+        final data = doc.data();
+        final flagged = data['lastFlaggedAt'];
+        final flaggedAt = flagged is Timestamp ? flagged.toDate() : null;
+        if (flaggedAt == null || flaggedAt.isBefore(since)) continue;
+
+        final ackRaw = data['acknowledgedAt'];
+        final userId = (data['userId'] as String?) ?? '';
+        String name = 'Unknown user';
+        String email = '';
+        try {
+          final user = await getUserById(userId);
+          if (user != null) {
+            name = user.userName;
+            email = user.userEmail;
+          }
+        } catch (_) {}
+
+        results.add({
+          'userId': userId,
+          'name': name,
+          'email': email,
+          'flaggedAt': flaggedAt,
+          'acknowledged': data['acknowledged'] == true,
+          'acknowledgedAt': ackRaw is Timestamp ? ackRaw.toDate() : null,
+          'count': data['count'] ?? 1,
+        });
+      }
+      return results;
+    } catch (e) {
+      developer.log('getCrisisFlagLog failed: $e',
+          name: 'AdminService', level: 900);
+      return [];
+    }
+  }
+
+  /// Crisis flags for a single user (for their mood report). Metadata only.
+  Future<List<Map<String, dynamic>>> getCrisisFlagsForUser(
+    String userId, {
+    int lookbackDays = 21,
+  }) async {
+    try {
+      final since = DateTime.now().subtract(Duration(days: lookbackDays));
+      final snap = await _firestore
+          .collection('crisis_flags')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      final results = <Map<String, dynamic>>[];
+      for (final doc in snap.docs) {
+        final data = doc.data();
+        final flagged = data['lastFlaggedAt'];
+        final flaggedAt = flagged is Timestamp ? flagged.toDate() : null;
+        if (flaggedAt == null || flaggedAt.isBefore(since)) continue;
+        final ackRaw = data['acknowledgedAt'];
+        results.add({
+          'flaggedAt': flaggedAt,
+          'acknowledged': data['acknowledged'] == true,
+          'acknowledgedAt': ackRaw is Timestamp ? ackRaw.toDate() : null,
+          'count': data['count'] ?? 1,
+        });
+      }
+      results.sort((a, b) =>
+          (b['flaggedAt'] as DateTime).compareTo(a['flaggedAt'] as DateTime));
+      return results;
+    } catch (e) {
+      developer.log('getCrisisFlagsForUser failed: $e',
+          name: 'AdminService', level: 900);
+      return [];
+    }
+  }
+
   // Update user role
   Future<void> updateUserRole(String userId, String role) async {
     await _firestore.collection(_usersCollection).doc(userId).update({

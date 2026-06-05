@@ -251,6 +251,10 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                       ),
                     const SizedBox(height: 24),
 
+                    // ── CRISIS FOLLOW-UP ──
+                    _CrisisQueueSection(),
+                    const SizedBox(height: 24),
+
                     // ── KPI GRID ──
                     const _SectionHeader(
                       icon: Icons.bar_chart_rounded,
@@ -380,6 +384,15 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 16),
+
+                    // ── AI CHATBOT USAGE ──
+                    const _SectionHeader(
+                      icon: Icons.forum_rounded,
+                      title: 'AI Chatbot Usage',
+                    ),
+                    const SizedBox(height: 12),
+                    const _ChatbotUsageCard(lookbackDays: 30),
                     const SizedBox(height: 16),
 
                     // ── SYSTEM REPORT EXPORT ──
@@ -1020,10 +1033,6 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                   const SizedBox(height: 14),
                   _DailyTrendChart(platformStats: platformStats),
                   const SizedBox(height: 14),
-                  _CrisisQueueSection(),
-                  const SizedBox(height: 14),
-                  _ChatbotUsageCard(lookbackDays: _lookbackDays),
-                  const SizedBox(height: 14),
                 ],
                 if (isLoading)
                   const Center(
@@ -1315,129 +1324,120 @@ class _ChatbotUsageCard extends StatelessWidget {
   final int lookbackDays;
   const _ChatbotUsageCard({required this.lookbackDays});
 
-  Widget _metric(String value, String label, IconData icon) {
-    return Container(
-      width: 100,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFFAEE),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.fieldBorder.withValues(alpha: 0.5)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: AppColors.primary, size: 16),
-          const SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(value,
-                style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.textDark)),
-          ),
-          const SizedBox(height: 2),
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 11,
-                  color: AppColors.textMedium,
-                  fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    // Mirrors the Usage Snapshot card: white container + _DashboardInfoTile rows.
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: FutureBuilder<Map<String, dynamic>>(
+        future: context
+            .read<AdminViewModel>()
+            .getChatbotUsageStats(lookbackDays: lookbackDays),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(
+                  child: CircularProgressIndicator(color: AppColors.primary)),
+            );
+          }
+          if (snapshot.hasError || !snapshot.hasData) {
+            return const Text('Could not load chatbot usage.',
+                style: TextStyle(fontSize: 12, color: AppColors.textMedium));
+          }
+          final s = snapshot.data!;
+          return Column(
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.forum_rounded,
-                    color: AppColors.primary, size: 18),
+              const Row(
+                children: [
+                  Icon(Icons.lock_outline_rounded,
+                      size: 13, color: AppColors.textLight),
+                  SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Activity only — conversations stay private.',
+                      style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textLight,
+                          fontStyle: FontStyle.italic),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 10),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('AI Chatbot Usage',
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textDark)),
-                    Text('Activity only — conversations stay private.',
-                        style: TextStyle(
-                            fontSize: 12, color: AppColors.textMedium)),
-                  ],
-                ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: _DashboardInfoTile(
+                      icon: Icons.chat_bubble_outline_rounded,
+                      label: 'Sessions',
+                      value: '${s['totalSessions'] ?? 0}',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _DashboardInfoTile(
+                      icon: Icons.mark_chat_read_outlined,
+                      label: 'Messages',
+                      value: '${s['totalMessages'] ?? 0}',
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _DashboardInfoTile(
+                      icon: Icons.people_alt_outlined,
+                      label: 'Active Users',
+                      value: '${s['activeChatUsers'] ?? 0}',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _DashboardInfoTile(
+                      icon: Icons.date_range_rounded,
+                      label: 'Sessions (7d)',
+                      value: '${s['sessionsThisWeek'] ?? 0}',
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _DashboardInfoTile(
+                      icon: Icons.insights_rounded,
+                      label: 'Avg Msgs/Chat',
+                      value: '${s['avgMessagesPerSession'] ?? '0.0'}',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _DashboardInfoTile(
+                      icon: Icons.schedule_rounded,
+                      label: 'Avg Min/Chat',
+                      value: '${s['avgSessionMinutes'] ?? '0.0'}',
+                    ),
+                  ),
+                ],
               ),
             ],
-          ),
-          const SizedBox(height: 14),
-          FutureBuilder<Map<String, dynamic>>(
-            future: context
-                .read<AdminViewModel>()
-                .getChatbotUsageStats(lookbackDays: lookbackDays),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Center(
-                      child: CircularProgressIndicator(
-                          color: AppColors.primary)),
-                );
-              }
-              if (snapshot.hasError || !snapshot.hasData) {
-                return const Text('Could not load chatbot usage.',
-                    style: TextStyle(
-                        fontSize: 12, color: AppColors.textMedium));
-              }
-              final s = snapshot.data!;
-              return Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _metric('${s['totalSessions'] ?? 0}', 'Sessions',
-                      Icons.chat_bubble_outline_rounded),
-                  _metric('${s['totalMessages'] ?? 0}', 'Messages',
-                      Icons.mark_chat_read_outlined),
-                  _metric('${s['activeChatUsers'] ?? 0}', 'Active users',
-                      Icons.people_alt_outlined),
-                  _metric('${s['sessionsThisWeek'] ?? 0}', 'Last 7 days',
-                      Icons.date_range_rounded),
-                  _metric('${s['avgMessagesPerSession'] ?? '0.0'}',
-                      'Avg msgs/chat', Icons.insights_rounded),
-                  _metric('${s['avgSessionMinutes'] ?? '0.0'}', 'Avg min/chat',
-                      Icons.timer_outlined),
-                ],
-              );
-            },
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -1829,7 +1829,7 @@ class _EmotionBarChart extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Emotion Distribution (last ${lookbackDays}d)',
+            'Mood Distribution (last ${lookbackDays}d)',
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w800,
@@ -2004,7 +2004,7 @@ class _DailyTrendChart extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Daily Activity Trend (last 7d)',
+            'Daily Mood Check-ins (last 7d)',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w800,
