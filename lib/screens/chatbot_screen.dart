@@ -68,7 +68,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 color: AppColors.primary.withValues(alpha: 0.14),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.smart_toy_rounded, color: AppColors.primary, size: 26),
+              child: ClipOval(
+                child: Image.asset('assets/images/MindMateAI.png',
+                    width: 46, height: 46, fit: BoxFit.cover),
+              ),
             ),
             const SizedBox(width: 12),
             Column(
@@ -167,7 +170,10 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 color: AppColors.primary.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.smart_toy_rounded, color: AppColors.primary, size: 44),
+              child: ClipOval(
+                child: Image.asset('assets/images/MindMateAI.png',
+                    width: 88, height: 88, fit: BoxFit.cover),
+              ),
             ),
             const SizedBox(height: 20),
             const Text(
@@ -373,8 +379,10 @@ class _MessageBubble extends StatelessWidget {
                 color: AppColors.primary.withValues(alpha: 0.14),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.smart_toy_rounded,
-                  color: AppColors.primary, size: 16),
+              child: ClipOval(
+                child: Image.asset('assets/images/MindMateAI.png',
+                    width: 30, height: 30, fit: BoxFit.cover),
+              ),
             ),
           Flexible(
             child: ConstrainedBox(
@@ -491,8 +499,10 @@ class _TypingIndicatorState extends State<_TypingIndicator>
               color: AppColors.primary.withValues(alpha: 0.14),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.smart_toy_rounded,
-                color: AppColors.primary, size: 15),
+            child: ClipOval(
+              child: Image.asset('assets/images/MindMateAI.png',
+                  width: 28, height: 28, fit: BoxFit.cover),
+            ),
           ),
           Container(
             padding:

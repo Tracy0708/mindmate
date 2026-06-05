@@ -54,6 +54,7 @@ flutter:
   assets:
     - assets/images/MindMate_Logo.png
     - assets/images/MindMate_Logo_Admin.png
+    - assets/images/MindMateAI.png
 
   fonts:
     - family: Nunito
