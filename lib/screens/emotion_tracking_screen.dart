@@ -376,7 +376,8 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
                   border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                 ),
                 child: Column(children: [
-                  const Icon(Icons.smart_toy_rounded, size: 40, color: AppColors.primary),
+                  Image.asset('assets/images/MindMateAI.png',
+                      width: 64, height: 64, fit: BoxFit.contain),
                   const SizedBox(height: 12),
                   const Text('We\'ve noticed you\'ve been feeling down lately', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textDark)),
                   const SizedBox(height: 8),
