@@ -525,15 +525,35 @@ exports.getChatbotResponse = onCall(async (request) => {
     systemInstruction,
   });
 
-  // Call Gemini, degrading gracefully on rate-limit / overload so the user sees a
-  // calm in-chat message instead of a generic error screen.
+  // Call Gemini with one automatic retry on transient overloads (503), degrading
+  // gracefully so the user sees a calm in-chat message instead of an error screen.
+  // Quota errors (429) are NOT retried — they won't recover and retrying would
+  // waste the limited free-tier daily allowance.
   let responseText;
-  try {
-    const chat = model.startChat({ history });
-    const result = await chat.sendMessage(message);
-    responseText = result.response.text();
-  } catch (err) {
-    const detail = String(err?.message || err);
+  let lastError = null;
+  const maxAttempts = 2; // initial attempt + 1 retry for transient overloads
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const chat = model.startChat({ history });
+      const result = await chat.sendMessage(message);
+      responseText = result.response.text();
+      lastError = null;
+      break;
+    } catch (err) {
+      lastError = err;
+      const detail = String(err?.message || err);
+      const transient = /\b503\b|overloaded|unavailable/i.test(detail);
+      if (transient && attempt < maxAttempts) {
+        console.warn(`Gemini transient error (attempt ${attempt}); retrying:`, detail);
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        continue;
+      }
+      break;
+    }
+  }
+
+  if (lastError) {
+    const detail = String(lastError?.message || lastError);
     console.error('Gemini call failed:', detail);
     if (/\b429\b|quota|RESOURCE_EXHAUSTED|rate limit/i.test(detail)) {
       responseText =

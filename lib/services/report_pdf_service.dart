@@ -42,6 +42,8 @@ class ReportPdfService {
     required Map<String, dynamic> usageReport,
     required Map<String, dynamic> platformEmotionStats,
     required List<Map<String, dynamic>> moodRiskUsers,
+    Map<String, dynamic> chatbotUsage = const {},
+    List<Map<String, dynamic>> crisisFlags = const [],
     int lookbackDays = 21,
   }) async {
     final pdf = pw.Document();
@@ -63,21 +65,35 @@ class ReportPdfService {
         footer: (ctx) => _buildFooter(ctx),
         build: (ctx) => [
           pw.SizedBox(height: 22),
-          _sectionTitle('PLATFORM OVERVIEW'),
+          _sectionTitle('PLATFORM OVERVIEW',
+              'User accounts and overall mood-logging totals.'),
           pw.SizedBox(height: 12),
           _buildStatCards(usageReport),
           pw.SizedBox(height: 26),
-          _sectionTitle('EMOTION DISTRIBUTION  |  last $lookbackDays days'),
+          _sectionTitle('AI CHATBOT USAGE  |  last $lookbackDays days',
+              'How much the MindMate AI companion is being used (no conversation content is stored).'),
+          pw.SizedBox(height: 12),
+          _buildChatbotUsageCards(chatbotUsage),
+          pw.SizedBox(height: 26),
+          _sectionTitle('MOOD DISTRIBUTION  |  last $lookbackDays days',
+              'How often each mood was logged across all users.'),
           pw.SizedBox(height: 12),
           _buildHorizontalBarChart(emotionCounts),
           pw.SizedBox(height: 26),
-          _sectionTitle('DAILY ACTIVITY TREND  |  last 7 days'),
+          _sectionTitle('DAILY MOOD CHECK-INS  |  last 7 days',
+              'Number of mood logs submitted across all users each day.'),
           pw.SizedBox(height: 12),
           _buildDailyTrendChart(dailyCounts),
           pw.SizedBox(height: 26),
-          _sectionTitle('AT-RISK USERS  |  top ${moodRiskUsers.length}'),
+          _sectionTitle('AT-RISK USERS  |  top ${moodRiskUsers.length}',
+              'Users with sustained negative mood who may need a counselling follow-up.'),
           pw.SizedBox(height: 12),
           _buildRiskUsersTable(moodRiskUsers),
+          pw.SizedBox(height: 26),
+          _sectionTitle('CRISIS FLAGS  |  last $lookbackDays days',
+              'When the AI detected crisis language and whether it has been followed up.'),
+          pw.SizedBox(height: 12),
+          _buildCrisisFlagsTable(crisisFlags),
         ],
       ),
     );
@@ -88,7 +104,12 @@ class ReportPdfService {
   // ── User Mood Report ───────────────────────────────────────────────────────
 
   Future<Uint8List> generateUserMoodReportPdf({
-    required List<({Map<String, dynamic> riskUser, List<EmotionLog> logs})>
+    required List<
+            ({
+              Map<String, dynamic> riskUser,
+              List<EmotionLog> logs,
+              List<Map<String, dynamic>> crisisFlags
+            })>
         usersWithLogs,
     int lookbackDays = 21,
   }) async {
@@ -100,6 +121,7 @@ class ReportPdfService {
     for (final entry in usersWithLogs) {
       final user = entry.riskUser;
       final logs = entry.logs;
+      final crisisFlags = entry.crisisFlags;
       final name = (user['name'] as String?)?.isNotEmpty == true
           ? user['name'] as String
           : 'Unknown User';
@@ -128,20 +150,31 @@ class ReportPdfService {
             pw.SizedBox(height: 22),
             _buildUserProfileHeader(name, email, isActive, totalLogs),
             pw.SizedBox(height: 22),
-            _sectionTitle('RISK ASSESSMENT'),
+            _sectionTitle('RISK ASSESSMENT',
+                'How concerning this user\'s recent mood pattern is, based on negative check-ins.'),
             pw.SizedBox(height: 10),
             _buildRiskCard(
                 riskScore, riskLevel, riskColor, dominantMood, negativeRatio),
             pw.SizedBox(height: 22),
+            _sectionTitle('CRISIS FLAGS  |  last $lookbackDays days',
+                'When the AI detected crisis language from this user, and whether it was followed up.'),
+            pw.SizedBox(height: 10),
+            _buildUserCrisisTable(crisisFlags),
+            pw.SizedBox(height: 22),
             if (emotionByType.isNotEmpty) ...[
-              _sectionTitle('EMOTION BREAKDOWN'),
+              _sectionTitle('MOOD BREAKDOWN',
+                  'How often this user logged each mood.'),
               pw.SizedBox(height: 10),
               _buildHorizontalBarChart(emotionByType),
-              pw.SizedBox(height: 14),
+              pw.SizedBox(height: 22),
             ],
+            _sectionTitle('MOOD BALANCE',
+                'Share of positive, neutral, and negative check-ins.'),
+            pw.SizedBox(height: 10),
             _buildPosNegNeutralRow(positiveLogs, negativeLogs, totalLogs),
             pw.SizedBox(height: 22),
-            _sectionTitle('RECENT MOOD LOGS  |  last $lookbackDays days'),
+            _sectionTitle('RECENT MOOD LOGS  |  last $lookbackDays days',
+                'Each check-in this user recorded, with mood, intensity and notes.'),
             pw.SizedBox(height: 10),
             _buildUserLogTable(logs, dayFmt),
           ],
@@ -217,7 +250,7 @@ class ReportPdfService {
     );
   }
 
-  pw.Widget _sectionTitle(String title) {
+  pw.Widget _sectionTitle(String title, [String? description]) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
@@ -229,6 +262,12 @@ class ReportPdfService {
             )),
         pw.SizedBox(height: 4),
         pw.Container(height: 1.5, color: _golden),
+        if (description != null) ...[
+          pw.SizedBox(height: 5),
+          pw.Text(description,
+              style: const pw.TextStyle(
+                  fontSize: 8, color: PdfColors.grey600)),
+        ],
       ],
     );
   }
@@ -342,7 +381,7 @@ class ReportPdfService {
   // ── Stat cards ─────────────────────────────────────────────────────────────
 
   pw.Widget _buildStatCards(Map<String, dynamic> report) {
-    final stats = [
+    return _statGrid([
       ('Total Users', '${report['totalUsers'] ?? 0}', _blue),
       ('Active Users', '${report['activeUsers'] ?? 0}', _green),
       ('Suspended', '${report['disabledUsers'] ?? 0}', _errorRed),
@@ -351,11 +390,166 @@ class ReportPdfService {
       ('Logs Today', '${report['logsToday'] ?? 0}', _teal),
       ('This Week', '${report['logsThisWeek'] ?? 0}', _purple),
       ('Avg / User', '${report['avgLogsPerUser'] ?? 0}', _amber),
-    ];
+    ]);
+  }
 
+  pw.Widget _buildChatbotUsageCards(Map<String, dynamic> u) {
+    return _statGrid([
+      ('Sessions', '${u['totalSessions'] ?? 0}', _blue),
+      ('Messages', '${u['totalMessages'] ?? 0}', _teal),
+      ('Active Users', '${u['activeChatUsers'] ?? 0}', _green),
+      ('Sessions (7d)', '${u['sessionsThisWeek'] ?? 0}', _purple),
+      ('Avg Msgs/Chat', '${u['avgMessagesPerSession'] ?? '0.0'}', _amber),
+      ('Avg Min/Chat', '${u['avgSessionMinutes'] ?? '0.0'}', _brownDark),
+    ], perRow: 3);
+  }
+
+  /// Per-user crisis flags (for the individual mood report): when flagged, when
+  /// acknowledged, and how many times. Metadata only — no conversation content.
+  pw.Widget _buildUserCrisisTable(List<Map<String, dynamic>> flags) {
+    if (flags.isEmpty) {
+      return pw.Container(
+        width: double.infinity,
+        padding: const pw.EdgeInsets.all(16),
+        decoration: pw.BoxDecoration(
+          color: _cream,
+          borderRadius: pw.BorderRadius.circular(8),
+          border: pw.Border.all(color: PdfColors.brown100),
+        ),
+        child: pw.Center(
+          child: pw.Text('No crisis flags for this user in this period.',
+              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
+        ),
+      );
+    }
+
+    final fmt = DateFormat('dd MMM  HH:mm');
+    return pw.Table(
+      border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+      columnWidths: const {
+        0: pw.FlexColumnWidth(2.0), // Flagged
+        1: pw.FlexColumnWidth(2.0), // Acknowledged
+        2: pw.FlexColumnWidth(1.0), // Times
+      },
+      children: [
+        pw.TableRow(
+          decoration: const pw.BoxDecoration(color: _brownDark),
+          children: ['Flagged', 'Acknowledged', 'Times']
+              .map((h) => pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 7),
+                    child: pw.Text(h,
+                        style: pw.TextStyle(
+                          fontSize: 8,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.white,
+                        )),
+                  ))
+              .toList(),
+        ),
+        ...flags.asMap().entries.map((entry) {
+          final f = entry.value;
+          final rowBg = entry.key.isEven ? _cream : PdfColors.white;
+          final flaggedAt = f['flaggedAt'] as DateTime?;
+          final ackAt = f['acknowledgedAt'] as DateTime?;
+          final acknowledged = f['acknowledged'] == true;
+          return pw.TableRow(
+            decoration: pw.BoxDecoration(color: rowBg),
+            children: [
+              _cell(flaggedAt != null ? fmt.format(flaggedAt) : '-',
+                  color: _errorRed),
+              _cell(
+                acknowledged
+                    ? (ackAt != null ? fmt.format(ackAt) : 'Acknowledged')
+                    : 'Pending',
+                bold: true,
+                color: acknowledged ? _green : _errorRed,
+              ),
+              _cell('${f['count'] ?? 1}'),
+            ],
+          );
+        }),
+      ],
+    );
+  }
+
+  /// Crisis flags log: which user, when flagged, and when acknowledged.
+  /// Metadata only — no conversation content is ever included.
+  pw.Widget _buildCrisisFlagsTable(List<Map<String, dynamic>> flags) {
+    if (flags.isEmpty) {
+      return pw.Container(
+        width: double.infinity,
+        padding: const pw.EdgeInsets.all(16),
+        decoration: pw.BoxDecoration(
+          color: _cream,
+          borderRadius: pw.BorderRadius.circular(8),
+          border: pw.Border.all(color: PdfColors.brown100),
+        ),
+        child: pw.Center(
+          child: pw.Text('No crisis flags in this period.',
+              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
+        ),
+      );
+    }
+
+    final fmt = DateFormat('dd MMM  HH:mm');
+    return pw.Table(
+      border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+      columnWidths: const {
+        0: pw.FlexColumnWidth(1.6), // User
+        1: pw.FlexColumnWidth(2.4), // Email
+        2: pw.FlexColumnWidth(1.6), // Flagged
+        3: pw.FlexColumnWidth(1.7), // Acknowledged
+      },
+      children: [
+        pw.TableRow(
+          decoration: const pw.BoxDecoration(color: _brownDark),
+          children: ['User', 'Email', 'Flagged', 'Acknowledged']
+              .map((h) => pw.Padding(
+                    padding: const pw.EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 7),
+                    child: pw.Text(h,
+                        style: pw.TextStyle(
+                          fontSize: 8,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.white,
+                        )),
+                  ))
+              .toList(),
+        ),
+        ...flags.asMap().entries.map((entry) {
+          final f = entry.value;
+          final rowBg = entry.key.isEven ? _cream : PdfColors.white;
+          final flaggedAt = f['flaggedAt'] as DateTime?;
+          final ackAt = f['acknowledgedAt'] as DateTime?;
+          final acknowledged = f['acknowledged'] == true;
+          return pw.TableRow(
+            decoration: pw.BoxDecoration(color: rowBg),
+            children: [
+              _cell(_truncate((f['name'] as String?) ?? '', 18),
+                  bold: true, color: _brownDark),
+              _cell(_truncate((f['email'] as String?) ?? '', 28),
+                  color: PdfColors.grey700),
+              _cell(flaggedAt != null ? fmt.format(flaggedAt) : '-',
+                  color: _errorRed),
+              _cell(
+                acknowledged
+                    ? (ackAt != null ? fmt.format(ackAt) : 'Acknowledged')
+                    : 'Pending',
+                bold: true,
+                color: acknowledged ? _green : _errorRed,
+              ),
+            ],
+          );
+        }),
+      ],
+    );
+  }
+
+  pw.Widget _statGrid(List<(String, String, PdfColor)> stats, {int perRow = 4}) {
     final rows = <pw.Widget>[];
-    for (int i = 0; i < stats.length; i += 4) {
-      final chunk = stats.sublist(i, (i + 4).clamp(0, stats.length));
+    for (int i = 0; i < stats.length; i += perRow) {
+      final chunk = stats.sublist(i, (i + perRow).clamp(0, stats.length));
       rows.add(pw.Row(
         children: List.generate(chunk.length, (j) {
           final s = chunk[j];

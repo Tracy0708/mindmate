@@ -20,6 +20,8 @@ class NotificationCenterScreen extends StatelessWidget {
 
   IconData _iconFor(String type) {
     switch (type) {
+      case 'crisis_flag':
+        return Icons.crisis_alert_rounded;
       case 'high_risk':
         return Icons.warning_rounded;
       case 'abnormal':
@@ -27,6 +29,7 @@ class NotificationCenterScreen extends StatelessWidget {
       case 'new_signup':
         return Icons.person_add_alt_1_rounded;
       case 'system':
+      case 'system_report':
         return Icons.analytics_rounded;
       default:
         return Icons.notifications_rounded;
@@ -35,6 +38,8 @@ class NotificationCenterScreen extends StatelessWidget {
 
   Color _colorFor(String type) {
     switch (type) {
+      case 'crisis_flag':
+        return AppColors.errorRed;
       case 'high_risk':
         return AppColors.errorRed;
       case 'abnormal':
@@ -42,6 +47,7 @@ class NotificationCenterScreen extends StatelessWidget {
       case 'new_signup':
         return const Color(0xFF26A69A);
       case 'system':
+      case 'system_report':
         return const Color(0xFF5C6BC0);
       default:
         return AppColors.primary;
