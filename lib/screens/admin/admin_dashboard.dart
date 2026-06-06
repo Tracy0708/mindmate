@@ -667,7 +667,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
   int _refreshSeed = 0;
   String _searchQuery = '';
   String _riskFilter = 'All';
-  int _lookbackDays = 21;
+  int _lookbackDays = 7;
 
   String _formatDate(dynamic value) {
     if (value is! DateTime) return 'N/A';
@@ -887,7 +887,10 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                             ),
                           ),
                         const SizedBox(height: 8),
-                        _ExportUserPdfButton(user: user),
+                        _ExportUserPdfButton(
+                          user: user,
+                          lookbackDays: _lookbackDays,
+                        ),
                       ],
                     ),
                   );
@@ -2647,8 +2650,12 @@ class _PdfPreviewScreen extends StatelessWidget {
 
 class _ExportUserPdfButton extends StatefulWidget {
   final Map<String, dynamic> user;
+  final int lookbackDays;
 
-  const _ExportUserPdfButton({required this.user});
+  const _ExportUserPdfButton({
+    required this.user,
+    required this.lookbackDays,
+  });
 
   @override
   State<_ExportUserPdfButton> createState() => _ExportUserPdfButtonState();
@@ -2666,7 +2673,10 @@ class _ExportUserPdfButtonState extends State<_ExportUserPdfButton> {
   }
 
   Future<Uint8List> _generateBytes() =>
-      context.read<AdminViewModel>().exportSingleUserMoodReport(widget.user);
+      context.read<AdminViewModel>().exportSingleUserMoodReport(
+            widget.user,
+            lookbackDays: widget.lookbackDays,
+          );
 
   Future<void> _preview() async {
     setState(() => _previewing = true);
