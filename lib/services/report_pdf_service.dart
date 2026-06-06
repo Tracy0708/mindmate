@@ -11,9 +11,15 @@ class ReportPdfService {
   static const _errorRed = PdfColor.fromInt(0xFFE53935);
   static const _amber = PdfColor.fromInt(0xFFDD8A00);
   static const _green = PdfColor.fromInt(0xFF43A047);
-  static const _blue = PdfColor.fromInt(0xFF1E88E5);
-  static const _teal = PdfColor.fromInt(0xFF00897B);
-  static const _purple = PdfColor.fromInt(0xFF7B1FA2);
+
+  // Warm accent palette — mirrors the in-app Insights screen so the reports
+  // share the app's Golden/Cream/Brown aesthetic.
+  static const _peach = PdfColor.fromInt(0xFFF4A261);
+  static const _sage = PdfColor.fromInt(0xFF81B29A);
+  static const _terracotta = PdfColor.fromInt(0xFFE07A5F);
+  static const _dustyBlue = PdfColor.fromInt(0xFF6B9AC4);
+  static const _rose = PdfColor.fromInt(0xFFBF616A);
+  static const _taupe = PdfColor.fromInt(0xFFA8845C);
 
   // Pre-computed light backgrounds (alpha blended with white, since PDF doesn't
   // composite transparent colors against the page background automatically).
@@ -24,16 +30,15 @@ class ReportPdfService {
       );
 
   static const _emotionColors = {
-    'Happy': PdfColor.fromInt(0xFF43A047),
-    'Calm': PdfColor.fromInt(0xFF00897B),
-    'Tired': PdfColor.fromInt(0xFF7B1FA2),
-    'Anxious': PdfColor.fromInt(0xFFF4511E),
-    'Sad': PdfColor.fromInt(0xFF1E88E5),
-    'Angry': PdfColor.fromInt(0xFFE53935),
+    'Happy': _peach,
+    'Calm': _sage,
+    'Anxious': _terracotta,
+    'Sad': _dustyBlue,
+    'Angry': _rose,
   };
 
   static const _emotions = [
-    'Happy', 'Calm', 'Tired', 'Anxious', 'Sad', 'Angry',
+    'Happy', 'Calm', 'Anxious', 'Sad', 'Angry',
   ];
 
   // ── System Report ──────────────────────────────────────────────────────────
@@ -78,9 +83,9 @@ class ReportPdfService {
           _sectionTitle('MOOD DISTRIBUTION  |  last $lookbackDays days',
               'How often each mood was logged across all users.'),
           pw.SizedBox(height: 12),
-          _buildHorizontalBarChart(emotionCounts),
+          _buildMoodDonut(emotionCounts),
           pw.SizedBox(height: 26),
-          _sectionTitle('DAILY MOOD CHECK-INS  |  last 7 days',
+          _sectionTitle('DAILY MOOD CHECK-INS  |  last $lookbackDays days',
               'Number of mood logs submitted across all users each day.'),
           pw.SizedBox(height: 12),
           _buildDailyTrendChart(dailyCounts),
@@ -165,7 +170,7 @@ class ReportPdfService {
               _sectionTitle('MOOD BREAKDOWN',
                   'How often this user logged each mood.'),
               pw.SizedBox(height: 10),
-              _buildHorizontalBarChart(emotionByType),
+              _buildMoodDonut(emotionByType),
               pw.SizedBox(height: 22),
             ],
             _sectionTitle('MOOD BALANCE',
@@ -382,24 +387,24 @@ class ReportPdfService {
 
   pw.Widget _buildStatCards(Map<String, dynamic> report) {
     return _statGrid([
-      ('Total Users', '${report['totalUsers'] ?? 0}', _blue),
-      ('Active Users', '${report['activeUsers'] ?? 0}', _green),
-      ('Suspended', '${report['disabledUsers'] ?? 0}', _errorRed),
-      ('Admins', '${report['adminUsers'] ?? 0}', _golden),
+      ('Total Users', '${report['totalUsers'] ?? 0}', _golden),
+      ('Active Users', '${report['activeUsers'] ?? 0}', _sage),
+      ('Suspended', '${report['disabledUsers'] ?? 0}', _rose),
+      ('Admins', '${report['adminUsers'] ?? 0}', _amber),
       ('Total Logs', '${report['totalLogs'] ?? 0}', _brownDark),
-      ('Logs Today', '${report['logsToday'] ?? 0}', _teal),
-      ('This Week', '${report['logsThisWeek'] ?? 0}', _purple),
-      ('Avg / User', '${report['avgLogsPerUser'] ?? 0}', _amber),
+      ('Logs Today', '${report['logsToday'] ?? 0}', _terracotta),
+      ('This Week', '${report['logsThisWeek'] ?? 0}', _peach),
+      ('Avg / User', '${report['avgLogsPerUser'] ?? 0}', _taupe),
     ]);
   }
 
   pw.Widget _buildChatbotUsageCards(Map<String, dynamic> u) {
     return _statGrid([
-      ('Sessions', '${u['totalSessions'] ?? 0}', _blue),
-      ('Messages', '${u['totalMessages'] ?? 0}', _teal),
-      ('Active Users', '${u['activeChatUsers'] ?? 0}', _green),
-      ('Sessions (7d)', '${u['sessionsThisWeek'] ?? 0}', _purple),
-      ('Avg Msgs/Chat', '${u['avgMessagesPerSession'] ?? '0.0'}', _amber),
+      ('Sessions', '${u['totalSessions'] ?? 0}', _golden),
+      ('Messages', '${u['totalMessages'] ?? 0}', _terracotta),
+      ('Active Users', '${u['activeChatUsers'] ?? 0}', _sage),
+      ('Sessions (7d)', '${u['sessionsThisWeek'] ?? 0}', _amber),
+      ('Avg Msgs/Chat', '${u['avgMessagesPerSession'] ?? '0.0'}', _peach),
       ('Avg Min/Chat', '${u['avgSessionMinutes'] ?? '0.0'}', _brownDark),
     ], perRow: 3);
   }
@@ -588,103 +593,165 @@ class ReportPdfService {
     return pw.Column(children: rows);
   }
 
-  // ── Horizontal bar charts ──────────────────────────────────────────────────
+  // ── Chart chrome helpers ───────────────────────────────────────────────────
 
-  pw.Widget _buildHorizontalBarChart(Map<String, int> counts) {
-    final maxCount = counts.values.isEmpty
-        ? 1
-        : counts.values.reduce((a, b) => a > b ? a : b);
-    final safeMax = maxCount == 0 ? 1 : maxCount;
-
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: _emotions.map((emotion) {
-        final count = counts[emotion] ?? 0;
-        final barWidth = (count / safeMax) * 300;
-        final color = _emotionColors[emotion] ?? PdfColors.grey600;
-        return pw.Padding(
-          padding: const pw.EdgeInsets.symmetric(vertical: 4),
-          child: pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
-            children: [
-              pw.SizedBox(
-                  width: 58,
-                  child: pw.Text(emotion,
-                      style: pw.TextStyle(
-                        fontSize: 9,
-                        fontWeight: pw.FontWeight.bold,
-                        color: PdfColors.grey700,
-                      ))),
-              pw.Container(
-                width: barWidth.clamp(4.0, 300.0),
-                height: 16,
-                decoration: pw.BoxDecoration(
-                  color: color,
-                  borderRadius: pw.BorderRadius.circular(4),
-                ),
-              ),
-              pw.SizedBox(width: 8),
-              pw.Text('$count',
-                  style: pw.TextStyle(
-                    fontSize: 9,
-                    fontWeight: pw.FontWeight.bold,
-                    color: PdfColors.grey600,
-                  )),
-            ],
-          ),
-        );
-      }).toList(),
+  /// Soft cream "card" that every chart sits inside, for a cohesive warm look.
+  pw.Widget _chartCard(pw.Widget child) {
+    return pw.Container(
+      width: double.infinity,
+      padding: const pw.EdgeInsets.all(14),
+      decoration: pw.BoxDecoration(
+        color: _withOpacity(_golden, 0.06),
+        borderRadius: pw.BorderRadius.circular(12),
+        border: pw.Border.all(color: _withOpacity(_brownDark, 0.12)),
+      ),
+      child: child,
     );
   }
 
-  pw.Widget _buildDailyTrendChart(Map<String, int> dailyCounts) {
-    final sorted = dailyCounts.entries.toList()
-      ..sort((a, b) => a.key.compareTo(b.key));
-    final last7 =
-        sorted.length > 7 ? sorted.sublist(sorted.length - 7) : sorted;
+  /// One row of the donut legend: a colored swatch, the mood name, and the
+  /// count + percentage.
+  pw.Widget _legendRow(PdfColor color, String label, String value) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 3),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.center,
+        children: [
+          pw.Container(
+            width: 10,
+            height: 10,
+            decoration: pw.BoxDecoration(
+              color: color,
+              borderRadius: pw.BorderRadius.circular(3),
+            ),
+          ),
+          pw.SizedBox(width: 8),
+          pw.Expanded(
+            child: pw.Text(label,
+                style: pw.TextStyle(
+                  fontSize: 9,
+                  fontWeight: pw.FontWeight.bold,
+                  color: _brownDark,
+                )),
+          ),
+          pw.Text(value,
+              style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+        ],
+      ),
+    );
+  }
 
-    if (last7.isEmpty) {
-      return pw.Text('No data available.',
-          style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600));
+  // ── Mood breakdown donut ─────────────────────────────────────────────────────
+
+  /// Donut + legend of the 5-mood distribution. Shared by the system report's
+  /// "Mood Distribution" and the per-user report's "Mood Breakdown".
+  pw.Widget _buildMoodDonut(Map<String, int> counts) {
+    final total = _emotions.fold<int>(0, (sum, e) => sum + (counts[e] ?? 0));
+    if (total == 0) {
+      return _chartCard(pw.Text('No mood data available.',
+          style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)));
     }
 
-    final maxVal = last7.map((e) => e.value).reduce((a, b) => a > b ? a : b);
-    final safeMax = maxVal == 0 ? 1 : maxVal;
+    final present = _emotions.where((e) => (counts[e] ?? 0) > 0).toList();
 
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: last7.map((e) {
-        final barWidth = (e.value / safeMax) * 300;
-        return pw.Padding(
-          padding: const pw.EdgeInsets.symmetric(vertical: 4),
-          child: pw.Row(
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
-            children: [
-              pw.SizedBox(
-                  width: 48,
-                  child: pw.Text(_formatDateKey(e.key),
-                      style: const pw.TextStyle(
-                          fontSize: 8, color: PdfColors.grey600))),
-              pw.Container(
-                width: barWidth.clamp(4.0, 300.0),
-                height: 16,
-                decoration: pw.BoxDecoration(
-                  color: _golden,
-                  borderRadius: pw.BorderRadius.circular(4),
-                ),
-              ),
-              pw.SizedBox(width: 8),
-              pw.Text('${e.value}',
-                  style: pw.TextStyle(
-                    fontSize: 9,
-                    fontWeight: pw.FontWeight.bold,
-                    color: _brownDark,
-                  )),
-            ],
+    return _chartCard(pw.Row(
+      crossAxisAlignment: pw.CrossAxisAlignment.center,
+      children: [
+        pw.SizedBox(
+          width: 130,
+          height: 130,
+          child: pw.Chart(
+            grid: pw.PieGrid(),
+            datasets: present.map((emotion) {
+              final count = counts[emotion]!;
+              return pw.PieDataSet(
+                value: count.toDouble(),
+                color: _emotionColors[emotion] ?? PdfColors.grey600,
+                innerRadius: 28,
+                borderColor: _cream,
+                borderWidth: 1.5,
+              );
+            }).toList(),
           ),
-        );
-      }).toList(),
-    );
+        ),
+        pw.SizedBox(width: 24),
+        pw.Expanded(
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            mainAxisAlignment: pw.MainAxisAlignment.center,
+            children: present.map((emotion) {
+              final count = counts[emotion]!;
+              final pct = (count / total * 100).round();
+              return _legendRow(
+                _emotionColors[emotion] ?? PdfColors.grey600,
+                emotion,
+                '$count ($pct%)',
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    ));
+  }
+
+  pw.Widget _buildDailyTrendChart(Map<String, int> dailyCounts) {
+    final days = dailyCounts.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+
+    if (days.isEmpty) {
+      return _chartCard(pw.Text('No data available.',
+          style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)));
+    }
+
+    final maxVal = days.map((e) => e.value).reduce((a, b) => a > b ? a : b);
+    final yMax = (maxVal == 0 ? 4 : (maxVal * 1.2).ceil()).toDouble();
+
+    final data = <pw.PointChartValue>[
+      for (var i = 0; i < days.length; i++)
+        pw.PointChartValue(i.toDouble(), days[i].value.toDouble()),
+    ];
+
+    // ~6 evenly-spaced x labels, always including the first and last day.
+    final lastIndex = days.length - 1;
+    final step = (days.length / 6).ceil().clamp(1, days.length);
+    final xTicks = <int>{
+      for (var i = 0; i <= lastIndex; i += step) i,
+      lastIndex,
+    }.toList()
+      ..sort();
+
+    return _chartCard(pw.SizedBox(
+      height: 150,
+      child: pw.Chart(
+        grid: pw.CartesianGrid(
+          xAxis: pw.FixedAxis<int>(
+            xTicks,
+            format: (v) => _formatDateKey(days[v.toInt()].key),
+            divisions: false,
+            textStyle: const pw.TextStyle(fontSize: 7, color: _brownDark),
+          ),
+          yAxis: pw.FixedAxis<int>(
+            [0, (yMax / 2).round(), yMax.round()],
+            divisions: true,
+            divisionsColor: _withOpacity(_brownDark, 0.12),
+            textStyle: const pw.TextStyle(fontSize: 7, color: PdfColors.grey600),
+          ),
+        ),
+        datasets: [
+          pw.LineDataSet(
+            data: data,
+            isCurved: true,
+            drawPoints: false,
+            drawSurface: true,
+            surfaceColor: _golden,
+            surfaceOpacity: 0.25,
+            color: _brownDark,
+            lineColor: _brownDark,
+            lineWidth: 1.5,
+          ),
+        ],
+      ),
+    ));
   }
 
   // ── Pos / Neg / Neutral ratio row ──────────────────────────────────────────
@@ -698,14 +765,14 @@ class ReportPdfService {
     return pw.Row(
       children: [
         pw.Expanded(
-            child: _ratioChip('Positive', posRatio, PdfColors.green700, pos)),
+            child: _ratioChip('Positive', posRatio, _sage, pos)),
         pw.SizedBox(width: 8),
         pw.Expanded(
             child:
-                _ratioChip('Neutral', neutralRatio, PdfColors.grey600, neutral)),
+                _ratioChip('Neutral', neutralRatio, _taupe, neutral)),
         pw.SizedBox(width: 8),
         pw.Expanded(
-            child: _ratioChip('Negative', negRatio, _errorRed, neg)),
+            child: _ratioChip('Negative', negRatio, _rose, neg)),
       ],
     );
   }
