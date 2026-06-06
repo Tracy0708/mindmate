@@ -20,83 +20,73 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     return ColoredBox(
       color: AppColors.cream,
       child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 12),
-            // Header — standardized AppScreenHeader with a compact "Add User" action.
-            AppScreenHeader(
-              title: 'User Management',
-              subtitle: 'Search, add, edit and manage user accounts.',
-              icon: Icons.people_rounded,
-              trailing: Tooltip(
-                message: 'Add User',
-                child: Material(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(14),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(14),
-                    onTap: () => _showCreateUserDialog(context),
-                    child: const SizedBox(
-                      width: 44,
-                      height: 44,
-                      child: Center(
-                        child: Icon(Icons.person_add_alt_1_rounded,
-                            color: AppColors.textDark, size: 22),
+        child: Consumer<AdminViewModel>(
+          builder: (context, vm, _) {
+            return StreamBuilder<List<UserModel>>(
+              stream: vm.getUsersStream(),
+              builder: (context, snapshot) {
+                final isLoading = snapshot.connectionState == ConnectionState.waiting;
+                final hasError = snapshot.hasError;
+                final allUsers = (isLoading || hasError)
+                    ? <UserModel>[]
+                    : (snapshot.data ?? []).where((u) => u.role != 'admin').toList();
+                final users = allUsers.where((u) {
+                  if (_searchQuery.isEmpty) return true;
+                  return u.userName.toLowerCase().contains(_searchQuery) ||
+                      u.userEmail.toLowerCase().contains(_searchQuery) ||
+                      u.userID.toLowerCase().contains(_searchQuery);
+                }).toList();
+
+                return CustomScrollView(
+                  slivers: [
+                    // ── Scrollable header ──
+                    SliverToBoxAdapter(
+                      child: AppScreenHeader(
+                        title: 'User Management',
+                        subtitle: 'Search, add, edit and manage user accounts.',
+                        icon: Icons.people_rounded,
+                        trailing: Tooltip(
+                          message: 'Add User',
+                          child: Material(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(14),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(14),
+                              onTap: () => _showCreateUserDialog(context),
+                              child: const SizedBox(
+                                width: 44, height: 44,
+                                child: Center(
+                                  child: Icon(Icons.person_add_alt_1_rounded,
+                                      color: AppColors.textDark, size: 22),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            // Search
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: AppColors.fieldBorder.withValues(alpha: 0.55)),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 12, offset: const Offset(0, 5))],
-                ),
-                child: TextField(
-                  onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
-                  decoration: const InputDecoration(
-                    hintText: 'Search by name, email, or UID',
-                    prefixIcon: Icon(Icons.search_rounded),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            // List
-            Expanded(
-              child: Consumer<AdminViewModel>(
-                builder: (context, vm, _) {
-                  return StreamBuilder<List<UserModel>>(
-                    stream: vm.getUsersStream(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-                      }
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: AppColors.textMedium)));
-                      }
 
-                      // Filter out admin accounts, then apply search
-                      final allUsers = (snapshot.data ?? []).where((u) => u.role != 'admin').toList();
-                      final users = allUsers.where((u) {
-                        if (_searchQuery.isEmpty) return true;
-                        return u.userName.toLowerCase().contains(_searchQuery) ||
-                            u.userEmail.toLowerCase().contains(_searchQuery) ||
-                            u.userID.toLowerCase().contains(_searchQuery);
-                      }).toList();
+                    // ── Sticky search bar ──
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: _SearchBarDelegate(
+                        onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
+                      ),
+                    ),
 
-                      if (users.isEmpty) {
-                        return Center(
+                    // ── Content ──
+                    if (isLoading)
+                      const SliverFillRemaining(
+                        child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                      )
+                    else if (hasError)
+                      SliverFillRemaining(
+                        child: Center(child: Text('Error: ${snapshot.error}',
+                            style: const TextStyle(color: AppColors.textMedium))),
+                      )
+                    else if (users.isEmpty)
+                      SliverFillRemaining(
+                        child: Center(
                           child: Container(
                             margin: const EdgeInsets.symmetric(horizontal: 20),
                             padding: const EdgeInsets.all(28),
@@ -113,39 +103,44 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                   style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.textDark)),
                             ]),
                           ),
-                        );
-                      }
-
-                      return Column(children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                        ),
+                      )
+                    else ...[
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
                           child: Row(children: [
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(999)),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
                               child: Text('${users.length} user${users.length == 1 ? '' : 's'}',
                                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textDark)),
                             ),
                           ]),
                         ),
-                        Expanded(
-                          child: ListView.builder(
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                            itemCount: users.length,
-                            itemBuilder: (context, i) => _UserCard(
+                      ),
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (ctx, i) => _UserCard(
                               user: users[i],
                               onDelete: () => _confirmDelete(context, vm, users[i]),
                               onEdit: () => _showEditUserDialog(context, vm, users[i]),
                             ),
+                            childCount: users.length,
                           ),
                         ),
-                      ]);
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
+                      ),
+                    ],
+                  ],
+                );
+              },
+            );
+          },
         ),
       ),
     );
@@ -354,6 +349,45 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         suffixIcon: IconButton(
           icon: Icon(obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined, color: AppColors.textLight),
           onPressed: toggle,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Sticky search bar delegate ──
+class _SearchBarDelegate extends SliverPersistentHeaderDelegate {
+  final ValueChanged<String> onChanged;
+  const _SearchBarDelegate({required this.onChanged});
+
+  static const _height = 62.0;
+
+  @override double get minExtent => _height;
+  @override double get maxExtent => _height;
+  @override bool shouldRebuild(_SearchBarDelegate old) => false;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return ColoredBox(
+      color: AppColors.cream,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.fieldBorder.withValues(alpha: 0.55)),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4))],
+          ),
+          child: TextField(
+            onChanged: onChanged,
+            decoration: const InputDecoration(
+              hintText: 'Search by name, email, or UID',
+              prefixIcon: Icon(Icons.search_rounded),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            ),
+          ),
         ),
       ),
     );
