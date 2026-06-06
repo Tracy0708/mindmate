@@ -525,8 +525,8 @@ class _UserCard extends StatelessWidget {
 
                 final headerGradient = isDisabled
                     ? const [Color(0xFFC62828), Color(0xFFE53935)]
-                    : const [Color(0xFF3949AB), Color(0xFF7B1FA2)];
-                final headerShadowColor = isDisabled ? const Color(0xFFC62828) : const Color(0xFF3949AB);
+                    : const [Color(0xFFF9A825), Color(0xFFEF6C00)];
+                final headerShadowColor = isDisabled ? const Color(0xFFC62828) : const Color(0xFFF57F17);
 
                 return ListView(
                   controller: sc,
@@ -611,22 +611,22 @@ class _UserCard extends StatelessWidget {
                         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
                       ),
                       child: Column(children: [
-                        _infoTile(Icons.badge_outlined, 'Full Name', user.userName, color: const Color(0xFF3949AB)),
+                        _infoTile(Icons.badge_outlined, 'Full Name', user.userName, color: const Color(0xFFF9A825)),
                         _divider(),
-                        _infoTile(Icons.email_outlined, 'Email', user.userEmail, color: const Color(0xFFF57C00)),
+                        _infoTile(Icons.email_outlined, 'Email', user.userEmail, color: const Color(0xFFEF6C00)),
                         _divider(),
-                        _infoTile(Icons.fingerprint, 'User ID', user.userID, mono: true, color: const Color(0xFF7B1FA2)),
+                        _infoTile(Icons.fingerprint, 'User ID', user.userID, mono: true, color: const Color(0xFF8D6E63)),
                         _divider(),
                         _infoTile(Icons.manage_accounts_outlined, 'Role',
                             user.role == 'admin' ? 'Administrator' : 'Regular User',
-                            color: const Color(0xFF00796B)),
+                            color: const Color(0xFF6D4C41)),
                         if (user.age != null) ...[
                           _divider(),
-                          _infoTile(Icons.cake_outlined, 'Age', '${user.age} years old', color: const Color(0xFFE91E63)),
+                          _infoTile(Icons.cake_outlined, 'Age', '${user.age} years old', color: const Color(0xFFD84315)),
                         ],
                         if (user.gender != null) ...[
                           _divider(),
-                          _infoTile(Icons.people_outline, 'Gender', user.gender!, color: const Color(0xFF6200EE)),
+                          _infoTile(Icons.people_outline, 'Gender', user.gender!, color: const Color(0xFFBF360C)),
                         ],
                         _divider(),
                         _infoTile(
@@ -635,7 +635,7 @@ class _UserCard extends StatelessWidget {
                           user.lastLogin != null
                               ? '${user.lastLogin!.day}/${user.lastLogin!.month}/${user.lastLogin!.year} at ${user.lastLogin!.hour.toString().padLeft(2, '0')}:${user.lastLogin!.minute.toString().padLeft(2, '0')}'
                               : 'Never',
-                          color: const Color(0xFF2E7D32),
+                          color: const Color(0xFF5D4037),
                         ),
                       ]),
                     ),
@@ -646,15 +646,15 @@ class _UserCard extends StatelessWidget {
                     const SizedBox(height: 10),
                     IntrinsicHeight(
                       child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                        Expanded(child: _statCard('Mood Logs', isLoading ? '—' : '${stats?['moodLogs'] ?? 0}', Icons.mood_rounded, const Color(0xFF3949AB))),
+                        Expanded(child: _statCard('Mood Logs', isLoading ? '—' : '${stats?['moodLogs'] ?? 0}', Icons.mood_rounded, const Color(0xFFF9A825))),
                         const SizedBox(width: 12),
-                        Expanded(child: _statCard('Activities', isLoading ? '—' : '${stats?['completedActivities'] ?? 0}', Icons.spa_rounded, const Color(0xFF7B1FA2))),
+                        Expanded(child: _statCard('Activities', isLoading ? '—' : '${stats?['completedActivities'] ?? 0}', Icons.spa_rounded, const Color(0xFFEF6C00))),
                       ]),
                     ),
                     const SizedBox(height: 12),
                     IntrinsicHeight(
                       child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                        Expanded(child: _statCard('Last Active', isLoading ? '—' : _fmtDate(stats?['lastActive'] as DateTime?), Icons.calendar_today_rounded, const Color(0xFF00796B))),
+                        Expanded(child: _statCard('Last Active', isLoading ? '—' : _fmtDate(stats?['lastActive'] as DateTime?), Icons.calendar_today_rounded, const Color(0xFF8D6E63))),
                         const SizedBox(width: 12),
                         Expanded(child: _statCard('Account', isDisabled ? 'Disabled' : 'Active', Icons.shield_rounded, isDisabled ? AppColors.errorRed : const Color(0xFF2E7D32))),
                       ]),
@@ -675,7 +675,7 @@ class _UserCard extends StatelessWidget {
                         // Reset Password
                         _actionTile(
                           icon: Icons.lock_reset_rounded,
-                          iconColor: const Color(0xFF42A5F5),
+                          iconColor: const Color(0xFFF9A825),
                           label: 'Send Password Reset Link',
                           subtitle: 'Email a reset link to ${user.userEmail}',
                           onTap: () async {
