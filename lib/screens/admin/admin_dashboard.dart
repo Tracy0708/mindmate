@@ -686,7 +686,8 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
     return AppColors.textMedium;
   }
 
-  Future<void> _showUserRiskDetailSheet(Map<String, dynamic> user) async {
+  Future<void> _showUserRiskDetailSheet(Map<String, dynamic> user,
+      {bool isCrisis = false}) async {
     final userId = (user['userId'] as String?) ?? '';
     if (userId.isEmpty) return;
 
@@ -767,6 +768,39 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                             ),
                           ),
                         ),
+                        if (isCrisis) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppColors.errorRed.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                  color:
+                                      AppColors.errorRed.withValues(alpha: 0.4)),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.crisis_alert_rounded,
+                                    color: AppColors.errorRed, size: 20),
+                                SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'Crisis language detected — needs follow-up. '
+                                    'Reach out to this user and acknowledge it in the Crisis Follow-up queue.',
+                                    style: TextStyle(
+                                      color: AppColors.errorRed,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 12,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 14),
                         Wrap(
                           spacing: 10,
@@ -818,7 +852,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                         ),
                         const SizedBox(height: 16),
                         const Text(
-                          'Emotion Breakdown',
+                          'Mood Breakdown',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
@@ -895,6 +929,7 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
           context.read<AdminViewModel>().getPlatformEmotionStats(
                 lookbackDays: _lookbackDays,
               ),
+          context.read<AdminViewModel>().getOpenCrisisFlagUserIds(),
         ]),
         builder: (context, snapshot) {
           final isLoading = snapshot.connectionState == ConnectionState.waiting;
@@ -904,6 +939,8 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
           final platformStats =
               (snapshot.data?[1] as Map<String, dynamic>?) ??
                   const <String, dynamic>{};
+          final crisisUserIds =
+              (snapshot.data?[2] as Set<String>?) ?? const <String>{};
           final filteredUsers =
               users.where(_matchesFilter).toList(growable: false);
 
@@ -1099,20 +1136,30 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                   ...filteredUsers.map((user) {
                     final riskScore = (user['riskScore'] as num).toDouble();
                     final color = _riskColor(riskScore);
+                    final isCrisis =
+                        crisisUserIds.contains(user['userId']);
                     final negativeRatio =
                         ((user['negativeRatio'] as num).toDouble() * 100)
                             .toStringAsFixed(0);
 
                     return InkWell(
                       borderRadius: BorderRadius.circular(20),
-                      onTap: () => _showUserRiskDetailSheet(user),
+                      onTap: () =>
+                          _showUserRiskDetailSheet(user, isCrisis: isCrisis),
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 12),
                         padding: const EdgeInsets.all(18),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: isCrisis
+                              ? AppColors.errorRed.withValues(alpha: 0.04)
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: color.withValues(alpha: 0.2)),
+                          border: Border.all(
+                            color: isCrisis
+                                ? AppColors.errorRed.withValues(alpha: 0.55)
+                                : color.withValues(alpha: 0.2),
+                            width: isCrisis ? 1.5 : 1,
+                          ),
                           boxShadow: [
                             BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.04),
@@ -1165,6 +1212,31 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                                     ],
                                   ),
                                 ),
+                                if (isCrisis) ...[
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.errorRed
+                                          .withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.crisis_alert_rounded,
+                                            size: 12, color: AppColors.errorRed),
+                                        SizedBox(width: 3),
+                                        Text('Crisis',
+                                            style: TextStyle(
+                                                color: AppColors.errorRed,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w800)),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                ],
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 10, vertical: 5),

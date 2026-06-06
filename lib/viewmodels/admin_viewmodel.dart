@@ -61,6 +61,11 @@ class AdminViewModel extends ChangeNotifier {
     return _adminService.acknowledgeCrisisFlag(flagId);
   }
 
+  /// User IDs with an open crisis flag, for highlighting in the risk list.
+  Future<Set<String>> getOpenCrisisFlagUserIds() {
+    return _adminService.getOpenCrisisFlagUserIds();
+  }
+
   Future<void> generateReport() async {
     _isLoading = true;
     _errorMessage = null;
