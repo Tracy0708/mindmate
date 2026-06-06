@@ -469,6 +469,20 @@ class AdminService {
     }
   }
 
+  /// Live set of user IDs that currently have an unacknowledged crisis flag —
+  /// drives the crisis highlight in the mood-risk list so it clears instantly
+  /// when a flag is acknowledged.
+  Stream<Set<String>> getOpenCrisisFlagUserIdsStream() {
+    return _firestore
+        .collection('crisis_flags')
+        .where('acknowledged', isEqualTo: false)
+        .snapshots()
+        .map((snap) => snap.docs
+            .map((d) => (d.data()['userId'] as String?) ?? '')
+            .where((id) => id.isNotEmpty)
+            .toSet());
+  }
+
   /// Crisis flags for a single user (for their mood report). Metadata only.
   Future<List<Map<String, dynamic>>> getCrisisFlagsForUser(
     String userId, {

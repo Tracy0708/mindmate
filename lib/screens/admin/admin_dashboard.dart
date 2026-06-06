@@ -932,7 +932,6 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
           context.read<AdminViewModel>().getPlatformEmotionStats(
                 lookbackDays: _lookbackDays,
               ),
-          context.read<AdminViewModel>().getOpenCrisisFlagUserIds(),
         ]),
         builder: (context, snapshot) {
           final isLoading = snapshot.connectionState == ConnectionState.waiting;
@@ -942,12 +941,18 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
           final platformStats =
               (snapshot.data?[1] as Map<String, dynamic>?) ??
                   const <String, dynamic>{};
-          final crisisUserIds =
-              (snapshot.data?[2] as Set<String>?) ?? const <String>{};
           final filteredUsers =
               users.where(_matchesFilter).toList(growable: false);
 
-          return SingleChildScrollView(
+          // Crisis highlight is driven by a live stream so the card clears the
+          // instant a flag is acknowledged — without waiting for a refresh.
+          return StreamBuilder<Set<String>>(
+            stream:
+                context.read<AdminViewModel>().getOpenCrisisFlagUserIdsStream(),
+            builder: (context, crisisSnapshot) {
+              final crisisUserIds = crisisSnapshot.data ?? const <String>{};
+
+              return SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1348,6 +1353,8 @@ class _UsageAnalyticsTabState extends State<_UsageAnalyticsTab> {
                 const SizedBox(height: 24),
               ],
             ),
+              );
+            },
           );
         },
       ),

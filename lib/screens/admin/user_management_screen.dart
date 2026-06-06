@@ -414,7 +414,13 @@ class _UserCard extends StatelessWidget {
     final isDisabled = user.isDisabled;
     final avatarColor = isDisabled ? AppColors.errorRed : _cardAccent;
 
-    return Container(
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => _showDetail(context),
+        child: Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -461,20 +467,6 @@ class _UserCard extends StatelessWidget {
             Row(children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _showDetail(context),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 9),
-                    side: BorderSide(color: avatarColor.withValues(alpha: 0.4)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    backgroundColor: avatarColor.withValues(alpha: 0.05),
-                  ),
-                  icon: Icon(Icons.visibility_rounded, size: 15, color: avatarColor),
-                  label: Text('View', style: TextStyle(fontSize: 12, color: avatarColor, fontWeight: FontWeight.w700)),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: OutlinedButton.icon(
                   onPressed: onEdit,
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 9),
@@ -517,7 +509,9 @@ class _UserCard extends StatelessWidget {
             ]),
           ]),
         ),
-    );
+      ), // Container
+      ), // InkWell
+    ); // Material
   }
 
   void _toggleDisable(BuildContext context, AdminViewModel vm) async {
