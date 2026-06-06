@@ -34,6 +34,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   if (_searchQuery.isEmpty) return true;
                   return u.userName.toLowerCase().contains(_searchQuery) ||
                       u.userEmail.toLowerCase().contains(_searchQuery) ||
+                      (u.displayId?.toLowerCase().contains(_searchQuery) ?? false) ||
                       u.userID.toLowerCase().contains(_searchQuery);
                 }).toList();
 
@@ -452,9 +453,16 @@ class _UserCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(user.userName,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textDark),
-                    overflow: TextOverflow.ellipsis),
+                Row(children: [
+                  Flexible(
+                    child: Text(user.userName,
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.textDark),
+                        overflow: TextOverflow.ellipsis),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(user.displayId ?? '—',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMedium)),
+                ]),
                 const SizedBox(height: 2),
                 Text(user.userEmail,
                     style: const TextStyle(fontSize: 12, color: AppColors.textMedium),
@@ -642,6 +650,8 @@ class _UserCard extends StatelessWidget {
                         _infoTile(Icons.badge_outlined, 'Full Name', user.userName, color: const Color(0xFFF9A825)),
                         _divider(),
                         _infoTile(Icons.email_outlined, 'Email', user.userEmail, color: const Color(0xFFEF6C00)),
+                        _divider(),
+                        _infoTile(Icons.tag_rounded, 'Display ID', user.displayId ?? '—', color: const Color(0xFFF9A825)),
                         _divider(),
                         _infoTile(Icons.fingerprint, 'User ID', user.userID, mono: true, color: const Color(0xFF8D6E63)),
                         _divider(),
