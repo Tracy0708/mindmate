@@ -7,6 +7,7 @@ import '../main.dart';
 import '../models/emotion_insight.dart';
 import '../models/emotion_log.dart';
 import '../viewmodels/insights_viewmodel.dart';
+import '../viewmodels/emotion_viewmodel.dart';
 import '../services/emotion_service.dart';
 import '../widgets/app_screen_header.dart';
 import '../widgets/app_emoji.dart';
@@ -20,12 +21,36 @@ class InsightsScreen extends StatefulWidget {
 }
 
 class _InsightsScreenState extends State<InsightsScreen> {
+  EmotionViewModel? _emotionViewModel;
+  String? _lastSeenLogId;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _emotionViewModel = Provider.of<EmotionViewModel>(context, listen: false);
+      _emotionViewModel!.addListener(_onEmotionChanged);
+      _lastSeenLogId = _emotionViewModel!.todaysLog?.logID;
       Provider.of<InsightsViewModel>(context, listen: false).fetchInsights();
     });
+  }
+
+  @override
+  void dispose() {
+    _emotionViewModel?.removeListener(_onEmotionChanged);
+    super.dispose();
+  }
+
+  // Refresh insights when a new mood is logged, so charts/stats don't stay
+  // stale until a manual pull-to-refresh (mirrors the Calendar screen).
+  void _onEmotionChanged() {
+    if (!mounted) return;
+    final newLogId = _emotionViewModel?.todaysLog?.logID;
+    if (newLogId != null && newLogId != _lastSeenLogId) {
+      _lastSeenLogId = newLogId;
+      Provider.of<InsightsViewModel>(context, listen: false).fetchInsights();
+    }
   }
 
   static const _emojiMap = {'Happy':'😊','Sad':'😢','Anxious':'😰','Angry':'😠','Calm':'😌','Tired':'😴'};

@@ -66,6 +66,12 @@ class AdminViewModel extends ChangeNotifier {
     return _adminService.getOpenCrisisFlagUserIds();
   }
 
+  /// Live stream of user IDs with an open crisis flag, so the risk-list
+  /// highlight updates the instant a flag is acknowledged.
+  Stream<Set<String>> getOpenCrisisFlagUserIdsStream() {
+    return _adminService.getOpenCrisisFlagUserIdsStream();
+  }
+
   Future<void> generateReport() async {
     _isLoading = true;
     _errorMessage = null;
