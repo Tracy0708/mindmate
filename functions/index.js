@@ -327,6 +327,52 @@ exports.createAdminNotificationOnSignup = onDocumentCreated(
   }
 );
 
+// Assigns a human-readable, sequential display ID (e.g. "User0001", "Admin0001")
+// to each new user document. The real document key stays the Firebase Auth uid;
+// displayId is purely admin-facing. A single counter doc (counters/userDisplaySeq)
+// holds a running count per role prefix and is updated atomically in a transaction
+// so concurrent signups never collide.
+exports.assignDisplayIdOnUserCreate = onDocumentCreated(
+  'users/{userId}',
+  async (event) => {
+    const data = event.data?.data();
+    if (!data || data.displayId) return null; // idempotent: never overwrite
+
+    const prefix = data.role === 'admin' ? 'Admin' : 'User';
+    const field = data.role === 'admin' ? 'admin' : 'user';
+
+    const db = getFirestore();
+    const counterRef = db.collection('counters').doc('userDisplaySeq');
+    const userRef = db.collection('users').doc(event.params.userId);
+
+    try {
+      await db.runTransaction(async (tx) => {
+        const userSnap = await tx.get(userRef);
+        // The doc may have been deleted or already assigned since the trigger fired.
+        if (!userSnap.exists || userSnap.data()?.displayId) return;
+
+        const counterSnap = await tx.get(counterRef);
+        const current = counterSnap.exists ? (counterSnap.data()?.[field] ?? 0) : 0;
+        const next = current + 1;
+
+        tx.set(counterRef, { [field]: next }, { merge: true });
+        tx.update(userRef, {
+          displayId: `${prefix}${String(next).padStart(4, '0')}`,
+        });
+      });
+    } catch (error) {
+      console.error(
+        'Failed to assign displayId for user',
+        event.params.userId,
+        ':',
+        error.message
+      );
+    }
+
+    return null;
+  }
+);
+
 // Triggered whenever a user logs a new mood.
 // Creates high-risk admin notifications as soon as the risk pattern appears.
 exports.createHighRiskNotificationOnEmotionLog = onDocumentCreated(

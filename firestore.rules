@@ -20,6 +20,15 @@ service cloud.firestore {
       allow create, delete: if false;
     }
 
+    // ── Privacy-locked: display-ID sequence counter ───────────────────────────
+    // counters/userDisplaySeq holds the running per-role count used to mint
+    // human-readable display IDs (User0001, Admin0001). It is written ONLY by the
+    // assignDisplayIdOnUserCreate Cloud Function via the Admin SDK (which bypasses
+    // rules). No client may read or tamper with it.
+    match /counters/{counterId} {
+      allow read, write: if false;
+    }
+
     // ── Existing behavior: any authenticated user ─────────────────────────────
     // Mirrors the previous blanket `match /{document=**}` grant, but enumerated
     // per-collection on purpose: Firestore rules are ADDITIVE and a broad grant
