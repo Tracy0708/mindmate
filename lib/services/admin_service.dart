@@ -450,6 +450,25 @@ class AdminService {
     }
   }
 
+  /// User IDs that currently have an unacknowledged crisis flag — used to
+  /// highlight those users in the mood-risk list.
+  Future<Set<String>> getOpenCrisisFlagUserIds() async {
+    try {
+      final snap = await _firestore
+          .collection('crisis_flags')
+          .where('acknowledged', isEqualTo: false)
+          .get();
+      return snap.docs
+          .map((d) => (d.data()['userId'] as String?) ?? '')
+          .where((id) => id.isNotEmpty)
+          .toSet();
+    } catch (e) {
+      developer.log('getOpenCrisisFlagUserIds failed: $e',
+          name: 'AdminService', level: 900);
+      return <String>{};
+    }
+  }
+
   /// Crisis flags for a single user (for their mood report). Metadata only.
   Future<List<Map<String, dynamic>>> getCrisisFlagsForUser(
     String userId, {
