@@ -8,6 +8,7 @@ import '../services/auth_service.dart';
 import '../viewmodels/emotion_viewmodel.dart';
 import '../viewmodels/gamification_viewmodel.dart';
 import '../models/gamification_history.dart';
+import '../models/badge_catalog.dart';
 import '../widgets/daily_checkin_dialog.dart';
 import '../widgets/app_emoji.dart';
 import '../services/emotion_service.dart';
@@ -48,6 +49,17 @@ class DashboardScreenState extends State<DashboardScreen> {
   Future<void> _checkDailyEmotion() async {
     final vm = Provider.of<EmotionViewModel>(context, listen: false);
     await vm.checkTodaysLog();
+    // Catch up any badges already earned by current counts (idempotent) so
+    // existing accounts get their awards + notifications without re-doing actions.
+    if (mounted) {
+      final gamVm = Provider.of<GamificationViewModel>(context, listen: false);
+      await gamVm.syncEarnedBadges(
+        streak: vm.streak,
+        totalLogCount: vm.totalLogCount,
+        activityCount: vm.completedActivityCount,
+        breathingCount: vm.breathingSessionCount,
+      );
+    }
     if (mounted && !vm.hasLoggedToday && !_checkinShown) {
       _checkinShown = true;
       DailyCheckinDialog.show(context,
@@ -173,16 +185,17 @@ class _HomeTabState extends State<_HomeTab> {
       builder: (context, vm, gamVm, _) {
         final todaysMood = vm.todaysLog;
         final streak = vm.streak;
-        final logCount = vm.logCount;
         final activities = vm.completedActivityCount;
         final points = gamVm.totalPoints;
 
-        // Badge count from real data
-        final unlockedBadges = [
-          streak >= 7, logCount >= 10, logCount >= 30, streak >= 30,
-          logCount >= 1, activities >= 1, activities >= 10,
-          vm.breathingSessionCount >= 5,
-        ].where((b) => b).length;
+        // Badge count from the shared catalog so it matches the Badge Center.
+        final badgeStatuses = evaluateBadges(
+          streak: streak,
+          totalLogs: vm.totalLogCount,
+          activityCount: activities,
+          breathingCount: vm.breathingSessionCount,
+        );
+        final unlockedBadges = badgeStatuses.where((b) => b.unlocked).length;
 
         return SafeArea(
           child: RefreshIndicator(
@@ -248,7 +261,7 @@ class _HomeTabState extends State<_HomeTab> {
                   ),
                 ]),
                 const SizedBox(height: 14),
-                _BadgeMiniRow(streak: streak, logCount: logCount, activities: activities, breathing: vm.breathingSessionCount),
+                _BadgeMiniRow(badges: badgeStatuses),
                 const SizedBox(height: 24),
 
                 // ── SECTION 4: SELF CARE ACTIVITIES ──
@@ -365,23 +378,13 @@ class _HeroStat extends StatelessWidget {
 }
 
 // ─── BADGE MINI ROW ───
+// Renders the shared badge catalog so it always matches the Badge Center.
 class _BadgeMiniRow extends StatelessWidget {
-  final int streak, logCount, activities, breathing;
-  const _BadgeMiniRow({required this.streak, required this.logCount, required this.activities, required this.breathing});
+  final List<BadgeStatus> badges;
+  const _BadgeMiniRow({required this.badges});
 
   @override
   Widget build(BuildContext context) {
-    final badges = [
-      _MiniBadgeData(icon: Icons.emoji_events,    label: 'Streak\nMaster',     unlocked: streak >= 7,      color: const Color(0xFFFFB300)),
-      _MiniBadgeData(icon: Icons.favorite,         label: 'First\nStep',        unlocked: logCount >= 1,    color: const Color(0xFFF44336)),
-      _MiniBadgeData(icon: Icons.ads_click,        label: 'Goal\nSetter',       unlocked: logCount >= 10,   color: const Color(0xFFE91E63)),
-      _MiniBadgeData(icon: Icons.star,             label: 'Consistent',         unlocked: logCount >= 30,   color: const Color(0xFF4CAF50)),
-      _MiniBadgeData(icon: Icons.nightlight_round, label: 'Dedicated',          unlocked: streak >= 30,     color: const Color(0xFF7C4DFF)),
-      _MiniBadgeData(icon: Icons.spa,              label: 'Beginner',           unlocked: activities >= 1,  color: const Color(0xFF009688)),
-      _MiniBadgeData(icon: Icons.spa,              label: 'Pro',                unlocked: activities >= 10, color: const Color(0xFF009688)),
-      _MiniBadgeData(icon: Icons.air,              label: 'Zen\nMaster',        unlocked: breathing >= 5,   color: const Color(0xFF03A9F4)),
-    ];
-
     return SizedBox(
       height: 100,
       child: ListView.separated(
@@ -402,21 +405,13 @@ class _BadgeMiniRow extends StatelessWidget {
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(b.icon, size: 26, color: b.unlocked ? b.color : Colors.grey.shade400),
               const SizedBox(height: 6),
-              Text(b.label, textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: b.unlocked ? AppColors.textDark : Colors.grey, height: 1.2)),
+              Text(b.title, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: b.unlocked ? AppColors.textDark : Colors.grey, height: 1.2)),
             ]),
           );
         },
       ),
     );
   }
-}
-
-class _MiniBadgeData {
-  final IconData icon;
-  final String label;
-  final bool unlocked;
-  final Color color;
-  const _MiniBadgeData({required this.icon, required this.label, required this.unlocked, required this.color});
 }
 
 // ─── TODAY'S CHECK-IN CARD ───

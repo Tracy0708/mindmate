@@ -4,12 +4,19 @@ import 'dart:developer' as developer;
 import '../models/emotion_log.dart';
 import '../models/activity.dart';
 import '../services/emotion_service.dart';
-import '../services/gamification_service.dart';
 import '../services/notification_service.dart';
+
+/// Outcome of logging a completed activity.
+/// [pointsAwarded] is false when the attempt was ended early or the user has
+/// already earned this activity type's reward today.
+class ActivityCompletionResult {
+  final bool success;
+  final bool pointsAwarded;
+  const ActivityCompletionResult(this.success, this.pointsAwarded);
+}
 
 class EmotionViewModel extends ChangeNotifier {
   final EmotionService _emotionService = EmotionService();
-  final GamificationService _gamificationService = GamificationService();
 
   // ─── State ───
   bool _hasLoggedToday = false;
@@ -122,14 +129,14 @@ class EmotionViewModel extends ChangeNotifier {
       _logCount = await _emotionService.getLogCount(userId, days: 30);
       _totalLogCount = await _emotionService.getLogCount(userId, days: 365);
 
-      // Check streak-based gamification achievements
-      try {
-        await _gamificationService.checkAndAwardStreaks(userId, _streak);
-      } catch (e) {
-        developer.log('Streak milestone check failed (non-critical): $e', name: 'EmotionVM');
-      }
+      // NOTE: Streak/milestone badges are awarded by the calling screen via
+      // GamificationViewModel (guarded by !wasLoggedToday) so they fire once
+      // per day and surface a toast. Awarding them here too double-counted the
+      // points, so this path was intentionally removed.
 
-      // Write user notifications for mood log and milestones
+      // Write the per-log "Mood Logged" notification. Milestone/badge
+      // notifications are now created centrally when a badge is awarded
+      // (GamificationViewModel._notifyBadge), so they're no longer duplicated here.
       try {
         final notifService = NotificationService();
         await notifService.createNotification(
@@ -138,44 +145,6 @@ class EmotionViewModel extends ChangeNotifier {
           message: 'You tracked your mood as $emotionType today. Keep it up!',
           type: 'mood_log',
         );
-        if (_streak == 7) {
-          await notifService.createNotification(
-            userID: userId,
-            title: '🔥 7-Day Streak!',
-            message: 'Amazing! You\'ve logged your mood 7 days in a row.',
-            type: 'milestone',
-          );
-        } else if (_streak == 30) {
-          await notifService.createNotification(
-            userID: userId,
-            title: '🔥 30-Day Streak!',
-            message: 'Incredible! 30 consecutive days of mood tracking.',
-            type: 'milestone',
-          );
-        }
-        final totalLogs = await _emotionService.getLogCount(userId, days: 365);
-        if (totalLogs == 1) {
-          await notifService.createNotification(
-            userID: userId,
-            title: '🎉 First Step!',
-            message: 'You\'ve logged your very first emotion. Welcome to MindMate!',
-            type: 'milestone',
-          );
-        } else if (totalLogs == 10) {
-          await notifService.createNotification(
-            userID: userId,
-            title: '🎯 Goal Setter',
-            message: 'You\'ve logged 10 emotions. You\'re building a great habit!',
-            type: 'milestone',
-          );
-        } else if (totalLogs == 30) {
-          await notifService.createNotification(
-            userID: userId,
-            title: '📊 Routine Builder',
-            message: '30 mood logs! You\'re a dedicated tracker.',
-            type: 'milestone',
-          );
-        }
       } catch (e) {
         developer.log('User notification write failed (non-critical): $e', name: 'EmotionVM');
       }
@@ -195,40 +164,58 @@ class EmotionViewModel extends ChangeNotifier {
   }
 
   // ─── Log a completed activity (NF9, NF10) ───
-  Future<bool> logCompletedActivity({
+  /// Logs a completed activity. Set [earlyExit] when the user bailed via the
+  /// "End Early & Complete" button — the attempt is still saved to history but
+  /// earns no points and does not consume the once-per-day reward slot.
+  /// Genuine completions award points only on the first one of that activity
+  /// type per day (anti-farming).
+  Future<ActivityCompletionResult> logCompletedActivity({
     required String title,
     required String activityType,
     required Duration duration,
     String? notes,
+    bool earlyExit = false,
   }) async {
     final userId = _currentUserId;
-    if (userId == null) return false;
+    if (userId == null) return const ActivityCompletionResult(false, false);
 
     try {
+      // Decide reward eligibility BEFORE writing, so the doc we add doesn't
+      // make the "already completed today" check trip on itself.
+      bool pointsAwarded = false;
+      if (!earlyExit) {
+        final alreadyToday =
+            await _emotionService.hasCompletedActivityToday(userId, activityType);
+        pointsAwarded = !alreadyToday;
+      }
+
       final activity = Activity(
         activityID: DateTime.now().millisecondsSinceEpoch.toString(),
         userID: userId,
         linkedEmotionLogID: _todaysLog?.logID,
         title: title,
         activityType: activityType,
-        activityStatus: 'completed',
+        activityStatus: earlyExit ? 'ended_early' : 'completed',
         activityNotes: notes ?? '',
         completionTime: DateTime.now(),
         duration: duration,
       );
 
       await _emotionService.logActivity(activity);
-      developer.log('Activity logged: $title', name: 'EmotionVM');
+      developer.log('Activity logged: $title (${activity.activityStatus})',
+          name: 'EmotionVM');
 
-      // Update local counts so Home tab reflects immediately
-      _completedActivityCount++;
-      if (activityType == 'breathing') _breathingSessionCount++;
-      notifyListeners();
+      // Only a rewarded completion advances the (de-farmed) counts.
+      if (pointsAwarded) {
+        _completedActivityCount++;
+        if (activityType == 'breathing') _breathingSessionCount++;
+        notifyListeners();
+      }
 
-      return true;
+      return ActivityCompletionResult(true, pointsAwarded);
     } catch (e) {
       developer.log('Error logging activity: $e', name: 'EmotionVM');
-      return false;
+      return const ActivityCompletionResult(false, false);
     }
   }
 

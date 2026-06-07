@@ -434,12 +434,12 @@ class ReportPdfService {
       columnWidths: const {
         0: pw.FlexColumnWidth(2.0), // Flagged
         1: pw.FlexColumnWidth(2.0), // Acknowledged
-        2: pw.FlexColumnWidth(1.0), // Times
+        2: pw.FlexColumnWidth(1.0), // Detections
       },
       children: [
         pw.TableRow(
           decoration: const pw.BoxDecoration(color: _brownDark),
-          children: ['Flagged', 'Acknowledged', 'Times']
+          children: ['Flagged', 'Acknowledged', 'Detections']
               .map((h) => pw.Padding(
                     padding: const pw.EdgeInsets.symmetric(
                         horizontal: 8, vertical: 7),

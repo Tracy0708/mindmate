@@ -2457,7 +2457,7 @@ class _AdminProfileTabState extends State<_AdminProfileTab> {
                               _AdminProfileItem(
                                 icon: Icons.badge_outlined,
                                 label: 'User ID',
-                                value: currentUser.uid,
+                                value: profile?.displayId ?? currentUser.uid,
                               ),
                               const Divider(
                                   height: 1, color: AppColors.fieldBorder),

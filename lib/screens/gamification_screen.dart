@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../main.dart';
+import '../models/badge_catalog.dart';
 import '../viewmodels/gamification_viewmodel.dart';
 import '../viewmodels/emotion_viewmodel.dart';
 import '../widgets/app_screen_header.dart';
@@ -31,122 +32,14 @@ class _GamificationScreenState extends State<GamificationScreen> {
         final actCount = emotionVm.completedActivityCount;
         final breathing = emotionVm.breathingSessionCount;
 
-        // Determine badge unlock status based on real data.
-        // Grouped by category: mood logs, streaks, activities, breathing.
-        final badges = [
-          // ── Mood-log tiers ──
-          _BadgeData(
-            iconType: 'first',
-            title: 'First Step',
-            label: 'Log 1 mood',
-            unlocked: totalLogs >= 1,
-            progress: '${totalLogs.clamp(0, 1)}/1 logs',
-          ),
-          _BadgeData(
-            iconType: 'target',
-            title: 'Goal Setter',
-            label: 'Log 10 moods',
-            unlocked: totalLogs >= 10,
-            progress: '${totalLogs.clamp(0, 10)}/10 logs',
-          ),
-          _BadgeData(
-            iconType: 'star',
-            title: 'Consistent',
-            label: 'Log 30 moods',
-            unlocked: totalLogs >= 30,
-            progress: '${totalLogs.clamp(0, 30)}/30 logs',
-          ),
-          _BadgeData(
-            iconType: 'committed',
-            title: 'Committed',
-            label: 'Log 50 moods',
-            unlocked: totalLogs >= 50,
-            progress: '${totalLogs.clamp(0, 50)}/50 logs',
-          ),
-          _BadgeData(
-            iconType: 'century',
-            title: 'Century Logger',
-            label: 'Log 100 moods',
-            unlocked: totalLogs >= 100,
-            progress: '${totalLogs.clamp(0, 100)}/100 logs',
-          ),
-
-          // ── Streak tiers ──
-          _BadgeData(
-            iconType: 'spark',
-            title: 'Getting Started',
-            label: '3-day streak',
-            unlocked: streak >= 3,
-            progress: '${streak.clamp(0, 3)}/3 days',
-          ),
-          _BadgeData(
-            iconType: 'trophy',
-            title: 'Streak Master',
-            label: '7-day streak',
-            unlocked: streak >= 7,
-            progress: '${streak.clamp(0, 7)}/7 days',
-          ),
-          _BadgeData(
-            iconType: 'fortnight',
-            title: 'Two Weeks Strong',
-            label: '14-day streak',
-            unlocked: streak >= 14,
-            progress: '${streak.clamp(0, 14)}/14 days',
-          ),
-          _BadgeData(
-            iconType: 'moon',
-            title: 'Dedicated',
-            label: '30-day streak',
-            unlocked: streak >= 30,
-            progress: '${streak.clamp(0, 30)}/30 days',
-          ),
-          _BadgeData(
-            iconType: 'centurion',
-            title: 'Centurion',
-            label: '100-day streak',
-            unlocked: streak >= 100,
-            progress: '${streak.clamp(0, 100)}/100 days',
-          ),
-
-          // ── Activity tiers ──
-          _BadgeData(
-            iconType: 'activity',
-            title: 'Beginner',
-            label: '1 activity',
-            unlocked: actCount >= 1,
-            progress: '${actCount.clamp(0, 1)}/1 acts',
-          ),
-          _BadgeData(
-            iconType: 'pro',
-            title: 'Pro',
-            label: '5 activities',
-            unlocked: actCount >= 5,
-            progress: '${actCount.clamp(0, 5)}/5 acts',
-          ),
-          _BadgeData(
-            iconType: 'enthusiast',
-            title: 'Enthusiast',
-            label: '10 activities',
-            unlocked: actCount >= 10,
-            progress: '${actCount.clamp(0, 10)}/10 acts',
-          ),
-          _BadgeData(
-            iconType: 'champion',
-            title: 'Champion',
-            label: '25 activities',
-            unlocked: actCount >= 25,
-            progress: '${actCount.clamp(0, 25)}/25 acts',
-          ),
-
-          // ── Breathing ──
-          _BadgeData(
-            iconType: 'zen',
-            title: 'Zen Master',
-            label: '5 breathing',
-            unlocked: breathing >= 5,
-            progress: '${breathing.clamp(0, 5)}/5 acts',
-          ),
-        ];
+        // Determine badge unlock status from the shared catalog so the Badge
+        // Center and the dashboard always agree.
+        final badges = evaluateBadges(
+          streak: streak,
+          totalLogs: totalLogs,
+          activityCount: actCount,
+          breathingCount: breathing,
+        );
 
         return Scaffold(
           backgroundColor: AppColors.cream,
@@ -222,7 +115,8 @@ class _GamificationScreenState extends State<GamificationScreen> {
                           itemBuilder: (context, index) {
                             final badge = badges[index];
                             return _BadgeCard(
-                              iconType: badge.iconType,
+                              icon: badge.icon,
+                              color: badge.color,
                               title: badge.title,
                               label: badge.label,
                               unlocked: badge.unlocked,
@@ -242,22 +136,6 @@ class _GamificationScreenState extends State<GamificationScreen> {
       },
     );
   }
-}
-
-class _BadgeData {
-  final String iconType;
-  final String title;
-  final String label;
-  final bool unlocked;
-  final String progress;
-
-  const _BadgeData({
-    required this.iconType,
-    required this.title,
-    required this.label,
-    required this.unlocked,
-    required this.progress,
-  });
 }
 
 class _QuickStat extends StatelessWidget {
@@ -281,14 +159,16 @@ class _QuickStat extends StatelessWidget {
 }
 
 class _BadgeCard extends StatelessWidget {
-  final String iconType;
+  final IconData icon;
+  final Color color;
   final String title;
   final String label;
   final bool unlocked;
   final String progress;
 
   const _BadgeCard({
-    required this.iconType,
+    required this.icon,
+    required this.color,
     required this.title,
     required this.label,
     required this.unlocked,
@@ -298,50 +178,14 @@ class _BadgeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget getIcon() {
-      const iconData = {
-        'trophy': Icons.emoji_events,
-        'target': Icons.ads_click,
-        'star': Icons.star,
-        'first': Icons.favorite,
-        'activity': Icons.spa,
-        'zen': Icons.air,
-        'moon': Icons.nightlight_round,
-        'committed': Icons.verified,
-        'century': Icons.auto_awesome,
-        'spark': Icons.bolt,
-        'fortnight': Icons.calendar_month,
-        'centurion': Icons.shield,
-        'pro': Icons.self_improvement,
-        'enthusiast': Icons.fitness_center,
-        'champion': Icons.military_tech,
-      };
-      const iconColors = {
-        'trophy': Color(0xFFFFB300),
-        'target': Color(0xFFE91E63),
-        'star': Color(0xFF4CAF50),
-        'first': Color(0xFFF44336),
-        'activity': Color(0xFF009688),
-        'zen': Color(0xFF03A9F4),
-        'moon': Color(0xFF7C4DFF),
-        'committed': Color(0xFF00897B),
-        'century': Color(0xFFFFA000),
-        'spark': Color(0xFFFFC107),
-        'fortnight': Color(0xFF5E35B1),
-        'centurion': Color(0xFF3949AB),
-        'pro': Color(0xFF43A047),
-        'enthusiast': Color(0xFFFB8C00),
-        'champion': Color(0xFFFFB300),
-      };
-      final d = iconData[iconType] ?? Icons.nightlight_round;
-      final c = unlocked ? (iconColors[iconType] ?? AppColors.primary) : const Color(0xFF9E9E9E);
-
+      final c = unlocked ? color : const Color(0xFF9E9E9E);
       return Container(
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
           color: unlocked ? AppColors.primary.withValues(alpha: 0.15) : Colors.grey.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
-        child: Icon(d, size: 30, color: c),
+        child: Icon(icon, size: 30, color: c),
       );
     }
 

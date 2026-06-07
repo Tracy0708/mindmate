@@ -66,14 +66,18 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
       final gamVm = Provider.of<GamificationViewModel>(context, listen: false);
       await gamVm.awardMoodLogPoints();
       final streakAch = await gamVm.checkStreakMilestones(vm.streak);
-      final firstAch = await gamVm.checkFirstLogMilestone(vm.logCount);
       final logAch = await gamVm.checkLogMilestones(vm.totalLogCount);
       await gamVm.fetchUserStats();
 
       if (mounted) {
-        final allAch = [...streakAch, if (firstAch != null) firstAch, if (logAch != null) logAch];
-        for (var a in allAch) {
-          InteractiveMessageService.showSuccess(context, title: 'Achievement Unlocked! 🏆', message: 'You earned ${a.achievement} (+${a.pointsEarned} pts)');
+        final allAch = [...streakAch, ...logAch];
+        if (allAch.isNotEmpty) {
+          // One coalesced toast instead of one per achievement.
+          InteractiveMessageService.showSuccess(
+            context,
+            title: allAch.length == 1 ? 'Achievement Unlocked! 🏆' : '${allAch.length} Achievements! 🏆',
+            message: allAch.map((a) => '${a.achievement} (+${a.pointsEarned})').join('  ·  '),
+          );
         }
       }
     }

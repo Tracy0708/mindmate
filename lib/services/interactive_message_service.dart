@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_twemoji/flutter_twemoji.dart';
 import '../main.dart';
@@ -133,6 +134,10 @@ class InteractiveMessageService {
     );
   }
 
+  // The single in-flight top toast, if any. Tracked so a new message replaces
+  // the current one instead of stacking (no pile-ups).
+  static OverlayEntry? _current;
+
   static void _showCustomMessage(
     BuildContext context, {
     required MessageType type,
@@ -142,28 +147,31 @@ class InteractiveMessageService {
     String actionLabel = 'Dismiss',
     Duration duration = const Duration(seconds: 4),
   }) {
-    final snackBar = SnackBar(
-      content: _MessageContent(
+    final overlay = MyApp.navigatorKey.currentState?.overlay;
+    if (overlay == null) return;
+
+    // Remove any toast already on screen.
+    _current?.remove();
+    _current = null;
+
+    late final OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (_) => _TopToast(
         type: type,
         title: title,
         message: message,
+        onAction: onAction,
+        actionLabel: actionLabel,
+        duration: duration,
+        backgroundColor: _getBackgroundColor(type),
+        onDismissed: () {
+          if (_current == entry) _current = null;
+          entry.remove();
+        },
       ),
-      backgroundColor: _getBackgroundColor(type),
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.all(16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 12,
-      duration: duration,
-      action: onAction != null
-          ? SnackBarAction(
-              label: actionLabel,
-              textColor: Colors.white,
-              onPressed: onAction,
-            )
-          : null,
     );
-
-    MyApp.scaffoldMessengerKey.currentState?.showSnackBar(snackBar);
+    _current = entry;
+    overlay.insert(entry);
   }
 
   static Color _getBackgroundColor(MessageType type) {
@@ -247,6 +255,141 @@ class _MessageContent extends StatelessWidget {
       iconData,
       color: Colors.white,
       size: 24,
+    );
+  }
+}
+
+// Top-anchored animated toast. Slides down from the top so it never collides
+// with the keyboard or the bottom nav bar. Auto-dismisses, tap-to-dismiss, and
+// supports an optional action button.
+class _TopToast extends StatefulWidget {
+  final MessageType type;
+  final String title;
+  final String? message;
+  final VoidCallback? onAction;
+  final String actionLabel;
+  final Duration duration;
+  final Color backgroundColor;
+  final VoidCallback onDismissed;
+
+  const _TopToast({
+    required this.type,
+    required this.title,
+    required this.message,
+    required this.onAction,
+    required this.actionLabel,
+    required this.duration,
+    required this.backgroundColor,
+    required this.onDismissed,
+  });
+
+  @override
+  State<_TopToast> createState() => _TopToastState();
+}
+
+class _TopToastState extends State<_TopToast>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<Offset> _slide;
+  late final Animation<double> _fade;
+  Timer? _timer;
+  bool _dismissing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 280));
+    _slide = Tween<Offset>(begin: const Offset(0, -1), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOutCubic));
+    _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+    _ctrl.forward();
+    _timer = Timer(widget.duration, _dismiss);
+  }
+
+  Future<void> _dismiss() async {
+    if (_dismissing) return;
+    _dismissing = true;
+    _timer?.cancel();
+    if (mounted) await _ctrl.reverse();
+    widget.onDismissed();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top;
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: SlideTransition(
+        position: _slide,
+        child: FadeTransition(
+          opacity: _fade,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(12, topInset + 8, 12, 0),
+            child: Material(
+              color: Colors.transparent,
+              child: GestureDetector(
+                onTap: _dismiss,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: widget.backgroundColor,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _MessageContent(
+                          type: widget.type,
+                          title: widget.title,
+                          message: widget.message,
+                        ),
+                      ),
+                      if (widget.onAction != null) ...[
+                        const SizedBox(width: 8),
+                        TextButton(
+                          onPressed: () {
+                            widget.onAction!();
+                            _dismiss();
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                          child: Text(
+                            widget.actionLabel,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

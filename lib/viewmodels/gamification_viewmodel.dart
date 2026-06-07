@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:developer' as developer;
 import '../services/gamification_service.dart';
+import '../services/notification_service.dart';
 import '../models/gamification_history.dart';
+import '../models/badge_catalog.dart';
 
 class GamificationViewModel extends ChangeNotifier {
   final GamificationService _gamificationService = GamificationService();
+  final NotificationService _notificationService = NotificationService();
 
   int _totalPoints = 0;
   final List<GamificationHistory> _achievements = [];
@@ -20,6 +23,23 @@ class GamificationViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   String? get _currentUserId => FirebaseAuth.instance.currentUser?.uid;
+
+  /// Writes a notification-center entry when a badge is unlocked. Non-critical —
+  /// failures are logged and swallowed so they never block the award flow.
+  Future<void> _notifyBadge(String userId, GamificationHistory badge) async {
+    try {
+      await _notificationService.createNotification(
+        userID: userId,
+        title: '🏆 Badge Unlocked: ${badge.achievement}',
+        message:
+            'You earned the ${badge.achievement} badge (+${badge.pointsEarned} pts). Keep it up!',
+        type: 'milestone',
+      );
+    } catch (e) {
+      developer.log('Badge notification failed (non-critical): $e',
+          name: 'GamificationVM');
+    }
+  }
 
   /// Fetch the user's gamification stats from Firestore
   Future<void> fetchUserStats() async {
@@ -91,95 +111,67 @@ class GamificationViewModel extends ChangeNotifier {
   }
 
   /// Check and award streak milestones
-  Future<List<GamificationHistory>> checkStreakMilestones(int currentStreak) async {
+  Future<List<GamificationHistory>> checkStreakMilestones(int currentStreak) =>
+      _awardCatalogTiers(BadgeCategory.streak, currentStreak);
+
+  /// Award every badge in [category] whose threshold has been reached and isn't
+  /// yet earned. Definitions come from the single [kBadgeCatalog] source of
+  /// truth. `>=` (not `==`) so accounts already past a tier still get it; the
+  /// idempotent [GamificationService.recordAchievementOnce] keeps each to once.
+  Future<List<GamificationHistory>> _awardCatalogTiers(
+      BadgeCategory category, int count) async {
     final userId = _currentUserId;
     if (userId == null) return [];
 
+    final awarded = <GamificationHistory>[];
     try {
-      final awarded = await _gamificationService.checkAndAwardStreaks(userId, currentStreak);
-      if (awarded.isNotEmpty) {
-        for (var a in awarded) {
-          _totalPoints += a.pointsEarned;
+      for (final def in kBadgeCatalog.where((d) => d.category == category)) {
+        if (count < def.threshold) continue;
+        final achievement = await _gamificationService.recordAchievementOnce(
+          userID: userId,
+          achievement: def.title,
+          points: def.points,
+          metadata: {'type': 'milestone', 'badge': def.title},
+        );
+        if (achievement != null) {
+          _totalPoints += def.points;
+          await _notifyBadge(userId, achievement);
+          awarded.add(achievement);
         }
-        notifyListeners();
       }
-      return awarded;
+      if (awarded.isNotEmpty) notifyListeners();
     } catch (e) {
-      developer.log('Failed to check streak milestones: $e', name: 'GamificationVM');
-      return [];
+      developer.log('Failed to award ${category.name} badges: $e', name: 'GamificationVM');
     }
+    return awarded;
   }
 
-  /// Check and award first mood log milestone
-  Future<GamificationHistory?> checkFirstLogMilestone(int logCount) async {
-    if (logCount != 1) return null; // Only for the very first log
-    final userId = _currentUserId;
-    if (userId == null) return null;
+  /// Award every mood-log badge reached and not yet earned.
+  Future<List<GamificationHistory>> checkLogMilestones(int logCount) =>
+      _awardCatalogTiers(BadgeCategory.logs, logCount);
 
-    try {
-      final achievement = await _gamificationService.recordAchievement(
-        userID: userId,
-        achievement: 'First Step',
-        points: 50,
-        metadata: {'type': 'milestone', 'milestone': 'first_log'},
-      );
-      _totalPoints += 50;
-      notifyListeners();
-      return achievement;
-    } catch (e) {
-      developer.log('Failed to award first log milestone: $e', name: 'GamificationVM');
-      return null;
-    }
-  }
+  /// Award every activity badge reached and not yet earned.
+  Future<List<GamificationHistory>> checkActivityMilestones(int actCount) =>
+      _awardCatalogTiers(BadgeCategory.activity, actCount);
 
-  Future<GamificationHistory?> checkLogMilestones(int logCount) async {
-    final userId = _currentUserId;
-    if (userId == null) return null;
+  /// Award the breathing badge(s) (Zen Master at 5 sessions) reached and not yet earned.
+  Future<List<GamificationHistory>> checkBreathingMilestones(int breathingCount) =>
+      _awardCatalogTiers(BadgeCategory.breathing, breathingCount);
 
-    String? title;
-    int points = 0;
-    if (logCount == 10) { title = 'Goal Setter'; points = 100; }
-    else if (logCount == 30) { title = 'Consistent'; points = 250; }
-    else if (logCount == 50) { title = 'Committed'; points = 400; }
-    else if (logCount == 100) { title = 'Century Logger'; points = 750; }
-    else { return null; }
-
-    try {
-      final achievement = await _gamificationService.recordAchievement(
-        userID: userId,
-        achievement: title,
-        points: points,
-        metadata: {'type': 'milestone', 'milestone': 'logs_$logCount'},
-      );
-      _totalPoints += points;
-      notifyListeners();
-      return achievement;
-    } catch (e) { return null; }
-  }
-
-  Future<GamificationHistory?> checkActivityMilestones(int actCount) async {
-    final userId = _currentUserId;
-    if (userId == null) return null;
-
-    String? title;
-    int points = 0;
-    if (actCount == 1) { title = 'Beginner'; points = 50; }
-    else if (actCount == 5) { title = 'Pro'; points = 150; }
-    else if (actCount == 10) { title = 'Enthusiast'; points = 300; }
-    else if (actCount == 25) { title = 'Champion'; points = 600; }
-    else { return null; }
-
-    try {
-      final achievement = await _gamificationService.recordAchievement(
-        userID: userId,
-        achievement: title,
-        points: points,
-        metadata: {'type': 'milestone', 'milestone': 'acts_$actCount'},
-      );
-      _totalPoints += points;
-      notifyListeners();
-      return achievement;
-    } catch (e) { return null; }
+  /// One-time catch-up: award any badge the user has already earned by current
+  /// counts (points + notifications), without surfacing toasts. Idempotent, so
+  /// it's safe to call on every app load. Used to backfill existing accounts
+  /// whose counts were already past thresholds before the `>=` fix.
+  Future<void> syncEarnedBadges({
+    required int streak,
+    required int totalLogCount,
+    required int activityCount,
+    required int breathingCount,
+  }) async {
+    await checkStreakMilestones(streak);
+    await checkLogMilestones(totalLogCount);
+    await checkActivityMilestones(activityCount);
+    await checkBreathingMilestones(breathingCount);
   }
 
   /// Spend points on an item
