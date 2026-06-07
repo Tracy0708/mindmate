@@ -229,7 +229,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                 : SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    // Generous bottom padding so the selected-day card has
+                    // breathing room above the bottom nav instead of hugging it.
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                     child: Column(
                       children: [
                         _buildCalendarGrid(now),

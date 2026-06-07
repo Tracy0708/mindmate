@@ -160,7 +160,7 @@ class PrivacyScreen extends StatelessWidget {
                   _PolicySection(
                     title: 'Your Rights',
                     body:
-                        'You have the right to access, correct, or delete your personal data. You may also object to or restrict certain processing of your data. To exercise these rights, contact us at support@mindmate.app.',
+                        'You have the right to access, correct, or delete your personal data. You may also object to or restrict certain processing of your data. To exercise these rights, contact us at lauxi@graduate.utm.my.',
                   ),
                   _PolicySection(
                     title: "Children's Privacy",
@@ -175,7 +175,7 @@ class PrivacyScreen extends StatelessWidget {
                   _PolicySection(
                     title: 'Contact Us',
                     body:
-                        'For privacy-related questions or requests, please contact us at:\nsupport@mindmate.app\n\nWe aim to respond within 3–5 business days.',
+                        'For privacy-related questions or requests, please contact us at:\nlauxi@graduate.utm.my\n\nWe aim to respond within 3–5 business days.',
                     isLast: true,
                   ),
                 ],

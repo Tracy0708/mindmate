@@ -68,20 +68,22 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
         final gamVm = Provider.of<GamificationViewModel>(context, listen: false);
         await gamVm.awardMoodLogPoints();
         final streakAch = await gamVm.checkStreakMilestones(vm.streak);
-        final firstAch = await gamVm.checkFirstLogMilestone(vm.logCount);
         final logAch = await gamVm.checkLogMilestones(vm.totalLogCount);
         await gamVm.fetchUserStats();
 
-        final allAch = [...streakAch, if (firstAch != null) firstAch, if (logAch != null) logAch];
+        final allAch = [...streakAch, ...logAch];
         if (allAch.isNotEmpty && mounted) {
-          for (var a in allAch) {
-            InteractiveMessageService.showSuccess(context, title: 'Achievement Unlocked! 🏆', message: 'You earned ${a.achievement} (+${a.pointsEarned} pts)');
-          }
+          // Badge unlocks still get a toast; the plain "mood saved" confirmation
+          // is omitted since the recommendation view below already confirms it.
+          InteractiveMessageService.showSuccess(
+            context,
+            title: allAch.length == 1 ? 'Achievement Unlocked! 🏆' : '${allAch.length} Achievements! 🏆',
+            message: allAch.map((a) => '${a.achievement} (+${a.pointsEarned})').join('  ·  '),
+          );
         }
       }
 
       if (!mounted) return;
-      InteractiveMessageService.showSuccess(context, title: 'Mood saved! 😊', message: 'You\'re feeling $_selectedMood');
       setState(() => _showRecommendation = true);
       _animController.forward(from: 0);
     } else if (!success && mounted) {

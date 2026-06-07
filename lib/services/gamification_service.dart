@@ -29,6 +29,36 @@ class GamificationService {
     return record;
   }
 
+  // Record a one-time milestone badge, but only if the user hasn't already
+  // earned one with the same [achievement] name. Returns the new record, or
+  // null if it already existed — callers must skip awarding points when null
+  // so badges can never be granted (or paid out) twice.
+  //
+  // Use this for one-time badges (streaks, log/activity milestones, First Step).
+  // Repeatable rewards like 'Mood Logged' / 'Activity Completed' must keep using
+  // [recordAchievement]. Two equality filters need no composite index.
+  Future<GamificationHistory?> recordAchievementOnce({
+    required String userID,
+    required String achievement,
+    required int points,
+    Map<String, dynamic>? metadata,
+  }) async {
+    final existing = await _firestore
+        .collection(_collection)
+        .where('metadata.userID', isEqualTo: userID)
+        .where('achievement', isEqualTo: achievement)
+        .limit(1)
+        .get();
+    if (existing.docs.isNotEmpty) return null;
+
+    return recordAchievement(
+      userID: userID,
+      achievement: achievement,
+      points: points,
+      metadata: metadata,
+    );
+  }
+
   // Get user's achievements
   Stream<List<GamificationHistory>> getUserAchievements(String userID) {
     return _firestore
@@ -126,37 +156,4 @@ class GamificationService {
     }
   }
 
-  // Check and award streak achievements
-
-  Future<List<GamificationHistory>> checkAndAwardStreaks(
-    String userID,
-    int currentStreak,
-  ) async {
-    final streakAchievements = <GamificationHistory>[];
-    final streakMilestones = {
-      3: 'Getting Started',
-      7: 'Streak Master',
-      14: 'Two Weeks Strong',
-      30: 'Dedicated',
-      100: 'Centurion',
-      365: 'Yearly Champion',
-    };
-
-    for (var milestone in streakMilestones.entries) {
-      if (currentStreak == milestone.key) {
-        final achievement = await recordAchievement(
-          userID: userID,
-          achievement: milestone.value,
-          points: milestone.key * 10,
-          metadata: {
-            'type': 'streak',
-            'streakDays': milestone.key,
-          },
-        );
-        streakAchievements.add(achievement);
-      }
-    }
-
-    return streakAchievements;
-  }
 }

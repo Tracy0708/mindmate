@@ -195,39 +195,50 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   Widget _buildEmptyState(EmotionViewModel emotionVm) {
     final greeting = _moodGreeting(emotionVm);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 36),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 88, height: 88,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
+    // LayoutBuilder + scroll view so the greeting scrolls (and centers when it
+    // fits) instead of overflowing when the keyboard shrinks the available area.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 88, height: 88,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: ClipOval(
+                        child: Image.asset('assets/images/MindMateAI.png',
+                            width: 88, height: 88, fit: BoxFit.cover),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      greeting,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textDark),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "I'm here to listen and support you.\nShare what's on your mind.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14, color: AppColors.textMedium, height: 1.5),
+                    ),
+                  ],
+                ),
               ),
-              child: ClipOval(
-                child: Image.asset('assets/images/MindMateAI.png',
-                    width: 88, height: 88, fit: BoxFit.cover),
-              ),
             ),
-            const SizedBox(height: 20),
-            Text(
-              greeting,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textDark),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              "I'm here to listen and support you.\nShare what's on your mind.",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: AppColors.textMedium, height: 1.5),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

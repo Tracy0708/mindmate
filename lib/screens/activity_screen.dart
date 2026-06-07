@@ -8,6 +8,7 @@ import '../main.dart';
 import '../services/emotion_service.dart';
 import '../viewmodels/emotion_viewmodel.dart';
 import '../viewmodels/gamification_viewmodel.dart';
+import '../models/gamification_history.dart';
 import '../services/interactive_message_service.dart';
 import '../widgets/app_emoji.dart';
 
@@ -240,34 +241,57 @@ class _ActivityScreenState extends State<ActivityScreen>
     }
   }
 
-  Future<void> _completeActivity() async {
+  Future<void> _completeActivity({bool earlyExit = false}) async {
     _timer?.cancel();
     _stepTimer?.cancel();
     await _tts.stop();
     setState(() => _isCompleted = true);
-    _speak('Well done. You completed the activity.');
+    _speak(earlyExit ? 'That\'s okay. Take care of yourself.' : 'Well done. You completed the activity.');
     HapticFeedback.heavyImpact();
 
     if (!mounted) return;
     final vm = Provider.of<EmotionViewModel>(context, listen: false);
-    final success = await vm.logCompletedActivity(
+    final result = await vm.logCompletedActivity(
       title: widget.activity.title,
       activityType: widget.activity.activityType,
       duration: Duration(seconds: _elapsedSeconds),
       notes: widget.activity.activityType == 'journaling' ? _journalController.text : null,
+      earlyExit: earlyExit,
     );
-    if (mounted && success) {
-      final gamVm = Provider.of<GamificationViewModel>(context, listen: false);
-      await gamVm.awardActivityPoints(widget.activity.title);
-      final actAch = await gamVm.checkActivityMilestones(vm.completedActivityCount);
-      await gamVm.fetchUserStats();
+    if (!mounted || !result.success) return;
 
-      if (mounted) {
-        InteractiveMessageService.showSuccess(context, title: 'Activity Complete! 🎉', message: 'Great job taking care of yourself. (+25 pts)');
-        if (actAch != null) {
-          InteractiveMessageService.showSuccess(context, title: 'Achievement Unlocked! 🏆', message: 'You earned ${actAch.achievement} (+${actAch.pointsEarned} pts)');
-        }
-      }
+    // Ended early, or already earned this activity's reward today → no points,
+    // but still acknowledge the effort.
+    if (!result.pointsAwarded) {
+      InteractiveMessageService.showInfo(
+        context,
+        title: 'Activity Ended',
+        message: earlyExit
+            ? 'Take all the time you need — points are earned when you finish the full exercise.'
+            : 'Nice work! You\'ve already earned points for this one today.',
+      );
+      return;
+    }
+
+    final gamVm = Provider.of<GamificationViewModel>(context, listen: false);
+    await gamVm.awardActivityPoints(widget.activity.title);
+    final actAchs = await gamVm.checkActivityMilestones(vm.completedActivityCount);
+    // Breathing has its own "Zen Master" badge in the Badge Center.
+    final breathAchs = widget.activity.activityType == 'breathing'
+        ? await gamVm.checkBreathingMilestones(vm.breathingSessionCount)
+        : <GamificationHistory>[];
+    await gamVm.fetchUserStats();
+
+    if (mounted) {
+      // One coalesced toast — fold any milestone badge(s) into the completion message.
+      final badges = [...actAchs, ...breathAchs];
+      InteractiveMessageService.showSuccess(
+        context,
+        title: badges.isNotEmpty ? 'Achievement Unlocked! 🏆' : 'Activity Complete! 🎉',
+        message: badges.isNotEmpty
+            ? 'Great job! +25 pts  ·  ${badges.map((a) => '${a.achievement} (+${a.pointsEarned})').join('  ·  ')}'
+            : 'Great job taking care of yourself. (+25 pts)',
+      );
     }
   }
 
@@ -375,9 +399,9 @@ class _ActivityScreenState extends State<ActivityScreen>
       Text('Cycle ${_breathCycle + 1} of $_totalBreathCycles', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textMedium)),
       const SizedBox(height: 32),
       OutlinedButton(
-        onPressed: _completeActivity,
+        onPressed: () => _completeActivity(earlyExit: true),
         style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)), side: const BorderSide(color: AppColors.primary)),
-        child: const Text('End Early & Complete', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+        child: const Text('End Early', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
       ),
     ]);
   }

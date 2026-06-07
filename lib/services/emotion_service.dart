@@ -207,21 +207,54 @@ class EmotionService {
     await docRef.set(activity.toMap());
   }
 
-  // ─── Count completed activities ───
+  // ─── Has the user genuinely completed this activity type today? ───
+  // Only 'completed' docs count, so an 'ended_early' attempt never blocks a
+  // later genuine completion. Two equality filters need no composite index;
+  // the today filter is applied client-side.
+  Future<bool> hasCompletedActivityToday(
+      String userId, String activityType) async {
+    final snapshot = await _activitiesRef(userId)
+        .where('activityType', isEqualTo: activityType)
+        .where('activityStatus', isEqualTo: 'completed')
+        .get();
+    final today = _startOfDay(DateTime.now());
+    return snapshot.docs.any((d) {
+      final ts = (d.data()['completionTime'] as Timestamp?)?.toDate();
+      return ts != null && !ts.isBefore(today);
+    });
+  }
+
+  // ─── Count completed activities (de-farmed) ───
+  // Counts distinct (activityType, day) pairs among 'completed' docs so repeat
+  // completions of the same activity on the same day can't inflate the count.
+  // Monotonic and non-farmable — feeds activity milestones and badge displays.
   Future<int> getCompletedActivityCount(String userId) async {
     final snapshot = await _activitiesRef(userId)
         .where('activityStatus', isEqualTo: 'completed')
         .get();
-    return snapshot.docs.length;
+    return _distinctTypeDays(snapshot.docs).length;
   }
 
-  // ─── Count breathing sessions ───
+  // ─── Count breathing sessions (de-farmed, distinct days) ───
   Future<int> getBreathingSessionCount(String userId) async {
     final snapshot = await _activitiesRef(userId)
         .where('activityType', isEqualTo: 'breathing')
         .where('activityStatus', isEqualTo: 'completed')
         .get();
-    return snapshot.docs.length;
+    return _distinctTypeDays(snapshot.docs).length;
+  }
+
+  // Distinct "<type>@<day>" keys for completed activity docs.
+  Set<String> _distinctTypeDays(
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> docs) {
+    final keys = <String>{};
+    for (final doc in docs) {
+      final data = doc.data();
+      final type = data['activityType'] as String? ?? 'unknown';
+      final ts = (data['completionTime'] as Timestamp?)?.toDate();
+      if (ts != null) keys.add('$type@${_dateKey(ts)}');
+    }
+    return keys;
   }
 
   // ─── Delete an emotion log ───

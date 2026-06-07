@@ -99,14 +99,14 @@ class HelpSupportScreen extends StatelessWidget {
             _ContactTile(
               icon: Icons.email_outlined,
               label: 'Email Support',
-              subtitle: 'support@mindmate.app',
+              subtitle: 'lauxi@graduate.utm.my',
               onTap: () {
                 Clipboard.setData(
-                    const ClipboardData(text: 'support@mindmate.app'));
+                    const ClipboardData(text: 'lauxi@graduate.utm.my'));
                 InteractiveMessageService.showSuccess(
                   context,
                   title: 'Email copied!',
-                  message: 'support@mindmate.app copied to clipboard.',
+                  message: 'lauxi@graduate.utm.my copied to clipboard.',
                 );
               },
             ),
