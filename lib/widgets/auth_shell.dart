@@ -58,10 +58,19 @@ class AuthShell extends StatelessWidget {
                               color: AppColors.primary.withValues(alpha: 0.14),
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
-                              Icons.psychology_alt_rounded,
-                              size: 34,
-                              color: AppColors.textDark,
+                            child: ClipOval(
+                              child: Transform.scale(
+                                scale: 1.35,
+                                child: Image.asset(
+                                  'assets/images/MindMate_Logo.png',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => const Icon(
+                                    Icons.psychology_alt_rounded,
+                                    size: 34,
+                                    color: AppColors.textDark,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 18),
