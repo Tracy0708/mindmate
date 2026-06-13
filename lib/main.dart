@@ -370,6 +370,11 @@ class _SplashScreenState extends State<_SplashScreen> {
     final profile = await AuthService().getUserProfileById(user.uid);
     if (!mounted) return;
 
+    if (profile != null) {
+      await FCMService().initialize();
+      if (!mounted) return;
+    }
+
     if (profile?.role == 'admin') {
       Navigator.pushReplacementNamed(context, '/admin-dashboard');
     } else {

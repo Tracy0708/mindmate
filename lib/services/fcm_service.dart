@@ -33,8 +33,9 @@ class FCMService {
           FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         final n = message.notification;
         if (n != null) {
-          LocalNotificationService().showAdminRealtimeAlert(
-            id: n.hashCode,
+          LocalNotificationService().showPushNotification(
+            id: message.messageId?.hashCode ??
+                DateTime.now().millisecondsSinceEpoch,
             title: n.title ?? '',
             body: n.body ?? '',
           );

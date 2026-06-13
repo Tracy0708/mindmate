@@ -29,6 +29,68 @@ class NotificationService {
     return notification;
   }
 
+  Future<void> syncPreferenceReminderNotifications({
+    required String userID,
+    required Map<String, bool> prefs,
+    required String reminderTime,
+  }) async {
+    final reminderDefinitions = {
+      'dailyMoodReminder': (
+        type: 'daily_mood_reminder',
+        title: '😊 How are you feeling?',
+        message: 'Take a moment to log your mood today.',
+      ),
+      'breathingReminder': (
+        type: 'breathing_reminder',
+        title: '🌿 Time to breathe',
+        message: 'A short breathing exercise can help reduce stress.',
+      ),
+      'weeklySummary': (
+        type: 'weekly_summary',
+        title: '📊 Your Weekly Summary',
+        message: 'Check out your mood trends from this week.',
+      ),
+      'motivationalQuotes': (
+        type: 'motivational_quote',
+        title: '💛 Daily Inspiration',
+        message: 'A small reminder to be kind to yourself today.',
+      ),
+    };
+
+    final batch = _firestore.batch();
+
+    for (final entry in reminderDefinitions.entries) {
+      final def = entry.value;
+      final docRef =
+          _firestore.collection(_collection).doc('${def.type}_$userID');
+
+      if (prefs[entry.key] == true) {
+        final existing = await docRef.get();
+        final existingStatus = existing.data()?['notificationStatus'];
+
+        batch.set(
+          docRef,
+          {
+            'notificationID': docRef.id,
+            'userID': userID,
+            'title': def.title,
+            'notificationMessage': def.message,
+            'notificationStatus': existingStatus ?? 'unread',
+            'notificationType': def.type,
+            'notificationTimestamp': DateTime.now().toIso8601String(),
+            'reminderTime': reminderTime,
+            'pushEnabled': false,
+          },
+          SetOptions(merge: true),
+        );
+      } else {
+        batch.delete(docRef);
+      }
+    }
+
+    await batch.commit();
+  }
+
   // Get user's notifications
   Stream<List<NotificationModel>> getUserNotifications(String userID) {
     return _firestore

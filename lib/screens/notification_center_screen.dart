@@ -31,6 +31,14 @@ class NotificationCenterScreen extends StatelessWidget {
       case 'system':
       case 'system_report':
         return Icons.analytics_rounded;
+      case 'daily_mood_reminder':
+        return Icons.mood_rounded;
+      case 'breathing_reminder':
+        return Icons.air_rounded;
+      case 'weekly_summary':
+        return Icons.bar_chart_rounded;
+      case 'motivational_quote':
+        return Icons.format_quote_rounded;
       default:
         return Icons.notifications_rounded;
     }
@@ -49,6 +57,14 @@ class NotificationCenterScreen extends StatelessWidget {
       case 'system':
       case 'system_report':
         return const Color(0xFF5C6BC0);
+      case 'daily_mood_reminder':
+        return AppColors.primary;
+      case 'breathing_reminder':
+        return const Color(0xFF26A69A);
+      case 'weekly_summary':
+        return const Color(0xFF5C6BC0);
+      case 'motivational_quote':
+        return const Color(0xFFE91E63);
       default:
         return AppColors.primary;
     }

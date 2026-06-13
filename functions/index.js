@@ -461,7 +461,13 @@ exports.sendPushOnNotification = onDocumentCreated(
           type: data.notificationType ?? 'general',
           notificationId: event.params.notificationId,
         },
-        android: { priority: 'high' },
+        android: {
+          priority: 'high',
+          notification: {
+            channelId: 'mindmate_push',
+            clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+          },
+        },
         apns: { payload: { aps: { sound: 'default' } } },
       });
       console.log('FCM sent to user', userID);

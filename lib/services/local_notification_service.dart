@@ -13,6 +13,8 @@ class LocalNotificationService {
   final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
 
   // Notification IDs for each type
+  static const String pushChannelId = 'mindmate_push';
+  static const String pushChannelName = 'MindMate Notifications';
   static const int dailyMoodId = 1;
   static const int breathingId = 2;
   static const int weeklySummaryId = 3;
@@ -40,9 +42,17 @@ class LocalNotificationService {
     await _plugin.initialize(initSettings);
 
     // Request notification permissions on Android 13+
-    await _plugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    await androidPlugin?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        pushChannelId,
+        pushChannelName,
+        description: 'MindMate app notifications',
+        importance: Importance.high,
+      ),
+    );
+    await androidPlugin?.requestNotificationsPermission();
   }
 
   /// Schedule a daily notification at the given hour:minute
@@ -124,6 +134,29 @@ class LocalNotificationService {
           'mindmate_reminders',
           'MindMate Reminders',
           channelDescription: 'Daily mental health reminders from MindMate',
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        ),
+      ),
+    );
+  }
+
+  /// Show an immediate app push while the app is in the foreground.
+  Future<void> showPushNotification({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    await _plugin.show(
+      id,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          pushChannelId,
+          pushChannelName,
+          channelDescription: 'MindMate app notifications',
           importance: Importance.high,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',

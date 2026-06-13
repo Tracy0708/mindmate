@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/local_notification_service.dart';
+import '../services/notification_service.dart';
 import '../main.dart';
 import '../widgets/app_screen_header.dart';
 import '../widgets/app_notification_toggle.dart';
@@ -38,18 +39,29 @@ class _NotificationSettingsScreenState
       final prefs =
           profile.settings['notificationPrefs'] as Map<String, dynamic>? ?? {};
       final time = profile.settings['reminderTime'] as String? ?? '09:00';
+      final dailyMood = prefs['dailyMoodReminder'] ?? true;
+      final breathing = prefs['breathingReminder'] ?? true;
+      final weekly = prefs['weeklySummary'] ?? true;
+      final motivational = prefs['motivationalQuotes'] ?? true;
       setState(() {
-        _dailyMoodReminder = prefs['dailyMoodReminder'] ?? true;
-        _breathingReminder = prefs['breathingReminder'] ?? true;
-        _weeklySummary = prefs['weeklySummary'] ?? true;
-        _motivationalQuotes = prefs['motivationalQuotes'] ?? true;
-        _masterToggle = _dailyMoodReminder ||
-            _breathingReminder ||
-            _weeklySummary ||
-            _motivationalQuotes;
+        _dailyMoodReminder = dailyMood;
+        _breathingReminder = breathing;
+        _weeklySummary = weekly;
+        _motivationalQuotes = motivational;
+        _masterToggle = dailyMood || breathing || weekly || motivational;
         _reminderTime = time;
         _isLoading = false;
       });
+      await NotificationService().syncPreferenceReminderNotifications(
+        userID: profile.userID,
+        prefs: {
+          'dailyMoodReminder': dailyMood,
+          'breathingReminder': breathing,
+          'weeklySummary': weekly,
+          'motivationalQuotes': motivational,
+        },
+        reminderTime: time,
+      );
     } else if (mounted) {
       setState(() => _isLoading = false);
     }
@@ -78,6 +90,15 @@ class _NotificationSettingsScreenState
       hour: hour,
       minute: minute,
     );
+
+    final userID = _authService.currentUser?.uid;
+    if (userID != null) {
+      await NotificationService().syncPreferenceReminderNotifications(
+        userID: userID,
+        prefs: prefs,
+        reminderTime: _reminderTime,
+      );
+    }
   }
 
   void _onMasterToggle(bool val) {
