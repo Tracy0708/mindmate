@@ -35,10 +35,10 @@ This script populates your Firebase Firestore with demo data for testing the adm
    - Click "Generate New Private Key"
    - Save the JSON file as `functions/service-account-key.json`
 
-2. Run the seed script:
+2. Run your test-data script:
 ```bash
 cd functions
-GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json node seed-demo-data.js
+GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json node <your-test-data-script>.js
 ```
 
 ### Option 2: Using Firebase CLI Authentication
@@ -50,10 +50,10 @@ firebase login
 firebase projects:list  # Verify your project is accessible
 ```
 
-2. Run the seed script:
+2. Run your test-data script:
 ```bash
 cd functions
-node seed-demo-data.js
+node <your-test-data-script>.js
 ```
 
 ### Option 3: Using FIREBASE_CONFIG Environment Variable
@@ -63,21 +63,17 @@ node seed-demo-data.js
 cd functions
 export FIREBASE_PROJECT_ID=your-project-id
 export FIREBASE_DATABASE_URL=https://your-project.firebaseio.com
-node seed-demo-data.js
+node <your-test-data-script>.js
 ```
 
 ## Running the Script
 
-```bash
-cd functions
-npm install  # If not already done
-GOOGLE_APPLICATION_CREDENTIALS=./service-account-key.json node seed-demo-data.js
-```
+The demo seed script has been removed. Create a new test-data script that fits your needs, or use `create-user-with-mood-history.js` for a single high-risk walkthrough.
 
 ## Expected Output
 
 ```
-🌱 Starting demo data seed...
+🌱 Starting test data seed...
 
 1️⃣  Creating high-risk user...
 ✓ Created user: user0002@gmail.com (ID: xxxx)

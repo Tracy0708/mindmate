@@ -53,14 +53,19 @@ class _InsightsScreenState extends State<InsightsScreen> {
     }
   }
 
-  static const _emojiMap = {'Happy':'😊','Sad':'😢','Anxious':'😰','Angry':'😠','Calm':'😌','Tired':'😴'};
+  static const _emojiMap = {
+    'Happy': '😊',
+    'Sad': '😢',
+    'Anxious': '😰',
+    'Angry': '😠',
+    'Calm': '😌'
+  };
   static const _emotionColors = {
-    'Happy': Color(0xFFF4A261),   // warm peach-amber
-    'Sad': Color(0xFF6B9AC4),     // dusty cornflower blue
+    'Happy': Color(0xFFF4A261), // warm peach-amber
+    'Sad': Color(0xFF6B9AC4), // dusty cornflower blue
     'Anxious': Color(0xFFE07A5F), // terracotta
-    'Angry': Color(0xFFBF616A),   // muted rose-red
-    'Calm': Color(0xFF81B29A),    // sage green
-    'Tired': Color(0xFF9B8EA8),   // soft mauve
+    'Angry': Color(0xFFBF616A), // muted rose-red
+    'Calm': Color(0xFF81B29A), // sage green
   };
 
   @override
@@ -78,14 +83,17 @@ class _InsightsScreenState extends State<InsightsScreen> {
               ),
               Expanded(
                 child: vm.isLoading
-                    ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                    ? const Center(
+                        child:
+                            CircularProgressIndicator(color: AppColors.primary))
                     : vm.errorMessage != null
                         ? _errorView(vm)
                         : RefreshIndicator(
                             color: AppColors.primary,
                             onRefresh: () => vm.fetchInsights(),
                             child: SingleChildScrollView(
-                              physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                              physics: const AlwaysScrollableScrollPhysics(
+                                  parent: BouncingScrollPhysics()),
                               padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
                               child: _buildContent(vm),
                             ),
@@ -99,15 +107,28 @@ class _InsightsScreenState extends State<InsightsScreen> {
   }
 
   Widget _errorView(InsightsViewModel vm) {
-    return Center(child: Padding(padding: const EdgeInsets.all(32), child: Column(
-      mainAxisAlignment: MainAxisAlignment.center, children: [
-        const Icon(Icons.cloud_off, size: 64, color: AppColors.textLight),
-        const SizedBox(height: 16),
-        Text(vm.errorMessage!, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, color: AppColors.textMedium)),
-        const SizedBox(height: 24),
-        ElevatedButton(onPressed: () => vm.fetchInsights(), style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary), child: const Text('Retry', style: TextStyle(color: AppColors.textDark))),
-      ],
-    )));
+    return Center(
+        child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.cloud_off,
+                    size: 64, color: AppColors.textLight),
+                const SizedBox(height: 16),
+                Text(vm.errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 16, color: AppColors.textMedium)),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                    onPressed: () => vm.fetchInsights(),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary),
+                    child: const Text('Retry',
+                        style: TextStyle(color: AppColors.textDark))),
+              ],
+            )));
   }
 
   Widget _buildContent(InsightsViewModel vm) {
@@ -161,33 +182,64 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
   // ─── EMPTY STATE (EF1) ───
   Widget _emptyState() {
-    return Center(child: Padding(padding: const EdgeInsets.symmetric(vertical: 80), child: Column(children: [
-      Container(
-        padding: const EdgeInsets.all(24), decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.12), shape: BoxShape.circle),
-        child: const Icon(Icons.insights, size: 64, color: AppColors.primary),
-      ),
-      const SizedBox(height: 24),
-      const Text('No Insights Yet', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark)),
-      const SizedBox(height: 12),
-      const Text('Start tracking your emotions to see\npersonalized insights and trends here.', textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: AppColors.textMedium, height: 1.5)),
-      const SizedBox(height: 32),
-      ElevatedButton.icon(
-        onPressed: () {
-          context.findAncestorStateOfType<DashboardScreenState>()?.navigateToTab(0);
-        },
-        icon: const Icon(Icons.add, color: AppColors.textDark),
-        label: const Text('Log Your First Mood', style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.w700)),
-        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
-      ),
-    ])));
+    return Center(
+        child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 80),
+            child: Column(children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    shape: BoxShape.circle),
+                child: const Icon(Icons.insights,
+                    size: 64, color: AppColors.primary),
+              ),
+              const SizedBox(height: 24),
+              const Text('No Insights Yet',
+                  style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textDark)),
+              const SizedBox(height: 12),
+              const Text(
+                  'Start tracking your emotions to see\npersonalized insights and trends here.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 15, color: AppColors.textMedium, height: 1.5)),
+              const SizedBox(height: 32),
+              ElevatedButton.icon(
+                onPressed: () {
+                  context
+                      .findAncestorStateOfType<DashboardScreenState>()
+                      ?.navigateToTab(0);
+                },
+                icon: const Icon(Icons.add, color: AppColors.textDark),
+                label: const Text('Log Your First Mood',
+                    style: TextStyle(
+                        color: AppColors.textDark,
+                        fontWeight: FontWeight.w700)),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 28, vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14))),
+              ),
+            ])));
   }
 
   // ─── RANGE TABS (AF1) ───
   Widget _rangeTabs(InsightsViewModel vm) {
-    const tabs = [('week', 'Week'), ('month', 'Month'), ('3months', '3 Months')];
-    return Row(children: tabs.map((t) {
+    const tabs = [
+      ('week', 'Week'),
+      ('month', 'Month'),
+      ('3months', '3 Months')
+    ];
+    return Row(
+        children: tabs.map((t) {
       final isSelected = vm.selectedRange == t.$1;
-      return Expanded(child: GestureDetector(
+      return Expanded(
+          child: GestureDetector(
         onTap: () => vm.setRange(t.$1),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
@@ -196,9 +248,18 @@ class _InsightsScreenState extends State<InsightsScreen> {
           decoration: BoxDecoration(
             color: isSelected ? AppColors.primary : Colors.white,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: isSelected ? AppColors.primary : AppColors.primary.withValues(alpha: 0.3)),
+            border: Border.all(
+                color: isSelected
+                    ? AppColors.primary
+                    : AppColors.primary.withValues(alpha: 0.3)),
           ),
-          child: Center(child: Text(t.$2, style: TextStyle(color: isSelected ? AppColors.textDark : AppColors.textDark, fontWeight: FontWeight.w700, fontSize: 14))),
+          child: Center(
+              child: Text(t.$2,
+                  style: TextStyle(
+                      color:
+                          isSelected ? AppColors.textDark : AppColors.textDark,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14))),
         ),
       ));
     }).toList());
@@ -207,34 +268,68 @@ class _InsightsScreenState extends State<InsightsScreen> {
   // ─── TREND SUMMARY (NF3) ───
   Widget _trendSummaryCard(EmotionInsight insight) {
     final emoji = _emojiMap[insight.mostFrequentEmotion] ?? '📊';
-    IconData trendIcon; Color trendColor; String trendLabel;
+    IconData trendIcon;
+    Color trendColor;
+    String trendLabel;
     switch (insight.trendDirection) {
-      case 'improving': trendIcon = Icons.trending_up; trendColor = const Color(0xFF4CAF50); trendLabel = 'Improving'; break;
-      case 'declining': trendIcon = Icons.trending_down; trendColor = const Color(0xFFE53935); trendLabel = 'Declining'; break;
-      default: trendIcon = Icons.trending_flat; trendColor = AppColors.primary; trendLabel = 'Stable';
+      case 'improving':
+        trendIcon = Icons.trending_up;
+        trendColor = const Color(0xFF4CAF50);
+        trendLabel = 'Improving';
+        break;
+      case 'declining':
+        trendIcon = Icons.trending_down;
+        trendColor = const Color(0xFFE53935);
+        trendLabel = 'Declining';
+        break;
+      default:
+        trendIcon = Icons.trending_flat;
+        trendColor = AppColors.primary;
+        trendLabel = 'Stable';
     }
 
     return Container(
-      width: double.infinity, padding: const EdgeInsets.all(24),
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [AppColors.primary.withValues(alpha: 0.15), AppColors.primary.withValues(alpha: 0.05)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-        borderRadius: BorderRadius.circular(24), border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+        gradient: LinearGradient(colors: [
+          AppColors.primary.withValues(alpha: 0.15),
+          AppColors.primary.withValues(alpha: 0.05)
+        ], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
       ),
       child: Column(children: [
         AppEmoji(emoji, size: 48),
         const SizedBox(height: 12),
         if (insight.mostFrequentEmotion != 'None')
-          Text('Most frequent: ${insight.mostFrequentEmotion}', style: const TextStyle(fontSize: 13, color: AppColors.textMedium, fontWeight: FontWeight.w600)),
+          Text('Most frequent: ${insight.mostFrequentEmotion}',
+              style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textMedium,
+                  fontWeight: FontWeight.w600)),
         const SizedBox(height: 12),
-        Text(insight.trendSummary, textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.textDark, height: 1.4)),
+        Text(insight.trendSummary,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark,
+                height: 1.4)),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(color: trendColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
+          decoration: BoxDecoration(
+              color: trendColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(20)),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             Icon(trendIcon, size: 18, color: trendColor),
             const SizedBox(width: 6),
-            Text(trendLabel, style: TextStyle(color: trendColor, fontWeight: FontWeight.w700, fontSize: 14)),
+            Text(trendLabel,
+                style: TextStyle(
+                    color: trendColor,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14)),
           ]),
         ),
       ]),
@@ -250,20 +345,37 @@ class _InsightsScreenState extends State<InsightsScreen> {
     }
 
     return Container(
-      height: 220, padding: const EdgeInsets.fromLTRB(8, 16, 16, 8),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4))]),
+      height: 220,
+      padding: const EdgeInsets.fromLTRB(8, 16, 16, 8),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4))
+          ]),
       child: LineChart(LineChartData(
-        minY: 0, maxY: 5.5,
+        minY: 0,
+        maxY: 5.5,
         gridData: FlGridData(
-          show: true, drawVerticalLine: false,
+          show: true,
+          drawVerticalLine: false,
           horizontalInterval: 1,
-          getDrawingHorizontalLine: (v) => FlLine(color: AppColors.primary.withValues(alpha: 0.1), strokeWidth: 1),
+          getDrawingHorizontalLine: (v) => FlLine(
+              color: AppColors.primary.withValues(alpha: 0.1), strokeWidth: 1),
         ),
         titlesData: FlTitlesData(
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          leftTitles: AxisTitles(sideTitles: SideTitles(
-            showTitles: true, reservedSize: 30, interval: 1,
+          topTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 30,
+            interval: 1,
             getTitlesWidget: (v, _) {
               if (v == 1) return const AppEmoji('😠', size: 12);
               if (v == 3) return const AppEmoji('😐', size: 12);
@@ -271,19 +383,26 @@ class _InsightsScreenState extends State<InsightsScreen> {
               return const SizedBox.shrink();
             },
           )),
-          bottomTitles: AxisTitles(sideTitles: SideTitles(
-            showTitles: true, reservedSize: 28, interval: _bottomInterval(scores.length),
+          bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 28,
+            interval: _bottomInterval(scores.length),
             getTitlesWidget: (v, _) {
               final i = v.toInt();
               if (i < 0 || i >= scores.length) return const SizedBox.shrink();
-              return Text(DateFormat('d/M').format(scores[i].date), style: const TextStyle(fontSize: 10, color: AppColors.textMedium));
+              return Text(DateFormat('d/M').format(scores[i].date),
+                  style: const TextStyle(
+                      fontSize: 10, color: AppColors.textMedium));
             },
           )),
         ),
         borderData: FlBorderData(show: false),
         lineBarsData: [
           LineChartBarData(
-            spots: spots, isCurved: true, curveSmoothness: 0.4,
+            spots: spots,
+            isCurved: true,
+            curveSmoothness: 0.4,
             gradient: const LinearGradient(
               colors: [AppColors.primaryDark, AppColors.primary],
               begin: Alignment.centerLeft,
@@ -293,13 +412,19 @@ class _InsightsScreenState extends State<InsightsScreen> {
             dotData: FlDotData(
               show: scores.length <= 14,
               getDotPainter: (spot, pct, bar, index) => FlDotCirclePainter(
-                radius: 4, color: Colors.white, strokeWidth: 2, strokeColor: AppColors.primaryDark,
+                radius: 4,
+                color: Colors.white,
+                strokeWidth: 2,
+                strokeColor: AppColors.primaryDark,
               ),
             ),
             belowBarData: BarAreaData(
               show: true,
               gradient: LinearGradient(
-                colors: [AppColors.primary.withValues(alpha: 0.28), AppColors.primary.withValues(alpha: 0.0)],
+                colors: [
+                  AppColors.primary.withValues(alpha: 0.28),
+                  AppColors.primary.withValues(alpha: 0.0)
+                ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
@@ -312,8 +437,15 @@ class _InsightsScreenState extends State<InsightsScreen> {
             getTooltipColor: (_) => AppColors.textDark,
             getTooltipItems: (spots) => spots.map((s) {
               final i = s.spotIndex;
-              final date = i < scores.length ? DateFormat('MMM d').format(scores[i].date) : '';
-              return LineTooltipItem('$date\nScore: ${s.y.toStringAsFixed(1)}', const TextStyle(color: AppColors.primaryLight, fontWeight: FontWeight.w600, fontSize: 12));
+              final date = i < scores.length
+                  ? DateFormat('MMM d').format(scores[i].date)
+                  : '';
+              return LineTooltipItem(
+                  '$date\nScore: ${s.y.toStringAsFixed(1)}',
+                  const TextStyle(
+                      color: AppColors.primaryLight,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12));
             }).toList(),
           ),
         ),
@@ -336,17 +468,38 @@ class _InsightsScreenState extends State<InsightsScreen> {
     freq.forEach((emotion, count) {
       final pct = (count / total * 100);
       sections.add(PieChartSectionData(
-        value: count.toDouble(), title: '${pct.round()}%',
-        color: _emotionColors[emotion] ?? Colors.grey, radius: 58,
-        titleStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white, shadows: [Shadow(blurRadius: 2, color: Colors.black26)]),
+        value: count.toDouble(),
+        title: '${pct.round()}%',
+        color: _emotionColors[emotion] ?? Colors.grey,
+        radius: 58,
+        titleStyle: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+            shadows: [Shadow(blurRadius: 2, color: Colors.black26)]),
       ));
     });
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4))]),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4))
+          ]),
       child: Column(children: [
-        Center(child: SizedBox(height: 180, width: 180, child: PieChart(PieChartData(sections: sections, centerSpaceRadius: 44, sectionsSpace: 3)))),
+        Center(
+            child: SizedBox(
+                height: 180,
+                width: 180,
+                child: PieChart(PieChartData(
+                    sections: sections,
+                    centerSpaceRadius: 44,
+                    sectionsSpace: 3)))),
         const SizedBox(height: 16),
         Wrap(
           spacing: 16,
@@ -355,11 +508,24 @@ class _InsightsScreenState extends State<InsightsScreen> {
             final color = _emotionColors[e.key] ?? Colors.grey;
             final emoji = _emojiMap[e.key] ?? '🙂';
             return Row(mainAxisSize: MainAxisSize.min, children: [
-              Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+              Container(
+                  width: 10,
+                  height: 10,
+                  decoration:
+                      BoxDecoration(color: color, shape: BoxShape.circle)),
               const SizedBox(width: 6),
-              TwemojiText(text: '$emoji ${e.key}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark)),
+              TwemojiText(
+                  text: '$emoji ${e.key}',
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark)),
               const SizedBox(width: 4),
-              Text('${e.value}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textMedium)),
+              Text('${e.value}',
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textMedium)),
             ]);
           }).toList(),
         ),
@@ -370,26 +536,48 @@ class _InsightsScreenState extends State<InsightsScreen> {
   // ─── STATS GRID (NF3) ───
   Widget _statsGrid(EmotionInsight insight) {
     return GridView.count(
-      shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2, mainAxisSpacing: 12, crossAxisSpacing: 12, childAspectRatio: 1.5,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 1.5,
       children: [
-        _statCard('${insight.totalLogs}', 'Total Logs', Icons.edit_note, const Color(0xFF6B9AC4)),
-        _statCard('${insight.positiveDays}', 'Positive Days', Icons.sentiment_satisfied, const Color(0xFF81B29A)),
-        _statCard(insight.averageIntensity.toStringAsFixed(1), 'Avg Score', Icons.speed, AppColors.primaryDark),
-        _statCard('${insight.negativeDays}', 'Tough Days', Icons.sentiment_dissatisfied, const Color(0xFFBF616A)),
+        _statCard('${insight.totalLogs}', 'Total Logs', Icons.edit_note,
+            const Color(0xFF6B9AC4)),
+        _statCard('${insight.positiveDays}', 'Positive Days',
+            Icons.sentiment_satisfied, const Color(0xFF81B29A)),
+        _statCard(insight.averageIntensity.toStringAsFixed(1), 'Avg Score',
+            Icons.speed, AppColors.primaryDark),
+        _statCard('${insight.negativeDays}', 'Tough Days',
+            Icons.sentiment_dissatisfied, const Color(0xFFBF616A)),
       ],
     );
   }
 
   Widget _statCard(String value, String label, IconData icon, Color color) {
     return Container(
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8, offset: const Offset(0, 3))]),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 3))
+          ]),
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         Icon(icon, color: color, size: 22),
         const SizedBox(height: 6),
-        Text(value, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: color)),
+        Text(value,
+            style: TextStyle(
+                fontSize: 26, fontWeight: FontWeight.w900, color: color)),
         const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textMedium)),
+        Text(label,
+            style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textMedium)),
       ]),
     );
   }
@@ -399,16 +587,32 @@ class _InsightsScreenState extends State<InsightsScreen> {
     return GestureDetector(
       onTap: () => _launchSuggestion(s),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12), padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.primary.withValues(alpha: 0.2))),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border:
+                Border.all(color: AppColors.primary.withValues(alpha: 0.2))),
         child: Row(children: [
           AppEmoji(s.icon, size: 32),
           const SizedBox(width: 16),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(s.title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark)),
-            const SizedBox(height: 4),
-            Text(s.description, style: const TextStyle(fontSize: 13, color: AppColors.textMedium, height: 1.4)),
-          ])),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Text(s.title,
+                    style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textDark)),
+                const SizedBox(height: 4),
+                Text(s.description,
+                    style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textMedium,
+                        height: 1.4)),
+              ])),
           const Icon(Icons.chevron_right, color: AppColors.primary),
         ]),
       ),
@@ -423,16 +627,44 @@ class _InsightsScreenState extends State<InsightsScreen> {
     if (s.actionType == 'none') return;
 
     final activityMap = {
-      'breathing': const RecommendedActivity(title: 'Box Breathing', activityType: 'breathing', emoji: '🌬️', durationMinutes: 5, description: 'Inhale 4s, hold 4s, exhale 4s, hold 4s.'),
-      'journaling': const RecommendedActivity(title: 'Guided Journaling', activityType: 'journaling', emoji: '📝', durationMinutes: 10, description: 'Write about 3 things you\'re grateful for.'),
-      'meditation': const RecommendedActivity(title: 'Mindful Body Scan', activityType: 'meditation', emoji: '🧘', durationMinutes: 5, description: 'A gentle meditation to check in with your body.'),
-      'relaxation': const RecommendedActivity(title: 'Progressive Relaxation', activityType: 'relaxation', emoji: '💆', durationMinutes: 5, description: 'Tense and release muscle groups to melt away stress.'),
-      'affirmations': const RecommendedActivity(title: 'Positive Affirmations', activityType: 'affirmations', emoji: '✨', durationMinutes: 5, description: 'Reinforce your well-being with uplifting statements.'),
+      'breathing': const RecommendedActivity(
+          title: 'Box Breathing',
+          activityType: 'breathing',
+          emoji: '🌬️',
+          durationMinutes: 5,
+          description: 'Inhale 4s, hold 4s, exhale 4s, hold 4s.'),
+      'journaling': const RecommendedActivity(
+          title: 'Guided Journaling',
+          activityType: 'journaling',
+          emoji: '📝',
+          durationMinutes: 10,
+          description: 'Write about 3 things you\'re grateful for.'),
+      'meditation': const RecommendedActivity(
+          title: 'Mindful Body Scan',
+          activityType: 'meditation',
+          emoji: '🧘',
+          durationMinutes: 5,
+          description: 'A gentle meditation to check in with your body.'),
+      'relaxation': const RecommendedActivity(
+          title: 'Progressive Relaxation',
+          activityType: 'relaxation',
+          emoji: '💆',
+          durationMinutes: 5,
+          description: 'Tense and release muscle groups to melt away stress.'),
+      'affirmations': const RecommendedActivity(
+          title: 'Positive Affirmations',
+          activityType: 'affirmations',
+          emoji: '✨',
+          durationMinutes: 5,
+          description: 'Reinforce your well-being with uplifting statements.'),
     };
 
     final activity = activityMap[s.actionType];
     if (activity != null) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => ActivityScreen(activity: activity)));
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => ActivityScreen(activity: activity)));
     }
   }
 
@@ -443,26 +675,46 @@ class _InsightsScreenState extends State<InsightsScreen> {
     final time = DateFormat('MMM d, h:mm a').format(log.timestamp);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10), padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+          color: Colors.white, borderRadius: BorderRadius.circular(14)),
       child: Row(children: [
         Container(
-          width: 44, height: 44,
-          decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12)),
           child: Center(child: AppEmoji(emoji, size: 22)),
         ),
         const SizedBox(width: 14),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(log.emotionType, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.textDark)),
+        Expanded(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(log.emotionType,
+              style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textDark)),
           if (log.notes != null && log.notes!.isNotEmpty)
-            Text(log.notes!, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: AppColors.textMedium)),
+            Text(log.notes!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style:
+                    const TextStyle(fontSize: 12, color: AppColors.textMedium)),
         ])),
-        Text(time, style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
+        Text(time,
+            style: const TextStyle(fontSize: 11, color: AppColors.textLight)),
       ]),
     );
   }
 
   Widget _sectionHeader(String title) {
-    return Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark));
+    return Text(title,
+        style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textDark));
   }
 }

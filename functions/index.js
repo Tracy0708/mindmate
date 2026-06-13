@@ -41,7 +41,6 @@ const NEGATIVE_EMOTIONS = new Set([
   'lonely',
   'hopeless',
   'overwhelmed',
-  'tired',
   'fearful',
   'worried',
 ]);

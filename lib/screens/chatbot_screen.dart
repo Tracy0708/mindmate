@@ -33,7 +33,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _userId = FirebaseAuth.instance.currentUser?.uid ?? 'guest';
     _msgController.addListener(_onTextChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ChatbotViewModel>(context, listen: false).startNewSession(_userId);
+      Provider.of<ChatbotViewModel>(context, listen: false)
+          .startNewSession(_userId);
       // Load the user's mood so the greeting and suggestion chips can adapt.
       final emotionVm = Provider.of<EmotionViewModel>(context, listen: false);
       if (!emotionVm.checkedToday) emotionVm.checkTodaysLog();
@@ -85,12 +86,16 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         automaticallyImplyLeading: false,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1, color: AppColors.fieldBorder.withValues(alpha: 0.6)),
+          child: Divider(
+              height: 1,
+              thickness: 1,
+              color: AppColors.fieldBorder.withValues(alpha: 0.6)),
         ),
         title: Row(
           children: [
             Container(
-              width: 46, height: 46,
+              width: 46,
+              height: 46,
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.14),
                 shape: BoxShape.circle,
@@ -106,12 +111,16 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
               children: [
                 const Text(
                   'MindMate AI',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.textDark),
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textDark),
                 ),
                 Row(
                   children: [
                     const SizedBox(
-                      width: 7, height: 7,
+                      width: 7,
+                      height: 7,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           color: Color(0xFF66BB6A),
@@ -150,14 +159,16 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             builder: (context, snapshot) {
               final messages = snapshot.data?.messages ?? [];
               final initialLoading =
-                  snapshot.connectionState == ConnectionState.waiting && messages.isEmpty;
+                  snapshot.connectionState == ConnectionState.waiting &&
+                      messages.isEmpty;
 
               return Column(
                 children: [
                   Expanded(
                     child: initialLoading
                         ? const Center(
-                            child: CircularProgressIndicator(color: AppColors.primary))
+                            child: CircularProgressIndicator(
+                                color: AppColors.primary))
                         : (messages.isEmpty && !vm.crisisActive)
                             ? _buildEmptyState(emotionVm)
                             : _buildMessageList(messages, vm.crisisActive),
@@ -204,12 +215,14 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 24),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 36, vertical: 24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 88, height: 88,
+                      width: 88,
+                      height: 88,
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
@@ -224,13 +237,18 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                       greeting,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textDark),
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textDark),
                     ),
                     const SizedBox(height: 8),
                     const Text(
                       "I'm here to listen and support you.\nShare what's on your mind.",
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: AppColors.textMedium, height: 1.5),
+                      style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textMedium,
+                          height: 1.5),
                     ),
                   ],
                 ),
@@ -254,8 +272,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
     // Negative trend: 3+ of the last 5 check-ins were effectively negative.
     final lastFive = recent.take(5).toList();
-    final negativeCount =
-        lastFive.where((l) => l.isEffectivelyNegative).length;
+    final negativeCount = lastFive.where((l) => l.isEffectivelyNegative).length;
     if (lastFive.length >= 3 && negativeCount >= 3) {
       return "I've noticed the past few days have felt heavy. "
           "I'm here for you — want to talk about it?";
@@ -287,7 +304,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -379,8 +397,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         return const [
           _ChipData('💙', 'I want to talk',
               "I'm feeling sad and want to talk through it"),
-          _ChipData('🌧️', 'Why do I feel down?',
-              "I've been feeling down lately"),
+          _ChipData(
+              '🌧️', 'Why do I feel down?', "I've been feeling down lately"),
           _ChipData(
               '🤗', 'I need comfort', 'I could use some comfort right now'),
         ];
@@ -388,25 +406,16 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         return const [
           _ChipData('😤', 'Help me cool off',
               "I'm feeling angry and need to cool off"),
-          _ChipData('🧯', 'Manage frustration',
-              'Help me manage my frustration'),
-          _ChipData('💬', 'Let me vent', 'I just need to vent'),
-        ];
-      case 'Tired':
-        return const [
-          _ChipData('😴', "I can't sleep", "I can't sleep"),
           _ChipData(
-              '🔋', 'I feel exhausted', 'I feel exhausted and drained'),
-          _ChipData('🌙', 'Wind-down tips',
-              'Can you give me tips to wind down before bed?'),
+              '🧯', 'Manage frustration', 'Help me manage my frustration'),
+          _ChipData('💬', 'Let me vent', 'I just need to vent'),
         ];
       case 'Happy':
       case 'Calm':
         return const [
           _ChipData('😊', 'Share good news',
               'I want to share something good that happened'),
-          _ChipData(
-              '🙏', 'Practice gratitude', 'Help me practice gratitude'),
+          _ChipData('🙏', 'Practice gratitude', 'Help me practice gratitude'),
           _ChipData('✨', 'Keep the momentum',
               'How can I keep this positive momentum going?'),
         ];
@@ -439,7 +448,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFFFFF3E0),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFFB300).withValues(alpha: 0.5)),
+        border:
+            Border.all(color: const Color(0xFFFFB300).withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -464,7 +474,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           const Text(
             'If you are in immediate danger, call 999. Reach out to a trained '
             'counsellor any time — tap a number to copy it.',
-            style: TextStyle(fontSize: 12, color: AppColors.textMedium, height: 1.5),
+            style: TextStyle(
+                fontSize: 12, color: AppColors.textMedium, height: 1.5),
           ),
           const SizedBox(height: 12),
           for (int i = 0; i < kCrisisHotlines.length; i++) ...[
@@ -514,7 +525,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                 style: const TextStyle(fontSize: 15, color: AppColors.textDark),
                 decoration: const InputDecoration(
                   hintText: "Share what's on your mind…",
-                  hintStyle: TextStyle(color: AppColors.textLight, fontSize: 14),
+                  hintStyle:
+                      TextStyle(color: AppColors.textLight, fontSize: 14),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
@@ -528,7 +540,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           const SizedBox(width: 10),
           AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            width: 48, height: 48,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: canSend
                   ? AppColors.primary
@@ -581,7 +594,8 @@ class _MessageBubble extends StatelessWidget {
         children: [
           if (!isUser)
             Container(
-              width: 30, height: 30,
+              width: 30,
+              height: 30,
               margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.14),
@@ -626,8 +640,7 @@ class _MessageBubble extends StatelessWidget {
                         color: AppColors.textDark,
                         fontSize: 15,
                         height: 1.45,
-                        fontWeight:
-                            isUser ? FontWeight.w600 : FontWeight.w500,
+                        fontWeight: isUser ? FontWeight.w600 : FontWeight.w500,
                       ),
                     ),
                     if (timeLabel.isNotEmpty) ...[
@@ -688,7 +701,9 @@ class _TypingIndicatorState extends State<_TypingIndicator>
 
   @override
   void dispose() {
-    for (final c in _controllers) { c.dispose(); }
+    for (final c in _controllers) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -701,7 +716,8 @@ class _TypingIndicatorState extends State<_TypingIndicator>
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Container(
-            width: 28, height: 28,
+            width: 28,
+            height: 28,
             margin: const EdgeInsets.only(right: 8),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.14),
@@ -713,8 +729,7 @@ class _TypingIndicatorState extends State<_TypingIndicator>
             ),
           ),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: const BorderRadius.only(
@@ -738,9 +753,10 @@ class _TypingIndicatorState extends State<_TypingIndicator>
                   animation: _animations[i],
                   builder: (_, __) => Container(
                     margin: const EdgeInsets.symmetric(horizontal: 3),
-                    width: 7, height: 7,
-                    transform: Matrix4.translationValues(
-                        0, _animations[i].value, 0),
+                    width: 7,
+                    height: 7,
+                    transform:
+                        Matrix4.translationValues(0, _animations[i].value, 0),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.65),
                       shape: BoxShape.circle,
@@ -788,12 +804,13 @@ class _CrisisHotlineRow extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border:
-              Border.all(color: const Color(0xFFFFB300).withValues(alpha: 0.35)),
+          border: Border.all(
+              color: const Color(0xFFFFB300).withValues(alpha: 0.35)),
         ),
         child: Row(
           children: [
-            const Icon(Icons.phone_outlined, color: Color(0xFFE65100), size: 16),
+            const Icon(Icons.phone_outlined,
+                color: Color(0xFFE65100), size: 16),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -818,7 +835,8 @@ class _CrisisHotlineRow extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.copy_rounded, color: AppColors.textLight, size: 15),
+            const Icon(Icons.copy_rounded,
+                color: AppColors.textLight, size: 15),
           ],
         ),
       ),
@@ -841,8 +859,7 @@ class _SuggestionChip extends StatelessWidget {
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(right: 10),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(22),

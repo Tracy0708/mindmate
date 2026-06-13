@@ -25,8 +25,6 @@ class UserModel {
     Map<String, dynamic>? settings,
   }) : settings = settings ??
             {
-              'darkMode': false,
-              'language': 'en',
               'notificationPrefs': <String, bool>{},
               'equippedAvatar': 'default',
               'unlockedAvatars': ['default'],
@@ -69,8 +67,6 @@ class UserModel {
       settings: json['settings'] != null
           ? Map<String, dynamic>.from(json['settings'])
           : {
-              'darkMode': false,
-              'language': 'en',
               'notificationPrefs': <String, bool>{},
               'equippedAvatar': 'default',
               'unlockedAvatars': ['default'],

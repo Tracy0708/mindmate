@@ -56,7 +56,6 @@ function askQuestion(prompt) {
 const negativeEmotionsProgression = [
   // Week 1: Starting to feel down (Days 1-5)
   { type: 'Sad', intensity: 3, notes: 'Feeling a bit down today' },
-  { type: 'Tired', intensity: 3, notes: 'Feeling exhausted, no energy' },
   { type: 'Anxious', intensity: 3, notes: 'Feeling some anxiety, worried about things' },
   { type: 'Stressed', intensity: 3, notes: 'Work stress getting to me' },
   { type: 'Sad', intensity: 4, notes: 'Mood worsening, hard to stay positive' },

@@ -6,8 +6,8 @@
 // The real document key (Firebase Auth uid) is never touched.
 //
 // Usage:  node functions/backfill-display-ids.js
-// Requires the same credentials as seed-demo-data.js (service-account-key.json or
-// GOOGLE_APPLICATION_CREDENTIALS).
+// Requires the same credentials as the other functions scripts
+// (service-account-key.json or GOOGLE_APPLICATION_CREDENTIALS).
 
 const admin = require('firebase-admin');
 const fs = require('fs');

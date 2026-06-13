@@ -18,7 +18,8 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   final EmotionService _emotionService = EmotionService();
-  DateTime _currentMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime _currentMonth =
+      DateTime(DateTime.now().year, DateTime.now().month, 1);
   String _selectedFilter = 'All Moods';
   List<EmotionLog> _monthLogs = [];
   bool _isLoading = true;
@@ -32,10 +33,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
     'Anxious': '😰',
     'Angry': '😠',
     'Calm': '😌',
-    'Tired': '😴',
   };
 
-  static const _filters = ['All Moods', 'Happy', 'Sad', 'Anxious', 'Angry', 'Calm'];
+  static const _filters = [
+    'All Moods',
+    'Happy',
+    'Sad',
+    'Anxious',
+    'Angry',
+    'Calm'
+  ];
 
   @override
   void initState() {
@@ -71,11 +78,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     try {
       final lastDay = DateTime(_currentMonth.year, _currentMonth.month + 1, 0);
-      final logs = await _emotionService.getRecentLogs(userId, days: lastDay.day + 30);
-      _monthLogs = logs.where((log) =>
-          log.timestamp.year == _currentMonth.year &&
-          log.timestamp.month == _currentMonth.month
-      ).toList();
+      final logs =
+          await _emotionService.getRecentLogs(userId, days: lastDay.day + 30);
+      _monthLogs = logs
+          .where((log) =>
+              log.timestamp.year == _currentMonth.year &&
+              log.timestamp.month == _currentMonth.month)
+          .toList();
     } catch (_) {
       _monthLogs = [];
     }
@@ -117,134 +126,150 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final isCurrentMonth = _currentMonth.year == now.year && _currentMonth.month == now.month;
+    final isCurrentMonth =
+        _currentMonth.year == now.year && _currentMonth.month == now.month;
     final monthLabel = DateFormat('MMMM yyyy').format(_currentMonth);
 
     return Scaffold(
       backgroundColor: AppColors.cream,
       body: SafeArea(
         child: Column(
-        children: [
-          const AppScreenHeader(
-            title: 'Calendar',
-            subtitle: 'Your mood, day by day.',
-            icon: Icons.calendar_month_rounded,
-          ),
-          // Filters
-          SizedBox(
-            height: 48,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: _filters.length,
-              itemBuilder: (context, index) {
-                final filter = _filters[index];
-                final isSelected = _selectedFilter == filter;
-                final emoji = filter != 'All Moods' ? _emojiMap[filter] : null;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 10),
-                  child: GestureDetector(
-                    onTap: () => setState(() {
-                      _selectedFilter = filter;
-                      _selectedDayLog = null;
-                    }),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primary : Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isSelected ? AppColors.primary : AppColors.primary.withValues(alpha: 0.3),
+          children: [
+            const AppScreenHeader(
+              title: 'Calendar',
+              subtitle: 'Your mood, day by day.',
+              icon: Icons.calendar_month_rounded,
+            ),
+            // Filters
+            SizedBox(
+              height: 48,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: _filters.length,
+                itemBuilder: (context, index) {
+                  final filter = _filters[index];
+                  final isSelected = _selectedFilter == filter;
+                  final emoji =
+                      filter != 'All Moods' ? _emojiMap[filter] : null;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 10),
+                    child: GestureDetector(
+                      onTap: () => setState(() {
+                        _selectedFilter = filter;
+                        _selectedDayLog = null;
+                      }),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.primary : Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.primary.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (emoji != null) ...[
+                              AppEmoji(emoji, size: 14),
+                              const SizedBox(width: 6)
+                            ],
+                            Text(
+                              filter,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? AppColors.textDark
+                                    : AppColors.textDark,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (emoji != null) ...[AppEmoji(emoji, size: 14), const SizedBox(width: 6)],
-                          Text(
-                            filter,
-                            style: TextStyle(
-                              color: isSelected ? AppColors.textDark : AppColors.textDark,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Month navigator
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: _prevMonth,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.chevron_left,
+                          color: AppColors.primary),
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  Text(
+                    monthLabel,
+                    style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textDark),
+                  ),
+                  const SizedBox(width: 20),
+                  GestureDetector(
+                    onTap: isCurrentMonth ? null : _nextMonth,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isCurrentMonth
+                            ? Colors.grey.withValues(alpha: 0.1)
+                            : AppColors.primary.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.chevron_right,
+                        color: isCurrentMonth ? Colors.grey : AppColors.primary,
                       ),
                     ),
                   ),
-                );
-              },
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-          // Month navigator
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                GestureDetector(
-                  onTap: _prevMonth,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.chevron_left, color: AppColors.primary),
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Text(
-                  monthLabel,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textDark),
-                ),
-                const SizedBox(width: 20),
-                GestureDetector(
-                  onTap: isCurrentMonth ? null : _nextMonth,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: isCurrentMonth
-                          ? Colors.grey.withValues(alpha: 0.1)
-                          : AppColors.primary.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.chevron_right,
-                      color: isCurrentMonth ? Colors.grey : AppColors.primary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Calendar grid
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-                : SingleChildScrollView(
-                    // Generous bottom padding so the selected-day card has
-                    // breathing room above the bottom nav instead of hugging it.
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                    child: Column(
-                      children: [
-                        _buildCalendarGrid(now),
-                        // Selected day detail
-                        if (_selectedDayLog != null) ...[
-                          const SizedBox(height: 20),
-                          _buildDayDetail(_selectedDayLog!),
+            // Calendar grid
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child:
+                          CircularProgressIndicator(color: AppColors.primary))
+                  : SingleChildScrollView(
+                      // Generous bottom padding so the selected-day card has
+                      // breathing room above the bottom nav instead of hugging it.
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                      child: Column(
+                        children: [
+                          _buildCalendarGrid(now),
+                          // Selected day detail
+                          if (_selectedDayLog != null) ...[
+                            const SizedBox(height: 20),
+                            _buildDayDetail(_selectedDayLog!),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-          ),
-        ],
+            ),
+          ],
         ),
       ),
     );
@@ -252,8 +277,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Widget _buildCalendarGrid(DateTime now) {
     final days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    final firstDayOfMonth = DateTime(_currentMonth.year, _currentMonth.month, 1);
-    final daysInMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
+    final firstDayOfMonth =
+        DateTime(_currentMonth.year, _currentMonth.month, 1);
+    final daysInMonth =
+        DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
     final startWeekday = firstDayOfMonth.weekday % 7; // Sunday = 0
     final totalCells = startWeekday + daysInMonth;
     final rows = ((totalCells) / 7).ceil();
@@ -262,11 +289,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
       children: [
         // Day headers
         Row(
-          children: days.map((d) => Expanded(
-            child: Center(
-              child: Text(d, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.textLight, fontSize: 13)),
-            ),
-          )).toList(),
+          children: days
+              .map((d) => Expanded(
+                    child: Center(
+                      child: Text(d,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textLight,
+                              fontSize: 13)),
+                    ),
+                  ))
+              .toList(),
         ),
         const SizedBox(height: 12),
         // Grid
@@ -307,11 +340,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.primary.withValues(alpha: 0.15)
-                      : (isToday ? AppColors.primary.withValues(alpha: 0.08) : Colors.transparent),
+                      : (isToday
+                          ? AppColors.primary.withValues(alpha: 0.08)
+                          : Colors.transparent),
                   borderRadius: BorderRadius.circular(12),
                   border: isToday
                       ? Border.all(color: AppColors.primary, width: 2)
-                      : (isSelected ? Border.all(color: AppColors.primary, width: 1.5) : null),
+                      : (isSelected
+                          ? Border.all(color: AppColors.primary, width: 1.5)
+                          : null),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -368,7 +405,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -383,21 +425,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   children: [
                     Text(
                       log.emotionType,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textDark),
+                      style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textDark),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '$dateStr at $timeStr',
-                      style: const TextStyle(fontSize: 13, color: AppColors.textMedium),
+                      style: const TextStyle(
+                          fontSize: 13, color: AppColors.textMedium),
                     ),
                   ],
                 ),
               ),
               // Intensity badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: _intensityColor(log.wellbeingScore.round()).withValues(alpha: 0.15),
+                  color: _intensityColor(log.wellbeingScore.round())
+                      .withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -419,7 +467,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFFFF7043).withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFFF7043).withValues(alpha: 0.35)),
+                border: Border.all(
+                    color: const Color(0xFFFF7043).withValues(alpha: 0.35)),
               ),
               child: const Row(
                 children: [
@@ -428,7 +477,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   Expanded(
                     child: Text(
                       'Mixed mood detected — your note reflects a different emotional tone than your selected mood.',
-                      style: TextStyle(fontSize: 12, color: Color(0xFFBF360C), height: 1.4),
+                      style: TextStyle(
+                          fontSize: 12, color: Color(0xFFBF360C), height: 1.4),
                     ),
                   ),
                 ],
@@ -447,11 +497,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Notes', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textLight)),
+                  const Text('Notes',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textLight)),
                   const SizedBox(height: 6),
                   Text(
                     log.notes!,
-                    style: const TextStyle(fontSize: 14, color: AppColors.textDark, height: 1.5),
+                    style: const TextStyle(
+                        fontSize: 14, color: AppColors.textDark, height: 1.5),
                   ),
                 ],
               ),

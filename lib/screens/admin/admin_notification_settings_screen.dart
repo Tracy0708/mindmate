@@ -38,8 +38,12 @@ class _AdminNotificationSettingsScreenState
     final profile = await _authService.getUserProfile();
     if (profile != null && mounted) {
       final prefs =
-          profile.settings['adminNotificationPrefs'] as Map<String, dynamic>? ?? {};
+          profile.settings['adminNotificationPrefs'] as Map<String, dynamic>? ??
+              {};
       final time = profile.settings['adminReportTime'] as String? ?? '18:00';
+      final parts = time.split(':');
+      final hour = int.tryParse(parts[0]) ?? 18;
+      final minute = int.tryParse(parts[1]) ?? 0;
       setState(() {
         _highRiskAlerts = prefs['highRiskAlerts'] ?? true;
         _abnormalBehavior = prefs['abnormalBehavior'] ?? true;
@@ -52,6 +56,16 @@ class _AdminNotificationSettingsScreenState
         _reportTime = time;
         _isLoading = false;
       });
+
+      await LocalNotificationService().applyAdminPreferences(
+        masterEnabled: _masterToggle,
+        highRiskAlerts: _highRiskAlerts,
+        newSignups: _newSignups,
+        systemReports: _systemReports,
+        abnormalBehavior: _abnormalBehavior,
+        hour: hour,
+        minute: minute,
+      );
     } else if (mounted) {
       setState(() => _isLoading = false);
     }
@@ -120,10 +134,8 @@ class _AdminNotificationSettingsScreenState
           _systemReports = val;
           break;
       }
-      _masterToggle = _highRiskAlerts ||
-          _abnormalBehavior ||
-          _newSignups ||
-          _systemReports;
+      _masterToggle =
+          _highRiskAlerts || _abnormalBehavior || _newSignups || _systemReports;
     });
     _savePreferences();
   }
@@ -131,7 +143,8 @@ class _AdminNotificationSettingsScreenState
   Future<void> _pickReportTime() async {
     final parts = _reportTime.split(':');
     final initialTime = TimeOfDay(
-        hour: int.tryParse(parts[0]) ?? 18, minute: int.tryParse(parts[1]) ?? 0);
+        hour: int.tryParse(parts[0]) ?? 18,
+        minute: int.tryParse(parts[1]) ?? 0);
 
     final picked = await showTimePicker(
       context: context,
@@ -195,286 +208,306 @@ class _AdminNotificationSettingsScreenState
             Expanded(
               child: _isLoading
                   ? const Center(
-                      child: CircularProgressIndicator(color: AppColors.primary))
+                      child:
+                          CircularProgressIndicator(color: AppColors.primary))
                   : SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppColors.fieldBorder.withValues(alpha: 0.45),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.12),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.admin_panel_settings_rounded,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Alert Summary',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textDark,
-                                ),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: AppColors.fieldBorder
+                                    .withValues(alpha: 0.45),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _masterToggle
-                                    ? '$_enabledCount alert types active'
-                                    : 'All admin alerts are paused',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.textMedium,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Master Toggle Card
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4)),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            _masterToggle
-                                ? Icons.notifications_active
-                                : Icons.notifications_off_outlined,
-                            color: AppColors.primary,
-                            size: 28,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('All Alerts',
-                                  style: TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.textDark)),
-                              const SizedBox(height: 4),
-                              Text(
-                                _masterToggle
-                                    ? 'You will receive admin alerts'
-                                    : 'All alerts are off',
-                                style: const TextStyle(
-                                    fontSize: 13, color: AppColors.textMedium),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Switch(
-                          value: _masterToggle,
-                          activeThumbColor: AppColors.primary,
-                          onChanged: _onMasterToggle,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Granular Toggles Section
-                  const Text('Alert Types',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textDark)),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Pick which events alert you.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textMedium,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4)),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        AppNotificationToggle(
-                          icon: Icons.warning_rounded,
-                          iconColor: AppColors.errorRed,
-                          title: 'High Risk Alerts',
-                          subtitle: 'Users flagged with severe negative mood',
-                          value: _highRiskAlerts,
-                          enabled: _masterToggle,
-                          onChanged: (v) =>
-                              _onSubToggle('highRiskAlerts', v),
-                        ),
-                        const Divider(height: 1, indent: 68),
-                        AppNotificationToggle(
-                          icon: Icons.gpp_maybe_rounded,
-                          iconColor: const Color(0xFFDD8A00),
-                          title: 'Abnormal Behavior',
-                          subtitle: 'Unusual platform activity or anomalies',
-                          value: _abnormalBehavior,
-                          enabled: _masterToggle,
-                          onChanged: (v) =>
-                              _onSubToggle('abnormalBehavior', v),
-                        ),
-                        const Divider(height: 1, indent: 68),
-                        AppNotificationToggle(
-                          icon: Icons.person_add_alt_1_rounded,
-                          iconColor: const Color(0xFF26A69A),
-                          title: 'New Signups',
-                          subtitle: 'When a new user creates an account',
-                          value: _newSignups,
-                          enabled: _masterToggle,
-                          onChanged: (v) => _onSubToggle('newSignups', v),
-                        ),
-                        const Divider(height: 1, indent: 68),
-                        AppNotificationToggle(
-                          icon: Icons.analytics_rounded,
-                          iconColor: const Color(0xFF5C6BC0),
-                          title: 'System Reports',
-                          subtitle: 'Daily platform health and usage summary',
-                          value: _systemReports,
-                          enabled: _masterToggle,
-                          onChanged: (v) =>
-                              _onSubToggle('systemReports', v),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Report Time Section
-                  const Text('Daily Report Time',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textDark)),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'When to send the daily overview.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textMedium,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: (_masterToggle && _systemReports) ? _pickReportTime : null,
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 200),
-                      opacity: (_masterToggle && _systemReports) ? 1.0 : 0.5,
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.04),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4)),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.15),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.access_time,
-                                  color: AppColors.primary, size: 28),
                             ),
-                            const SizedBox(width: 16),
-                            const Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Daily Report Time',
-                                      style: TextStyle(
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary
+                                        .withValues(alpha: 0.12),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.admin_panel_settings_rounded,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Alert Summary',
+                                        style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w700,
-                                          color: AppColors.textDark)),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Tap to change',
-                                    style: TextStyle(
-                                        fontSize: 13,
-                                        color: AppColors.textMedium),
+                                          color: AppColors.textDark,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        _masterToggle
+                                            ? '$_enabledCount alert types active'
+                                            : 'All admin alerts are paused',
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: AppColors.textMedium,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          // Master Toggle Card
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.04),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4)),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary
+                                        .withValues(alpha: 0.15),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    _masterToggle
+                                        ? Icons.notifications_active
+                                        : Icons.notifications_off_outlined,
+                                    color: AppColors.primary,
+                                    size: 28,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text('All Alerts',
+                                          style: TextStyle(
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppColors.textDark)),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        _masterToggle
+                                            ? 'You will receive admin alerts'
+                                            : 'All alerts are off',
+                                        style: const TextStyle(
+                                            fontSize: 13,
+                                            color: AppColors.textMedium),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Switch(
+                                  value: _masterToggle,
+                                  activeThumbColor: AppColors.primary,
+                                  onChanged: _onMasterToggle,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 28),
+
+                          // Granular Toggles Section
+                          const Text('Alert Types',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textDark)),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'Pick which events alert you.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textMedium,
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.04),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4)),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                AppNotificationToggle(
+                                  icon: Icons.warning_rounded,
+                                  iconColor: AppColors.errorRed,
+                                  title: 'High Risk Alerts',
+                                  subtitle:
+                                      'Users flagged with severe negative mood',
+                                  value: _highRiskAlerts,
+                                  enabled: _masterToggle,
+                                  onChanged: (v) =>
+                                      _onSubToggle('highRiskAlerts', v),
+                                ),
+                                const Divider(height: 1, indent: 68),
+                                AppNotificationToggle(
+                                  icon: Icons.gpp_maybe_rounded,
+                                  iconColor: const Color(0xFFDD8A00),
+                                  title: 'Abnormal Behavior',
+                                  subtitle:
+                                      'Unusual platform activity or anomalies',
+                                  value: _abnormalBehavior,
+                                  enabled: _masterToggle,
+                                  onChanged: (v) =>
+                                      _onSubToggle('abnormalBehavior', v),
+                                ),
+                                const Divider(height: 1, indent: 68),
+                                AppNotificationToggle(
+                                  icon: Icons.person_add_alt_1_rounded,
+                                  iconColor: const Color(0xFF26A69A),
+                                  title: 'New Signups',
+                                  subtitle:
+                                      'When a new user creates an account',
+                                  value: _newSignups,
+                                  enabled: _masterToggle,
+                                  onChanged: (v) =>
+                                      _onSubToggle('newSignups', v),
+                                ),
+                                const Divider(height: 1, indent: 68),
+                                AppNotificationToggle(
+                                  icon: Icons.analytics_rounded,
+                                  iconColor: const Color(0xFF5C6BC0),
+                                  title: 'System Reports',
+                                  subtitle:
+                                      'Daily platform health and usage summary',
+                                  value: _systemReports,
+                                  enabled: _masterToggle,
+                                  onChanged: (v) =>
+                                      _onSubToggle('systemReports', v),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 28),
+
+                          // Report Time Section
+                          const Text('Daily Report Time',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textDark)),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'When to send the daily overview.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textMedium,
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          GestureDetector(
+                            onTap: (_masterToggle && _systemReports)
+                                ? _pickReportTime
+                                : null,
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 200),
+                              opacity:
+                                  (_masterToggle && _systemReports) ? 1.0 : 0.5,
+                              child: Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                        color: Colors.black
+                                            .withValues(alpha: 0.04),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4)),
+                                  ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary
+                                            .withValues(alpha: 0.15),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(Icons.access_time,
+                                          color: AppColors.primary, size: 28),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    const Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text('Daily Report Time',
+                                              style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: AppColors.textDark)),
+                                          SizedBox(height: 4),
+                                          Text(
+                                            'Tap to change',
+                                            style: TextStyle(
+                                                fontSize: 13,
+                                                color: AppColors.textMedium),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary
+                                            .withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        _formattedTime,
+                                        style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppColors.primary),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                _formattedTime,
-                                style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.primary),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                          ),
                           const SizedBox(height: 40),
                         ],
                       ),
@@ -486,4 +519,3 @@ class _AdminNotificationSettingsScreenState
     );
   }
 }
-

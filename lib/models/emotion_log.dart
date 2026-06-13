@@ -84,8 +84,6 @@ class EmotionLog {
         return 5;
       case 'Calm':
         return 4;
-      case 'Tired':
-        return 2;
       case 'Anxious':
         return 2;
       case 'Sad':

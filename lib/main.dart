@@ -20,7 +20,6 @@ import 'viewmodels/chatbot_viewmodel.dart';
 import 'viewmodels/insights_viewmodel.dart';
 import 'viewmodels/gamification_viewmodel.dart';
 import 'viewmodels/admin_viewmodel.dart';
-import 'viewmodels/theme_viewmodel.dart';
 import 'viewmodels/emotion_viewmodel.dart';
 import 'services/local_notification_service.dart';
 import 'services/interactive_message_service.dart';
@@ -46,7 +45,6 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeViewModel()),
         ChangeNotifierProvider(create: (_) => ProfileViewModel()),
         ChangeNotifierProvider(create: (_) => ChatbotViewModel()),
         ChangeNotifierProvider(create: (_) => InsightsViewModel()),
@@ -61,15 +59,15 @@ void main() async {
 
 // ─── MindMate Color Palette — Lemon Yellow Theme ───
 class AppColors {
-  static const primary = Color(0xFFF9A825);       // deep amber (calm, readable)
-  static const primaryDark = Color(0xFFF57F17);   // deep orange-amber
-  static const primaryLight = Color(0xFFFFF9C4);  // pale lemon
-  static const cream = Color(0xFFFFFDE7);         // warm white
-  static const creamLight = Color(0xFFFFFFFA);    // off-white
-  static const textDark = Color(0xFF3E2723);      // dark brown (primary text)
-  static const textMedium = Color(0xFF5D4037);    // mid brown (secondary text)
-  static const textLight = Color(0xFF8D6E63);     // soft brown (hints/tertiary)
-  static const fieldBorder = Color(0xFFE8E0A0);   // soft yellow border
+  static const primary = Color(0xFFF9A825); // deep amber (calm, readable)
+  static const primaryDark = Color(0xFFF57F17); // deep orange-amber
+  static const primaryLight = Color(0xFFFFF9C4); // pale lemon
+  static const cream = Color(0xFFFFFDE7); // warm white
+  static const creamLight = Color(0xFFFFFFFA); // off-white
+  static const textDark = Color(0xFF3E2723); // dark brown (primary text)
+  static const textMedium = Color(0xFF5D4037); // mid brown (secondary text)
+  static const textLight = Color(0xFF8D6E63); // soft brown (hints/tertiary)
+  static const fieldBorder = Color(0xFFE8E0A0); // soft yellow border
   static const errorRed = Color(0xFFE53935);
   // Aliases kept for service files — do not remove
   static const golden = primary;
@@ -77,10 +75,6 @@ class AppColors {
   static const brownDark = textDark;
   static const brownMedium = textMedium;
   static const brownLight = textLight;
-  // Dark mode
-  static const darkBg = Color(0xFF1C1A00);        // near-black yellow tint
-  static const darkCard = Color(0xFF2A2700);      // dark olive card
-  static const darkText = Color(0xFFFFF9C4);      // pale lemon text
 }
 
 class MyApp extends StatelessWidget {
@@ -91,35 +85,29 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeViewModel>(
-      builder: (context, themeVM, _) {
-        return MaterialApp(
-          navigatorKey: MyApp.navigatorKey,
-          scaffoldMessengerKey: MyApp.scaffoldMessengerKey,
-          title: 'MindMate',
-          debugShowCheckedModeBanner: false,
-          theme: _lightTheme(),
-          darkTheme: _darkTheme(),
-          themeMode: themeVM.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-          initialRoute: '/splash',
-          routes: {
-            '/splash': (context) => const _SplashScreen(),
-            '/': (context) => const LoginPage(),
-            '/register': (context) => const RegistrationScreen(),
-            '/dashboard': (context) => const DashboardScreen(),
-            '/forgot-password': (context) => const ForgotPasswordScreen(),
-            '/complete-profile': (context) => const CompleteProfileScreen(),
-            '/notifications-settings': (context) =>
-                const NotificationSettingsScreen(),
-            '/admin-login': (context) => const AdminLoginScreen(),
-            '/admin-dashboard': (context) => const AdminDashboardScreen(),
-            '/admin-notifications-settings': (context) =>
-                const AdminNotificationSettingsScreen(),
-            '/privacy': (context) => const PrivacyScreen(),
-            '/help-support': (context) => const HelpSupportScreen(),
-            '/notifications': (context) => const NotificationCenterScreen(),
-          },
-        );
+    return MaterialApp(
+      navigatorKey: MyApp.navigatorKey,
+      scaffoldMessengerKey: MyApp.scaffoldMessengerKey,
+      title: 'MindMate',
+      debugShowCheckedModeBanner: false,
+      theme: _lightTheme(),
+      initialRoute: '/splash',
+      routes: {
+        '/splash': (context) => const _SplashScreen(),
+        '/': (context) => const LoginPage(),
+        '/register': (context) => const RegistrationScreen(),
+        '/dashboard': (context) => const DashboardScreen(),
+        '/forgot-password': (context) => const ForgotPasswordScreen(),
+        '/complete-profile': (context) => const CompleteProfileScreen(),
+        '/notifications-settings': (context) =>
+            const NotificationSettingsScreen(),
+        '/admin-login': (context) => const AdminLoginScreen(),
+        '/admin-dashboard': (context) => const AdminDashboardScreen(),
+        '/admin-notifications-settings': (context) =>
+            const AdminNotificationSettingsScreen(),
+        '/privacy': (context) => const PrivacyScreen(),
+        '/help-support': (context) => const HelpSupportScreen(),
+        '/notifications': (context) => const NotificationCenterScreen(),
       },
     );
   }
@@ -219,126 +207,6 @@ class MyApp extends StatelessWidget {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
-        titleTextStyle: TextStyle(
-            color: AppColors.textDark,
-            fontWeight: FontWeight.w700,
-            fontSize: 20),
-        iconTheme: IconThemeData(color: AppColors.textDark),
-      ),
-      dividerTheme:
-          const DividerThemeData(color: AppColors.fieldBorder, thickness: 1),
-    );
-  }
-
-  ThemeData _darkTheme() {
-    return ThemeData(
-      useMaterial3: true,
-      fontFamily: 'Nunito',
-      brightness: Brightness.dark,
-      colorScheme: const ColorScheme.dark(
-        primary: AppColors.primary,
-        onPrimary: AppColors.darkBg,
-        secondary: AppColors.primaryLight,
-        onSecondary: AppColors.darkBg,
-        tertiary: Color(0xFFFFE082),
-        surface: AppColors.darkBg,
-        onSurface: AppColors.darkText,
-        error: Color(0xFFFF8A80),
-        outline: Color(0xFF4A4500),
-      ),
-      scaffoldBackgroundColor: AppColors.darkBg,
-      textTheme: const TextTheme(
-        headlineLarge: TextStyle(
-            color: AppColors.darkText,
-            fontWeight: FontWeight.w800,
-            fontSize: 30),
-        headlineMedium: TextStyle(
-            color: AppColors.darkText,
-            fontWeight: FontWeight.w700,
-            fontSize: 24),
-        headlineSmall: TextStyle(
-            color: AppColors.darkText,
-            fontWeight: FontWeight.w600,
-            fontSize: 20),
-        titleLarge: TextStyle(
-            color: AppColors.darkText,
-            fontWeight: FontWeight.w700,
-            fontSize: 20),
-        titleMedium: TextStyle(
-            color: AppColors.darkText,
-            fontWeight: FontWeight.w500,
-            fontSize: 16),
-        bodyLarge: TextStyle(color: AppColors.darkText, fontSize: 16),
-        bodyMedium: TextStyle(color: Color(0xFFBFAF5A), fontSize: 14),
-        bodySmall: TextStyle(color: Color(0xFF8C7B20), fontSize: 12),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: AppColors.darkCard,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xFF4A4500))),
-        enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xFF4A4500))),
-        focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: AppColors.primary, width: 2)),
-        prefixIconColor: const Color(0xFF8C7B20),
-        labelStyle: const TextStyle(color: Color(0xFF8C7B20)),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.darkBg,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-        ),
-      ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.darkText,
-          side: const BorderSide(color: Color(0xFF4A4500)),
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 32),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        ),
-      ),
-      cardTheme: CardThemeData(
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        color: AppColors.darkCard,
-        surfaceTintColor: Colors.transparent,
-      ),
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: const Color(0xFF1C1A00),
-        indicatorColor: AppColors.primary.withValues(alpha: 0.12),
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-      ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
-        titleTextStyle: TextStyle(
-            color: AppColors.darkText,
-            fontWeight: FontWeight.w700,
-            fontSize: 20),
-        iconTheme: IconThemeData(color: AppColors.darkText),
-      ),
-      dividerTheme:
-          const DividerThemeData(color: Color(0xFF3A3500), thickness: 1),
     );
   }
 }
@@ -541,230 +409,235 @@ class _LoginPageState extends State<LoginPage>
             ),
           ),
           SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            child: FadeTransition(
-              opacity: _fadeAnim,
-              child: Container(
+            child: Center(
+              child: SingleChildScrollView(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8)),
-                  ],
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Logo — your image asset, with a gradient-badge fallback.
-                      // Scaled up inside a clip to crop the PNG's transparent padding.
-                      SizedBox(
-                        width: 96,
-                        height: 96,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Transform.scale(
-                            scale: 1.35,
-                            child: Image.asset(
-                              'assets/images/MindMate_Logo.png',
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                width: 96,
-                                height: 96,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  AppColors.primaryLight,
-                                  AppColors.primary,
-                                ],
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: FadeTransition(
+                  opacity: _fadeAnim,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 28, vertical: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8)),
+                      ],
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Logo — your image asset, with a gradient-badge fallback.
+                          // Scaled up inside a clip to crop the PNG's transparent padding.
+                          SizedBox(
+                            width: 96,
+                            height: 96,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Transform.scale(
+                                scale: 1.35,
+                                child: Image.asset(
+                                  'assets/images/MindMate_Logo.png',
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    width: 96,
+                                    height: 96,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          AppColors.primaryLight,
+                                          AppColors.primary,
+                                        ],
+                                      ),
+                                    ),
+                                    child: const Icon(Icons.favorite_rounded,
+                                        size: 40, color: Colors.white),
+                                  ),
+                                ),
                               ),
                             ),
-                                child: const Icon(Icons.favorite_rounded,
-                                    size: 40, color: Colors.white),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'MINDMATE',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primary,
+                              letterSpacing: 2,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Welcome back',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textMedium,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+
+                          // Email
+                          TextFormField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: const InputDecoration(
+                                hintText: 'Email address',
+                                prefixIcon: Icon(Icons.email_outlined)),
+                            validator: (v) => (v == null || v.isEmpty)
+                                ? 'Please enter your email'
+                                : null,
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Password
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            decoration: InputDecoration(
+                              hintText: 'Password',
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    color: AppColors.textLight),
+                                onPressed: () => setState(
+                                    () => _obscurePassword = !_obscurePassword),
+                              ),
+                            ),
+                            validator: (v) => (v == null || v.isEmpty)
+                                ? 'Please enter your password'
+                                : null,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Login button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _signIn,
+                              style: ElevatedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 32),
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      height: 22,
+                                      width: 22,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2.5,
+                                          color: AppColors.textDark))
+                                  : const Text('Log in'),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Divider
+                          Row(
+                            children: [
+                              Expanded(
+                                  child: Divider(
+                                      color: AppColors.fieldBorder
+                                          .withValues(alpha: 0.6))),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                child: Text('Or continue with',
+                                    style: TextStyle(
+                                        color: AppColors.textLight,
+                                        fontSize: 13)),
+                              ),
+                              Expanded(
+                                  child: Divider(
+                                      color: AppColors.fieldBorder
+                                          .withValues(alpha: 0.6))),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Google
+                          SizedBox(
+                            width: double.infinity,
+                            height: 48,
+                            child: OutlinedButton.icon(
+                              onPressed: _isLoading ? null : _signInWithGoogle,
+                              style: OutlinedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 20),
+                              ),
+                              icon: Image.network(
+                                  'https://www.google.com/favicon.ico',
+                                  height: 20,
+                                  errorBuilder: (_, __, ___) =>
+                                      const Icon(Icons.g_mobiledata, size: 24)),
+                              label: const Text('Sign in with Google',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.w600)),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Links
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              GestureDetector(
+                                onTap: () => Navigator.pushNamed(
+                                    context, '/forgot-password'),
+                                child: const Text('Forgot Password?',
+                                    style: TextStyle(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13)),
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 8),
+                                child: Text('•',
+                                    style:
+                                        TextStyle(color: AppColors.textLight)),
+                              ),
+                              GestureDetector(
+                                onTap: () =>
+                                    Navigator.pushNamed(context, '/register'),
+                                child: const Text('Create Account',
+                                    style: TextStyle(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.pushNamed(context, '/admin-login'),
+                            child: const Text(
+                              'Admin Portal',
+                              style: TextStyle(
+                                color: AppColors.textDark,
+                                fontWeight: FontWeight.w700,
+                                decoration: TextDecoration.underline,
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'MINDMATE',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primary,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Welcome back',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textMedium,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-
-                      // Email
-                      TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                            hintText: 'Email address',
-                            prefixIcon: Icon(Icons.email_outlined)),
-                        validator: (v) => (v == null || v.isEmpty)
-                            ? 'Please enter your email'
-                            : null,
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Password
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: _obscurePassword,
-                        decoration: InputDecoration(
-                          hintText: 'Password',
-                          prefixIcon: const Icon(Icons.lock_outline),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                color: AppColors.textLight),
-                            onPressed: () => setState(
-                                () => _obscurePassword = !_obscurePassword),
-                          ),
-                        ),
-                        validator: (v) => (v == null || v.isEmpty)
-                            ? 'Please enter your password'
-                            : null,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Login button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _signIn,
-                          style: ElevatedButton.styleFrom(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 32),
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  height: 22,
-                                  width: 22,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2.5, color: AppColors.textDark))
-                              : const Text('Log in'),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Divider
-                      Row(
-                        children: [
-                          Expanded(
-                              child: Divider(
-                                  color:
-                                      AppColors.fieldBorder.withValues(alpha: 0.6))),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 16),
-                            child: Text('Or continue with',
-                                style: TextStyle(
-                                    color: AppColors.textLight, fontSize: 13)),
-                          ),
-                          Expanded(
-                              child: Divider(
-                                  color:
-                                      AppColors.fieldBorder.withValues(alpha: 0.6))),
                         ],
                       ),
-                      const SizedBox(height: 14),
-
-                      // Google
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: OutlinedButton.icon(
-                          onPressed: _isLoading ? null : _signInWithGoogle,
-                          style: OutlinedButton.styleFrom(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 20),
-                          ),
-                          icon: Image.network(
-                              'https://www.google.com/favicon.ico',
-                              height: 20,
-                              errorBuilder: (_, __, ___) =>
-                                  const Icon(Icons.g_mobiledata, size: 24)),
-                          label: const Text('Sign in with Google',
-                              style: TextStyle(fontWeight: FontWeight.w600)),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Links
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          GestureDetector(
-                            onTap: () => Navigator.pushNamed(
-                                context, '/forgot-password'),
-                            child: const Text('Forgot Password?',
-                                style: TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13)),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8),
-                            child: Text('•',
-                                style: TextStyle(color: AppColors.textLight)),
-                          ),
-                          GestureDetector(
-                            onTap: () =>
-                                Navigator.pushNamed(context, '/register'),
-                            child: const Text('Create Account',
-                                style: TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13)),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      TextButton(
-                        onPressed: () =>
-                            Navigator.pushNamed(context, '/admin-login'),
-                        child: const Text(
-                          'Admin Portal',
-                          style: TextStyle(
-                            color: AppColors.textDark,
-                            fontWeight: FontWeight.w700,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ),
           ),
         ],
       ),

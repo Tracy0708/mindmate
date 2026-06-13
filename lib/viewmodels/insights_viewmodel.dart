@@ -24,9 +24,12 @@ class InsightsViewModel extends ChangeNotifier {
 
   int get _rangeDays {
     switch (_selectedRange) {
-      case 'month': return 30;
-      case '3months': return 90;
-      default: return 7;
+      case 'month':
+        return 30;
+      case '3months':
+        return 90;
+      default:
+        return 7;
     }
   }
 
@@ -107,7 +110,8 @@ class InsightsViewModel extends ChangeNotifier {
     // ── Daily scores (aggregate by day) ──
     final dailyMap = <String, List<int>>{};
     for (var log in logs) {
-      final key = '${log.timestamp.year}-${log.timestamp.month.toString().padLeft(2, '0')}-${log.timestamp.day.toString().padLeft(2, '0')}';
+      final key =
+          '${log.timestamp.year}-${log.timestamp.month.toString().padLeft(2, '0')}-${log.timestamp.day.toString().padLeft(2, '0')}';
       dailyMap.putIfAbsent(key, () => []).add(log.resolvedScore.round());
     }
     final dailyScores = <DailyMoodScore>[];
@@ -123,8 +127,10 @@ class InsightsViewModel extends ChangeNotifier {
       final mid = dailyScores.length ~/ 2;
       final firstHalf = dailyScores.sublist(0, mid);
       final secondHalf = dailyScores.sublist(mid);
-      final firstAvg = firstHalf.map((d) => d.score).reduce((a, b) => a + b) / firstHalf.length;
-      final secondAvg = secondHalf.map((d) => d.score).reduce((a, b) => a + b) / secondHalf.length;
+      final firstAvg = firstHalf.map((d) => d.score).reduce((a, b) => a + b) /
+          firstHalf.length;
+      final secondAvg = secondHalf.map((d) => d.score).reduce((a, b) => a + b) /
+          secondHalf.length;
       final diff = secondAvg - firstAvg;
       if (diff > 0.3) {
         trendDirection = 'improving';
@@ -139,17 +145,20 @@ class InsightsViewModel extends ChangeNotifier {
     if (trendDirection == 'improving') {
       trendSummary = 'Your mood has been improving! Keep up the great work.';
     } else if (trendDirection == 'declining') {
-      trendSummary = 'Your mood has been declining recently. Consider trying some self-care activities.';
+      trendSummary =
+          'Your mood has been declining recently. Consider trying some self-care activities.';
     } else if (avgScore >= 3.5) {
       trendSummary = 'Your mood has been mostly positive. You\'re doing well!';
     } else if (avgScore >= 2.5) {
-      trendSummary = 'Your mood has been mixed. Remember to take care of yourself.';
+      trendSummary =
+          'Your mood has been mixed. Remember to take care of yourself.';
     } else {
       trendSummary = 'You\'ve had some tough days. We\'re here to support you.';
     }
 
     // ── Suggestions (NF6) ──
-    final suggestions = _generateSuggestions(freq, trendDirection, avgScore, negativeDays, positiveDays);
+    final suggestions = _generateSuggestions(
+        freq, trendDirection, avgScore, negativeDays, positiveDays);
 
     return EmotionInsight(
       mostFrequentEmotion: mostFrequent,
@@ -179,7 +188,8 @@ class InsightsViewModel extends ChangeNotifier {
     if ((freq['Anxious'] ?? 0) >= 2) {
       suggestions.add(const InsightSuggestion(
         title: 'Try Box Breathing',
-        description: 'You\'ve felt anxious recently. Breathing exercises can help calm your mind.',
+        description:
+            'You\'ve felt anxious recently. Breathing exercises can help calm your mind.',
         icon: '🌬️',
         actionType: 'breathing',
       ));
@@ -189,7 +199,8 @@ class InsightsViewModel extends ChangeNotifier {
     if ((freq['Sad'] ?? 0) >= 2) {
       suggestions.add(const InsightSuggestion(
         title: 'Start a Gratitude Journal',
-        description: 'Journaling about positives can help shift your perspective during tough times.',
+        description:
+            'Journaling about positives can help shift your perspective during tough times.',
         icon: '📝',
         actionType: 'journaling',
       ));
@@ -199,7 +210,8 @@ class InsightsViewModel extends ChangeNotifier {
     if (trend == 'declining') {
       suggestions.add(const InsightSuggestion(
         title: 'Talk to AI Assistant',
-        description: 'Your mood has been declining. Our AI assistant is here to listen and help.',
+        description:
+            'Your mood has been declining. Our AI assistant is here to listen and help.',
         icon: '🤖',
         actionType: 'chatbot',
       ));
@@ -209,19 +221,10 @@ class InsightsViewModel extends ChangeNotifier {
     if ((freq['Angry'] ?? 0) >= 2) {
       suggestions.add(const InsightSuggestion(
         title: 'Progressive Relaxation',
-        description: 'Muscle relaxation can help release physical tension from anger.',
+        description:
+            'Muscle relaxation can help release physical tension from anger.',
         icon: '💆',
         actionType: 'relaxation',
-      ));
-    }
-
-    // Tiredness → meditation
-    if ((freq['Tired'] ?? 0) >= 2) {
-      suggestions.add(const InsightSuggestion(
-        title: 'Mindful Body Scan',
-        description: 'A short meditation can help restore energy when you\'re feeling drained.',
-        icon: '🧘',
-        actionType: 'meditation',
       ));
     }
 
@@ -229,7 +232,8 @@ class InsightsViewModel extends ChangeNotifier {
     if (suggestions.isEmpty && avgScore >= 3.5) {
       suggestions.add(const InsightSuggestion(
         title: 'Positive Affirmations',
-        description: 'You\'re doing great! Reinforce your good mood with uplifting affirmations.',
+        description:
+            'You\'re doing great! Reinforce your good mood with uplifting affirmations.',
         icon: '✨',
         actionType: 'affirmations',
       ));
@@ -239,7 +243,8 @@ class InsightsViewModel extends ChangeNotifier {
     if (suggestions.isEmpty) {
       suggestions.add(const InsightSuggestion(
         title: 'Keep Tracking',
-        description: 'Continue logging your moods daily for more personalized insights.',
+        description:
+            'Continue logging your moods daily for more personalized insights.',
         icon: '📊',
         actionType: 'none',
       ));

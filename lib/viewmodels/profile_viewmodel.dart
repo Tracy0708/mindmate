@@ -18,11 +18,9 @@ class ProfileViewModel extends ChangeNotifier {
     try {
       // Simulate fetching from Firestore since missing full implementation
       await Future.delayed(const Duration(seconds: 1));
-      
+
       _settings = UserSettings(
         settingsId: 'mock_settings_id',
-        darkMode: false,
-        language: 'en',
         notificationEnabled: true,
         userId: userId,
       );
@@ -34,21 +32,12 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> toggleDarkMode(bool isDark) async {
-    if (_settings == null) return;
-    
-    _settings = _settings!.copyWith(darkMode: isDark);
-    notifyListeners();
-    
-    // In actual implementation, update Firestore here.
-  }
-
   Future<void> toggleNotifications(bool enable) async {
     if (_settings == null) return;
-    
+
     _settings = _settings!.copyWith(notificationEnabled: enable);
     notifyListeners();
-    
+
     // In actual implementation, update Firestore here.
   }
 }

@@ -42,7 +42,8 @@ class EmotionService {
     final todayEnd = _endOfDay(DateTime.now());
 
     final snapshot = await _emotionLogsRef(userId)
-        .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(todayStart))
+        .where('timestamp',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(todayStart))
         .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(todayEnd))
         .limit(1)
         .get();
@@ -56,7 +57,8 @@ class EmotionService {
     final todayEnd = _endOfDay(DateTime.now());
 
     final snapshot = await _emotionLogsRef(userId)
-        .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(todayStart))
+        .where('timestamp',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(todayStart))
         .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(todayEnd))
         .orderBy('timestamp', descending: true)
         .limit(1)
@@ -76,7 +78,9 @@ class EmotionService {
         .where('timestamp', isLessThan: Timestamp.fromDate(end))
         .orderBy('timestamp', descending: true)
         .snapshots()
-        .map((snap) => snap.docs.map((doc) => EmotionLog.fromMap(doc.data(), doc.id)).toList());
+        .map((snap) => snap.docs
+            .map((doc) => EmotionLog.fromMap(doc.data(), doc.id))
+            .toList());
   }
 
   // ─── Get recent logs for trend analysis (NF7) ───
@@ -84,7 +88,8 @@ class EmotionService {
     final startDate = DateTime.now().subtract(Duration(days: days));
 
     final snapshot = await _emotionLogsRef(userId)
-        .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+        .where('timestamp',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
         .orderBy('timestamp', descending: true)
         .get();
 
@@ -128,7 +133,8 @@ class EmotionService {
   bool detectNegativeTrend(List<EmotionLog> recentLogs) {
     if (recentLogs.length < 3) return false;
     final lastFive = recentLogs.take(5).toList();
-    final negativeCount = lastFive.where((log) => log.isEffectivelyNegative).length;
+    final negativeCount =
+        lastFive.where((log) => log.isEffectivelyNegative).length;
     return negativeCount >= 3;
   }
 
@@ -161,15 +167,6 @@ class EmotionService {
           activityType: 'relaxation',
           emoji: '💆',
           durationMinutes: 8,
-        );
-      case 'Tired':
-        return const RecommendedActivity(
-          title: 'Mindful Body Scan',
-          description:
-              'A gentle 5-minute meditation to check in with each part of your body, release tension, and restore energy.',
-          activityType: 'meditation',
-          emoji: '🧘',
-          durationMinutes: 5,
         );
       case 'Calm':
         return const RecommendedActivity(

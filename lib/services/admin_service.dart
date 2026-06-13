@@ -128,10 +128,11 @@ class AdminService {
                 .toLowerCase() ??
             'unknown';
 
-        final rawEmotion =
-            ((data['emotionType'] ?? data['emotion'] ?? data['mood']) as String?)
-                    ?.trim() ??
-                'Unknown';
+        final rawEmotion = ((data['emotionType'] ??
+                    data['emotion'] ??
+                    data['mood']) as String?)
+                ?.trim() ??
+            'Unknown';
 
         final entry = byUser.putIfAbsent(userId, _MoodRiskAccumulator.new);
         entry.totalLogs += 1;
@@ -228,12 +229,9 @@ class AdminService {
   }) async {
     try {
       final since = DateTime.now().subtract(Duration(days: lookbackDays));
-      final snapshot =
-          await _firestore.collectionGroup('emotion_logs').get();
+      final snapshot = await _firestore.collectionGroup('emotion_logs').get();
 
-      const allEmotions = [
-        'Happy', 'Calm', 'Tired', 'Anxious', 'Sad', 'Angry'
-      ];
+      const allEmotions = ['Happy', 'Calm', 'Anxious', 'Sad', 'Angry'];
       final emotionCounts = <String, int>{
         for (final e in allEmotions) e: 0,
       };
@@ -251,10 +249,11 @@ class AdminService {
         final ts = _parseEmotionTimestamp(data);
         if (ts == null || ts.isBefore(since)) continue;
 
-        final rawEmotion =
-            ((data['emotionType'] ?? data['emotion'] ?? data['mood']) as String?)
-                    ?.trim() ??
-                '';
+        final rawEmotion = ((data['emotionType'] ??
+                    data['emotion'] ??
+                    data['mood']) as String?)
+                ?.trim() ??
+            '';
         if (emotionCounts.containsKey(rawEmotion)) {
           emotionCounts[rawEmotion] = emotionCounts[rawEmotion]! + 1;
         }
@@ -574,7 +573,8 @@ class AdminService {
 
       await _firestore.collection(_usersCollection).doc(uid).set(doc);
 
-      developer.log('Admin created user: $email (uid: $uid)', name: 'AdminService');
+      developer.log('Admin created user: $email (uid: $uid)',
+          name: 'AdminService');
     } finally {
       // Always clean up the secondary app
       await secondaryApp.delete();
@@ -619,7 +619,8 @@ class AdminService {
   Future<Map<String, dynamic>> generateUsageReport() async {
     // Collect aggregated data
     final usersSnapshot = await _firestore.collection(_usersCollection).get();
-    final emotionsSnapshot = await _firestore.collectionGroup('emotion_logs').get();
+    final emotionsSnapshot =
+        await _firestore.collectionGroup('emotion_logs').get();
 
     final users = usersSnapshot.docs
         .map((doc) => UserModel.fromJson({...doc.data(), 'id': doc.id}))
