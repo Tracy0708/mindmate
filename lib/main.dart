@@ -1,6 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'screens/welcome_screen.dart';
 import 'screens/registration_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/forgot_password_screen.dart';
@@ -94,6 +95,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/splash',
       routes: {
         '/splash': (context) => const _SplashScreen(),
+        '/welcome': (context) => const WelcomeScreen(),
         '/': (context) => const LoginPage(),
         '/register': (context) => const RegistrationScreen(),
         '/dashboard': (context) => const DashboardScreen(),
@@ -231,7 +233,7 @@ class _SplashScreenState extends State<_SplashScreen> {
     if (!mounted) return;
 
     if (user == null) {
-      Navigator.pushReplacementNamed(context, '/');
+      Navigator.pushReplacementNamed(context, '/welcome');
       return;
     }
 
@@ -252,9 +254,15 @@ class _SplashScreenState extends State<_SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.cream,
-      body: Center(child: CircularProgressIndicator()),
+      body: Center(
+        child: Image.asset(
+          'assets/images/MindMate_Logo.png',
+          width: 120,
+          height: 120,
+        ),
+      ),
     );
   }
 }

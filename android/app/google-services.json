@@ -48,6 +48,50 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:173687049522:android:b0ed19d852646c8bb25b2b",
+        "android_client_info": {
+          "package_name": "com.mindmate.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "173687049522-49tapjgf5p4aqts7ml03rllfqrdqarsk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mindmate.app",
+            "certificate_hash": "f25c917f25cb34413010a4180b3efa70b83474be"
+          }
+        },
+        {
+          "client_id": "173687049522-h20o9l8tusavgup8omo5as15phvbt5kv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGVk8ABmD6_EMivcmL4mbslV7XIR4ylwo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "173687049522-h20o9l8tusavgup8omo5as15phvbt5kv.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "173687049522-kch36q3i1n1laguvp88v8f3an2junn68.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.mindmate"
+              }
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

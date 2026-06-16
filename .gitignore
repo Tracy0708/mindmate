@@ -55,5 +55,10 @@ GoogleService-Info.plist
 # Android local machine paths
 android/local.properties
 
+# Android release signing — never commit these
+*.jks
+*.keystore
+android/key.properties
+
 # Large binary files
 *.pdf
