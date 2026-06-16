@@ -13,12 +13,10 @@ flutter test             # Run all tests
 flutter test test/path/to/test.dart  # Run a single test file
 ```
 
-To seed demo data into Firestore (requires Node.js 22+):
+To seed a demo user with mood history into Firestore (requires Node.js 22+):
 ```bash
-node functions/seed-demo-data.js
+node functions/create-user-with-mood-history.js
 ```
-
-Demo accounts (from `SEED_DATA_README.md`): see that file for credentials.
 
 ## Architecture
 

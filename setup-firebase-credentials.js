@@ -63,8 +63,7 @@ async function main() {
     console.log('\n✅ Service account key copied successfully!');
     console.log(`📁 Saved to: ${destPath}\n`);
     console.log('You can now run the seed script:\n');
-    console.log('   cd functions');
-    console.log('   node seed-demo-data.js\n');
+    console.log('   node functions/create-user-with-mood-history.js\n');
 
   } catch (error) {
     console.log(`\n❌ Error: ${error.message}\n`);
