@@ -62,3 +62,6 @@ android/key.properties
 
 # Large binary files
 *.pdf
+
+# Demo seed files (machine/demo-specific, not for commit)
+functions/seed/
