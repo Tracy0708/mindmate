@@ -235,15 +235,41 @@ async function recordCrisisFlag(uid) {
       { merge: true },
     );
 
-    await createNotificationForEnabledAdmins({
-      type: 'crisis_flag',
-      prefKey: 'highRiskAlerts',
-      defaultEnabled: true,
-      title: '🚨 Crisis language detected',
-      message: 'A user may be in crisis. Review the Crisis follow-up queue and reach out.',
-      sourceUserID: uid,
-      dedupeKey: dateKey(new Date()),
-    });
+    // Crisis alerts bypass ALL notification preferences — every active admin
+    // must be notified regardless of their settings. A user may be in danger.
+    const adminSnapshot = await db
+      .collection('users')
+      .where('role', '==', 'admin')
+      .where('isDisabled', '==', false)
+      .get();
+
+    if (!adminSnapshot.empty) {
+      const dedupeKey = dateKey(new Date());
+      const batch = db.batch();
+      adminSnapshot.docs.forEach((adminDoc) => {
+        const notificationRef = db
+          .collection('notifications')
+          .doc(`crisis_flag_${adminDoc.id}_${dedupeKey}`);
+        batch.set(
+          notificationRef,
+          {
+            notificationID: notificationRef.id,
+            userID: adminDoc.id,
+            title: '🚨 Crisis language detected',
+            notificationMessage:
+              'A user may be in crisis. Review the Crisis follow-up queue and reach out.',
+            notificationStatus: 'unread',
+            notificationType: 'crisis_flag',
+            notificationTimestamp: new Date().toISOString(),
+            sourceUserID: uid,
+            pushEnabled: true,
+            createdAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        );
+      });
+      await batch.commit();
+    }
   } catch (error) {
     // A flag failure must never break the user's chat response.
     console.error('Failed to record crisis flag:', error.message);

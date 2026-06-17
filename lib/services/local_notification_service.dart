@@ -52,6 +52,30 @@ class LocalNotificationService {
         importance: Importance.high,
       ),
     );
+    await androidPlugin?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'mindmate_reminders',
+        'MindMate Reminders',
+        description: 'Daily mental health reminders from MindMate',
+        importance: Importance.high,
+      ),
+    );
+    await androidPlugin?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'mindmate_weekly',
+        'MindMate Weekly',
+        description: 'Weekly progress summaries from MindMate',
+        importance: Importance.defaultImportance,
+      ),
+    );
+    await androidPlugin?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        'mindmate_admin_alerts',
+        'MindMate Admin Alerts',
+        description: 'Critical alerts for MindMate administrators',
+        importance: Importance.max,
+      ),
+    );
     await androidPlugin?.requestNotificationsPermission();
   }
 

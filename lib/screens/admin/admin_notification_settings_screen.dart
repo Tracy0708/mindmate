@@ -412,6 +412,73 @@ class _AdminNotificationSettingsScreenState
                                   onChanged: (v) =>
                                       _onSubToggle('systemReports', v),
                                 ),
+                                const Divider(height: 1, indent: 68),
+                                // Crisis alerts are permanently active — not toggleable
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 14),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.errorRed
+                                              .withValues(alpha: 0.12),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.sos_rounded,
+                                          color: AppColors.errorRed,
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 14),
+                                      const Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Crisis Alerts',
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w700,
+                                                color: AppColors.textDark,
+                                              ),
+                                            ),
+                                            SizedBox(height: 2),
+                                            Text(
+                                              'Crisis language detected in chat',
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: AppColors.textMedium,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.errorRed
+                                              .withValues(alpha: 0.12),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                        child: const Text(
+                                          'Always on',
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppColors.errorRed,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
                           ),

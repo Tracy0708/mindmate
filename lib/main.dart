@@ -30,6 +30,15 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 @pragma('vm:entry-point')
 Future<void> _fcmBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  final n = message.notification;
+  if (n != null) {
+    await LocalNotificationService().initialize();
+    await LocalNotificationService().showPushNotification(
+      id: message.messageId?.hashCode ?? DateTime.now().millisecondsSinceEpoch,
+      title: n.title ?? '',
+      body: n.body ?? '',
+    );
+  }
 }
 
 void main() async {
@@ -240,8 +249,11 @@ class _SplashScreenState extends State<_SplashScreen> {
     final profile = await AuthService().getUserProfileById(user.uid);
     if (!mounted) return;
 
+    RemoteMessage? initialMessage;
     if (profile != null) {
       await FCMService().initialize();
+      if (!mounted) return;
+      initialMessage = await FirebaseMessaging.instance.getInitialMessage();
       if (!mounted) return;
     }
 
@@ -249,6 +261,10 @@ class _SplashScreenState extends State<_SplashScreen> {
       Navigator.pushReplacementNamed(context, '/admin-dashboard');
     } else {
       Navigator.pushReplacementNamed(context, '/dashboard');
+    }
+
+    if (initialMessage != null && mounted) {
+      Navigator.pushNamed(context, '/notifications');
     }
   }
 

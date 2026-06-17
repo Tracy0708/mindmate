@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/user_settings.dart';
+import '../services/auth_service.dart';
 
 class ProfileViewModel extends ChangeNotifier {
   UserSettings? _settings;
@@ -16,14 +17,19 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Simulate fetching from Firestore since missing full implementation
-      await Future.delayed(const Duration(seconds: 1));
-
-      _settings = UserSettings(
-        settingsId: 'mock_settings_id',
-        notificationEnabled: true,
-        userId: userId,
-      );
+      final profile = await AuthService().getUserProfile();
+      if (profile != null) {
+        final prefs =
+            profile.settings['notificationPrefs'] as Map<String, dynamic>? ??
+                {};
+        final enabled =
+            prefs.isEmpty || prefs.values.any((v) => v == true);
+        _settings = UserSettings(
+          settingsId: profile.userID,
+          notificationEnabled: enabled,
+          userId: profile.userID,
+        );
+      }
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -38,6 +44,11 @@ class ProfileViewModel extends ChangeNotifier {
     _settings = _settings!.copyWith(notificationEnabled: enable);
     notifyListeners();
 
-    // In actual implementation, update Firestore here.
+    await AuthService().updateNotificationPrefs({
+      'dailyMoodReminder': enable,
+      'breathingReminder': enable,
+      'weeklySummary': enable,
+      'motivationalQuotes': enable,
+    });
   }
 }

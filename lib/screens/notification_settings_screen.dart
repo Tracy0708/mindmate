@@ -62,6 +62,21 @@ class _NotificationSettingsScreenState
         },
         reminderTime: time,
       );
+
+      // Re-apply the schedule on the device so that notifications survive
+      // a fresh install or reinstall without the user having to toggle anything.
+      final parts = time.split(':');
+      final hour = int.tryParse(parts[0]) ?? 9;
+      final minute = int.tryParse(parts[1]) ?? 0;
+      await LocalNotificationService().applyPreferences(
+        masterEnabled: dailyMood || breathing || weekly || motivational,
+        dailyMood: dailyMood,
+        breathing: breathing,
+        weeklySummary: weekly,
+        motivational: motivational,
+        hour: hour,
+        minute: minute,
+      );
     } else if (mounted) {
       setState(() => _isLoading = false);
     }

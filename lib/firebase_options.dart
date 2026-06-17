@@ -52,7 +52,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBGVk8ABmD6_EMivcmL4mbslV7XIR4ylwo',
-    appId: '1:173687049522:android:c1c91d62c0a7647eb25b2b',
+    appId: '1:173687049522:android:b0ed19d852646c8bb25b2b',
     messagingSenderId: '173687049522',
     projectId: 'mindmate-917e3',
     storageBucket: 'mindmate-917e3.firebasestorage.app',

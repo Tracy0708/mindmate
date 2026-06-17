@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 import 'dart:developer' as developer;
 import '../models/user_model.dart';
+import 'fcm_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -80,6 +81,7 @@ class AuthService {
   // Sign out
   Future<void> signOut() async {
     try {
+      await FCMService().clearTokenForCurrentUser();
       await Future.wait([
         _auth.signOut(),
         GoogleSignIn.instance.signOut(),

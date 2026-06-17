@@ -11,7 +11,7 @@
       "android": {
         "default": {
           "projectId": "mindmate-917e3",
-          "appId": "1:173687049522:android:c1c91d62c0a7647eb25b2b",
+          "appId": "1:173687049522:android:b0ed19d852646c8bb25b2b",
           "fileOutput": "android/app/google-services.json"
         }
       },
@@ -19,7 +19,7 @@
         "lib/firebase_options.dart": {
           "projectId": "mindmate-917e3",
           "configurations": {
-            "android": "1:173687049522:android:c1c91d62c0a7647eb25b2b",
+            "android": "1:173687049522:android:b0ed19d852646c8bb25b2b",
             "ios": "1:173687049522:ios:b6af31b942cfe300b25b2b",
             "macos": "1:173687049522:ios:b6af31b942cfe300b25b2b",
             "web": "1:173687049522:web:e6a293eb892c4460b25b2b",
