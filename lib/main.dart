@@ -353,20 +353,20 @@ class _LoginPageState extends State<LoginPage>
   Future<void> _signInWithGoogle() async {
     try {
       setState(() => _isLoading = true);
-      final cred = await _authService.signInWithGoogle();
+      await _authService.signInWithGoogle();
       await FCMService().initialize();
+      final profile = await _authService.getUserProfile();
+      final needsProfile = profile == null || profile.age == null;
       if (mounted) {
         InteractiveMessageService.showSuccess(
           context,
           title: 'Google sign in successful! 🎉',
-          message: cred.additionalUserInfo?.isNewUser == true
-              ? 'Let\'s complete your profile'
-              : 'Welcome back!',
+          message: needsProfile ? 'Let\'s complete your profile' : 'Welcome back!',
           duration: const Duration(seconds: 1),
         );
         Future.delayed(const Duration(milliseconds: 600), () {
           if (mounted) {
-            if (cred.additionalUserInfo?.isNewUser == true) {
+            if (needsProfile) {
               Navigator.pushReplacementNamed(context, '/complete-profile');
             } else {
               Navigator.pushReplacementNamed(context, '/dashboard');

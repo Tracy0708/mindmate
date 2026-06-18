@@ -348,9 +348,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               onPressed: () async {
                 try {
                   setState(() => _isLoading = true);
-                  final cred = await _authService.signInWithGoogle();
+                  await _authService.signInWithGoogle();
+                  final profile = await _authService.getUserProfile();
+                  final needsProfile = profile == null || profile.age == null;
                   if (mounted) {
-                    if (cred.additionalUserInfo?.isNewUser == true) {
+                    if (needsProfile) {
                       Navigator.pushReplacementNamed(
                           context, '/complete-profile');
                     } else {

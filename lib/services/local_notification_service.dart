@@ -77,6 +77,20 @@ class LocalNotificationService {
       ),
     );
     await androidPlugin?.requestNotificationsPermission();
+
+    // Request exact alarm permission so reminders fire on time.
+    // On Android 12+ this opens the "Alarms & Reminders" settings page if
+    // the permission has not been granted yet.
+    final canExact = await androidPlugin?.canScheduleExactNotifications() ?? false;
+    if (!canExact) {
+      await androidPlugin?.requestExactAlarmsPermission();
+    }
+  }
+
+  Future<bool> _canUseExactAlarms() async {
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    return await androidPlugin?.canScheduleExactNotifications() ?? false;
   }
 
   /// Schedule a daily notification at the given hour:minute
@@ -87,6 +101,10 @@ class LocalNotificationService {
     required int hour,
     required int minute,
   }) async {
+    final scheduleMode = await _canUseExactAlarms()
+        ? AndroidScheduleMode.exactAllowWhileIdle
+        : AndroidScheduleMode.inexactAllowWhileIdle;
+
     await _plugin.zonedSchedule(
       id,
       title,
@@ -102,7 +120,7 @@ class LocalNotificationService {
           icon: '@mipmap/ic_launcher',
         ),
       ),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      androidScheduleMode: scheduleMode,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time,
     );
@@ -116,6 +134,10 @@ class LocalNotificationService {
     required int hour,
     required int minute,
   }) async {
+    final scheduleMode = await _canUseExactAlarms()
+        ? AndroidScheduleMode.exactAllowWhileIdle
+        : AndroidScheduleMode.inexactAllowWhileIdle;
+
     await _plugin.zonedSchedule(
       id,
       title,
@@ -131,7 +153,7 @@ class LocalNotificationService {
           icon: '@mipmap/ic_launcher',
         ),
       ),
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      androidScheduleMode: scheduleMode,
       uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
     );

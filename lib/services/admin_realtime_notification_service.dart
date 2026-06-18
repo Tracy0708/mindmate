@@ -34,9 +34,8 @@ class AdminRealtimeNotificationService {
         profile.settings['adminNotificationPrefs'] as Map<String, dynamic>? ??
             {};
     final bool abnormalEnabled = prefs['abnormalBehavior'] ?? true;
-    final bool systemReports = prefs['systemReports'] ?? true;
 
-    if (!abnormalEnabled && !systemReports) return;
+    if (!abnormalEnabled) return;
 
     _isRunning = true;
     _isFirstEmotionsSnapshot = true;
@@ -45,12 +44,6 @@ class AdminRealtimeNotificationService {
       'Starting Admin Real-time Notification Listeners...',
       name: 'AdminNotifications',
     );
-
-    // Catch up on events that happened while admin was offline
-    final adminUid = FirebaseAuth.instance.currentUser?.uid;
-    if (adminUid != null) {
-      if (systemReports) await _checkSystemReportNotification(adminUid);
-    }
 
     // Listen for Emotions (Abnormal Behavior)
     if (abnormalEnabled) {
@@ -88,45 +81,6 @@ class AdminRealtimeNotificationService {
       'Stopped Admin Real-time Notification Listeners.',
       name: 'AdminNotifications',
     );
-  }
-
-  // ─── Daily System Report (fires once per login day) ───
-  Future<void> _checkSystemReportNotification(String adminUid) async {
-    try {
-      final adminDoc = await _firestore.collection('users').doc(adminUid).get();
-      final lastReportRaw = adminDoc.data()?['lastSystemReportAt'];
-      final todayStr = _dateKey(DateTime.now());
-
-      if (lastReportRaw is Timestamp && _dateKey(lastReportRaw.toDate()) == todayStr) {
-        return; // Already sent a report today
-      }
-
-      final usersSnap = await _firestore
-          .collection('users')
-          .where('role', isEqualTo: 'user')
-          .get();
-      final totalUsers = usersSnap.docs.length;
-
-      final todayStart = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
-      final newUsersToday = usersSnap.docs.where((d) {
-        final raw = d.data()['createdAt'];
-        return raw is Timestamp && raw.toDate().isAfter(todayStart);
-      }).length;
-
-      await NotificationService().createNotification(
-        userID: adminUid,
-        title: '📊 Daily System Report',
-        message: 'Total users: $totalUsers. New sign-ups today: $newUsersToday.',
-        type: 'system_report',
-        pushEnabled: true,
-      );
-
-      await _firestore.collection('users').doc(adminUid).update({
-        'lastSystemReportAt': FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      developer.log('System report notification failed: $e', name: 'AdminNotifications');
-    }
   }
 
   // ─── Abnormal Behavior Detection ───
@@ -178,6 +132,5 @@ class AdminRealtimeNotificationService {
     return 'User';
   }
 
-  String _dateKey(DateTime date) => '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
 }
