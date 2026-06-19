@@ -539,7 +539,7 @@ class _ActivityScreenState extends State<ActivityScreen>
       const SizedBox(height: 12),
       // End early
       TextButton(
-        onPressed: _completeActivity,
+        onPressed: () => _completeActivity(earlyExit: true),
         child: const Text('End Early & Complete', style: TextStyle(color: AppColors.textMedium, fontWeight: FontWeight.w600, fontSize: 13)),
       ),
     ]);

@@ -158,7 +158,21 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.errorRed),
-            onPressed: () { vm.deleteUser(user.userID); Navigator.pop(ctx); },
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final userName = user.userName;
+              final success = await vm.deleteUser(user.userID);
+              final navCtx = MyApp.navigatorKey.currentContext;
+              if (navCtx != null) {
+                if (success) {
+                  // ignore: use_build_context_synchronously
+                  InteractiveMessageService.showSuccess(navCtx, title: 'User deleted', message: '$userName has been removed.');
+                } else {
+                  // ignore: use_build_context_synchronously
+                  InteractiveMessageService.showError(navCtx, title: 'Delete failed', message: vm.errorMessage ?? 'Could not delete user. Try again.');
+                }
+              }
+            },
             child: const Text('Delete'),
           ),
         ],
@@ -762,7 +776,21 @@ class _UserCard extends StatelessWidget {
                                   TextButton(onPressed: () => Navigator.pop(c), child: const Text('Cancel')),
                                   ElevatedButton(
                                     style: ElevatedButton.styleFrom(backgroundColor: AppColors.errorRed),
-                                    onPressed: () { vm.deleteUser(user.userID); Navigator.pop(c); },
+                                    onPressed: () async {
+                                      Navigator.pop(c);
+                                      final userName = user.userName;
+                                      final success = await vm.deleteUser(user.userID);
+                                      final navCtx = MyApp.navigatorKey.currentContext;
+                                      if (navCtx != null) {
+                                        if (success) {
+                                          // ignore: use_build_context_synchronously
+                                          InteractiveMessageService.showSuccess(navCtx, title: 'User deleted', message: '$userName has been removed.');
+                                        } else {
+                                          // ignore: use_build_context_synchronously
+                                          InteractiveMessageService.showError(navCtx, title: 'Delete failed', message: vm.errorMessage ?? 'Could not delete user. Try again.');
+                                        }
+                                      }
+                                    },
                                     child: const Text('Delete'),
                                   ),
                                 ],

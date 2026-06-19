@@ -273,9 +273,10 @@ class AuthService {
           .collection('users')
           .doc(user.uid)
           .update({'settings.notificationPrefs': prefs}).timeout(
-              const Duration(seconds: 10));
+              const Duration(seconds: 5));
     } catch (e) {
       developer.log('Notification Prefs Update Error: $e');
+      rethrow;
     }
   }
 
@@ -286,9 +287,10 @@ class AuthService {
       if (user == null) throw 'No user logged in';
 
       await _firestore.collection('users').doc(user.uid).update(
-          {'settings.reminderTime': time}).timeout(const Duration(seconds: 10));
+          {'settings.reminderTime': time}).timeout(const Duration(seconds: 5));
     } catch (e) {
       developer.log('Reminder Time Update Error: $e');
+      rethrow;
     }
   }
 

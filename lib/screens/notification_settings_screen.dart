@@ -1,5 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../services/interactive_message_service.dart';
 import '../services/local_notification_service.dart';
 import '../services/notification_service.dart';
 import '../main.dart';
@@ -18,6 +19,8 @@ class _NotificationSettingsScreenState
     extends State<NotificationSettingsScreen> {
   final AuthService _authService = AuthService();
   bool _isLoading = true;
+  bool _isSaving = false;
+  bool _hasUnsavedChanges = false;
 
   // Toggle states
   bool _masterToggle = true;
@@ -52,16 +55,11 @@ class _NotificationSettingsScreenState
         _reminderTime = time;
         _isLoading = false;
       });
-      await NotificationService().syncPreferenceReminderNotifications(
-        userID: profile.userID,
-        prefs: {
-          'dailyMoodReminder': dailyMood,
-          'breathingReminder': breathing,
-          'weeklySummary': weekly,
-          'motivationalQuotes': motivational,
-        },
-        reminderTime: time,
-      );
+      // Delete stale preference-reminder placeholder documents that older app
+      // versions wrote into the notifications collection. They are configuration
+      // state, not received notifications, and no longer belong there.
+      await NotificationService()
+          .deletePreferenceReminderPlaceholders(profile.userID);
 
       // Re-apply the schedule on the device so that notifications survive
       // a fresh install or reinstall without the user having to toggle anything.
@@ -89,10 +87,34 @@ class _NotificationSettingsScreenState
       'weeklySummary': _masterToggle ? _weeklySummary : false,
       'motivationalQuotes': _masterToggle ? _motivationalQuotes : false,
     };
-    await _authService.updateNotificationPrefs(prefs);
-    await _authService.updateReminderTime(_reminderTime);
+    if (mounted) setState(() => _isSaving = true);
+    try {
+      await _authService.updateNotificationPrefs(prefs);
+      await _authService.updateReminderTime(_reminderTime);
+    } catch (e) {
+      if (mounted) {
+        InteractiveMessageService.showError(
+          context,
+          title: 'Save failed',
+          message: 'Connection timed out. Please check your internet and try again.',
+          onRetry: _savePreferences,
+        );
+      }
+      return;
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
 
-    // Schedule real device notifications
+    if (mounted) {
+      setState(() => _hasUnsavedChanges = false);
+      InteractiveMessageService.showSuccess(
+        context,
+        title: 'Settings saved',
+        message: 'Your notification preferences have been updated.',
+      );
+    }
+
+    // Schedule real device notifications — local only, no network needed
     final parts = _reminderTime.split(':');
     final hour = int.tryParse(parts[0]) ?? 9;
     final minute = int.tryParse(parts[1]) ?? 0;
@@ -105,15 +127,6 @@ class _NotificationSettingsScreenState
       hour: hour,
       minute: minute,
     );
-
-    final userID = _authService.currentUser?.uid;
-    if (userID != null) {
-      await NotificationService().syncPreferenceReminderNotifications(
-        userID: userID,
-        prefs: prefs,
-        reminderTime: _reminderTime,
-      );
-    }
   }
 
   void _onMasterToggle(bool val) {
@@ -130,8 +143,8 @@ class _NotificationSettingsScreenState
         _weeklySummary = true;
         _motivationalQuotes = true;
       }
+      _hasUnsavedChanges = true;
     });
-    _savePreferences();
   }
 
   void _onSubToggle(String key, bool val) {
@@ -154,14 +167,15 @@ class _NotificationSettingsScreenState
           _breathingReminder ||
           _weeklySummary ||
           _motivationalQuotes;
+      _hasUnsavedChanges = true;
     });
-    _savePreferences();
   }
 
   Future<void> _pickReminderTime() async {
     final parts = _reminderTime.split(':');
     final initialTime = TimeOfDay(
-        hour: int.tryParse(parts[0]) ?? 9, minute: int.tryParse(parts[1]) ?? 0);
+        hour: int.tryParse(parts[0]) ?? 9,
+        minute: int.tryParse(parts[1]) ?? 0);
 
     final picked = await showTimePicker(
       context: context,
@@ -183,22 +197,46 @@ class _NotificationSettingsScreenState
       setState(() {
         _reminderTime =
             '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+        _hasUnsavedChanges = true;
       });
-      _savePreferences();
     }
   }
 
-  String get _formattedTime {
+  Future<void> _onPopAttempt() async {
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Unsaved changes'),
+        content: const Text(
+            'You have unsaved notification settings. Discard them?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Keep editing'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Discard'),
+          ),
+        ],
+      ),
+    );
+    if ((discard ?? false) && mounted) Navigator.of(context).pop();
+  }
+
+  String get _formattedTime => _offsetTime(0);
+
+  String _offsetTime(int plusMinutes) {
     final parts = _reminderTime.split(':');
-    final hour = int.tryParse(parts[0]) ?? 9;
-    final minute = int.tryParse(parts[1]) ?? 0;
-    final period = hour >= 12 ? 'PM' : 'AM';
-    final displayHour = hour > 12
-        ? hour - 12
-        : hour == 0
-            ? 12
-            : hour;
-    return '$displayHour:${minute.toString().padLeft(2, '0')} $period';
+    final h = int.tryParse(parts[0]) ?? 9;
+    final m = int.tryParse(parts[1]) ?? 0;
+    final total = h * 60 + m + plusMinutes;
+    final newH = (total ~/ 60) % 24;
+    final newM = total % 60;
+    final period = newH >= 12 ? 'PM' : 'AM';
+    final displayH = newH > 12 ? newH - 12 : newH == 0 ? 12 : newH;
+    return '$displayH:${newM.toString().padLeft(2, '0')} $period';
   }
 
   int get _enabledCount => [
@@ -206,316 +244,397 @@ class _NotificationSettingsScreenState
         _breathingReminder,
         _weeklySummary,
         _motivationalQuotes,
-      ].where((value) => value).length;
+      ].where((v) => v).length;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.cream,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const AppScreenHeader(
-              title: 'Notifications',
-              subtitle: 'Tune what reaches you and when.',
-              icon: Icons.tune_rounded,
-              showBack: true,
-              padding: EdgeInsets.fromLTRB(24, 8, 24, 8),
-            ),
-            Expanded(
-              child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: AppColors.primary))
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppColors.fieldBorder.withValues(alpha: 0.45),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.12),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.tips_and_updates_outlined,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Reminder summary',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textDark,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _masterToggle
-                                    ? '$_enabledCount notification types active at $_formattedTime'
-                                    : 'Notifications are currently paused',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: AppColors.textMedium,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  // Master Toggle Card
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4)),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.15),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            _masterToggle
-                                ? Icons.notifications_active
-                                : Icons.notifications_off_outlined,
-                            color: AppColors.primary,
-                            size: 28,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('All Notifications',
-                                  style: TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.textDark)),
-                              const SizedBox(height: 4),
-                              Text(
-                                _masterToggle
-                                    ? 'You will receive reminders'
-                                    : 'All notifications are off',
-                                style: const TextStyle(
-                                    fontSize: 13, color: AppColors.textMedium),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Switch(
-                          value: _masterToggle,
-                          activeThumbColor: AppColors.primary,
-                          onChanged: _onMasterToggle,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Granular Toggles Section
-                  const Text('Notification Types',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textDark)),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Pick which reminders you want.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textMedium,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4)),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        AppNotificationToggle(
-                          icon: Icons.mood,
-                          iconColor: const Color(0xFFFFB300),
-                          title: 'Daily Mood Reminder',
-                          subtitle: 'Remind you to log your mood each day',
-                          value: _dailyMoodReminder,
-                          enabled: _masterToggle,
-                          onChanged: (v) =>
-                              _onSubToggle('dailyMoodReminder', v),
-                        ),
-                        const Divider(height: 1, indent: 68),
-                        AppNotificationToggle(
-                          icon: Icons.air,
-                          iconColor: const Color(0xFF26A69A),
-                          title: 'Breathing Exercise',
-                          subtitle: 'Guided breathing session reminders',
-                          value: _breathingReminder,
-                          enabled: _masterToggle,
-                          onChanged: (v) =>
-                              _onSubToggle('breathingReminder', v),
-                        ),
-                        const Divider(height: 1, indent: 68),
-                        AppNotificationToggle(
-                          icon: Icons.bar_chart,
-                          iconColor: const Color(0xFF5C6BC0),
-                          title: 'Weekly Summary',
-                          subtitle: 'A weekly report of your progress',
-                          value: _weeklySummary,
-                          enabled: _masterToggle,
-                          onChanged: (v) => _onSubToggle('weeklySummary', v),
-                        ),
-                        const Divider(height: 1, indent: 68),
-                        AppNotificationToggle(
-                          icon: Icons.format_quote,
-                          iconColor: const Color(0xFFE91E63),
-                          title: 'Motivational Quotes',
-                          subtitle: 'Daily inspirational quotes',
-                          value: _motivationalQuotes,
-                          enabled: _masterToggle,
-                          onChanged: (v) =>
-                              _onSubToggle('motivationalQuotes', v),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Reminder Time Section
-                  const Text('Reminder Time',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textDark)),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Used for daily reminders.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textMedium,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: _masterToggle ? _pickReminderTime : null,
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 200),
-                      opacity: _masterToggle ? 1.0 : 0.5,
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.04),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4)),
-                          ],
-                        ),
-                        child: Row(
+    return PopScope(
+      canPop: !_hasUnsavedChanges,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _onPopAttempt();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.cream,
+        body: SafeArea(
+          child: Column(
+            children: [
+              const AppScreenHeader(
+                title: 'Notifications',
+                subtitle: 'Tune what reaches you and when.',
+                icon: Icons.tune_rounded,
+                showBack: true,
+                padding: EdgeInsets.fromLTRB(24, 8, 24, 8),
+              ),
+              Expanded(
+                child: _isLoading
+                    ? const Center(
+                        child:
+                            CircularProgressIndicator(color: AppColors.primary))
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.15),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.access_time,
-                                  color: AppColors.primary, size: 28),
-                            ),
-                            const SizedBox(width: 16),
-                            const Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Daily Reminder Time',
-                                      style: TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w700,
-                                          color: AppColors.textDark)),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Tap to change',
-                                    style: TextStyle(
-                                        fontSize: 13,
-                                        color: AppColors.textMedium),
+                            // Reminder summary card
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(18),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: AppColors.fieldBorder
+                                            .withValues(alpha: 0.45),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary
+                                                .withValues(alpha: 0.12),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.tips_and_updates_outlined,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 14),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const Text(
+                                                'Reminder summary',
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: AppColors.textDark,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                _masterToggle
+                                                    ? '$_enabledCount type${_enabledCount == 1 ? '' : 's'} active · first at $_formattedTime'
+                                                    : 'Notifications are currently paused',
+                                                style: const TextStyle(
+                                                  fontSize: 13,
+                                                  color: AppColors.textMedium,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
+                                  const SizedBox(height: 20),
+
+                                  // Master Toggle Card
+                                  Container(
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                            color: Colors.black
+                                                .withValues(alpha: 0.04),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 4)),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary
+                                                .withValues(alpha: 0.15),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            _masterToggle
+                                                ? Icons.notifications_active
+                                                : Icons
+                                                    .notifications_off_outlined,
+                                            color: AppColors.primary,
+                                            size: 28,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const Text('All Notifications',
+                                                  style: TextStyle(
+                                                      fontSize: 17,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color:
+                                                          AppColors.textDark)),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                _masterToggle
+                                                    ? 'You will receive reminders'
+                                                    : 'All notifications are off',
+                                                style: const TextStyle(
+                                                    fontSize: 13,
+                                                    color:
+                                                        AppColors.textMedium),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Switch(
+                                          value: _masterToggle,
+                                          activeThumbColor: AppColors.primary,
+                                          onChanged: _onMasterToggle,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 28),
+
+                                  // Granular Toggles Section
+                                  const Text('Notification Types',
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.textDark)),
+                                  const SizedBox(height: 6),
+                                  const Text(
+                                    'Pick which reminders you want.',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.textMedium,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                            color: Colors.black
+                                                .withValues(alpha: 0.04),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 4)),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        AppNotificationToggle(
+                                          icon: Icons.mood,
+                                          iconColor: const Color(0xFFFFB300),
+                                          title: 'Daily Mood Reminder',
+                                          subtitle:
+                                              'Log your mood each day · $_formattedTime',
+                                          value: _dailyMoodReminder,
+                                          enabled: _masterToggle,
+                                          onChanged: (v) =>
+                                              _onSubToggle('dailyMoodReminder', v),
+                                        ),
+                                        AppNotificationToggle(
+                                          icon: Icons.air,
+                                          iconColor: const Color(0xFF26A69A),
+                                          title: 'Breathing Exercise',
+                                          subtitle:
+                                              'Guided breathing session · ${_offsetTime(30)}',
+                                          value: _breathingReminder,
+                                          enabled: _masterToggle,
+                                          onChanged: (v) =>
+                                              _onSubToggle('breathingReminder', v),
+                                        ),
+                                        AppNotificationToggle(
+                                          icon: Icons.bar_chart,
+                                          iconColor: const Color(0xFF5C6BC0),
+                                          title: 'Weekly Summary',
+                                          subtitle:
+                                              'Weekly progress report · Sundays at $_formattedTime',
+                                          value: _weeklySummary,
+                                          enabled: _masterToggle,
+                                          onChanged: (v) =>
+                                              _onSubToggle('weeklySummary', v),
+                                        ),
+                                        AppNotificationToggle(
+                                          icon: Icons.format_quote,
+                                          iconColor: const Color(0xFFE91E63),
+                                          title: 'Motivational Quotes',
+                                          subtitle:
+                                              'Daily inspiration · ${_offsetTime(5)}',
+                                          value: _motivationalQuotes,
+                                          enabled: _masterToggle,
+                                          onChanged: (v) => _onSubToggle(
+                                              'motivationalQuotes', v),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 28),
+
+                                  // Reminder Time Section
+                                  const Text('Reminder Time',
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.textDark)),
+                                  const SizedBox(height: 6),
+                                  const Text(
+                                    'Mood reminder fires at this time. Inspiration +5 min, Breathing +30 min.',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.textMedium,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  GestureDetector(
+                                    onTap: _masterToggle
+                                        ? _pickReminderTime
+                                        : null,
+                                    child: AnimatedOpacity(
+                                      duration:
+                                          const Duration(milliseconds: 200),
+                                      opacity: _masterToggle ? 1.0 : 0.5,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(20),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          boxShadow: [
+                                            BoxShadow(
+                                                color: Colors.black
+                                                    .withValues(alpha: 0.04),
+                                                blurRadius: 10,
+                                                offset: const Offset(0, 4)),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.primary
+                                                    .withValues(alpha: 0.15),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Icon(
+                                                  Icons.access_time,
+                                                  color: AppColors.primary,
+                                                  size: 28),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            const Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text('Daily Reminder Time',
+                                                      style: TextStyle(
+                                                          fontSize: 15,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          color: AppColors
+                                                              .textDark)),
+                                                  SizedBox(height: 4),
+                                                  Text(
+                                                    'Tap to change',
+                                                    style: TextStyle(
+                                                        fontSize: 13,
+                                                        color: AppColors
+                                                            .textMedium),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 8),
+                                              decoration: BoxDecoration(
+                                                color: AppColors.primary
+                                                    .withValues(alpha: 0.15),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                _formattedTime,
+                                                style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: AppColors.primary),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 32),
+
+                                  // Save button
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton(
+                                      onPressed: (_hasUnsavedChanges &&
+                                              !_isSaving)
+                                          ? _savePreferences
+                                          : null,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primary,
+                                        disabledBackgroundColor:
+                                            AppColors.fieldBorder,
+                                        foregroundColor: AppColors.textDark,
+                                        disabledForegroundColor:
+                                            AppColors.textMedium,
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 16),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(16)),
+                                        elevation: 0,
+                                      ),
+                                      child: _isSaving
+                                          ? const SizedBox(
+                                              width: 22,
+                                              height: 22,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2.5,
+                                                color: AppColors.textDark,
+                                              ),
+                                            )
+                                          : Text(
+                                              _hasUnsavedChanges
+                                                  ? 'Save Changes'
+                                                  : 'Saved',
+                                              style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w700),
+                                            ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 40),
                                 ],
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                _formattedTime,
-                                style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.primary),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-
-                          const SizedBox(height: 40),
-                        ],
-                      ),
-                    ),
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
-

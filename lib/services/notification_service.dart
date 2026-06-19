@@ -68,19 +68,26 @@ class NotificationService {
         final existing = await docRef.get();
         final existingStatus = existing.data()?['notificationStatus'];
 
+        final data = <String, dynamic>{
+          'notificationID': docRef.id,
+          'userID': userID,
+          'title': def.title,
+          'notificationMessage': def.message,
+          'notificationStatus': existingStatus ?? 'unread',
+          'notificationType': def.type,
+          'reminderTime': reminderTime,
+          'pushEnabled': false,
+        };
+        // Only set the timestamp when creating the record for the first time.
+        // Overwriting it on every settings load would make all notifications
+        // appear as "just now" in the notification center whenever the screen opens.
+        if (!existing.exists) {
+          data['notificationTimestamp'] = DateTime.now().toIso8601String();
+        }
+
         batch.set(
           docRef,
-          {
-            'notificationID': docRef.id,
-            'userID': userID,
-            'title': def.title,
-            'notificationMessage': def.message,
-            'notificationStatus': existingStatus ?? 'unread',
-            'notificationType': def.type,
-            'notificationTimestamp': DateTime.now().toIso8601String(),
-            'reminderTime': reminderTime,
-            'pushEnabled': false,
-          },
+          data,
           SetOptions(merge: true),
         );
       } else {
@@ -88,6 +95,22 @@ class NotificationService {
       }
     }
 
+    await batch.commit();
+  }
+
+  // Delete the four stable-ID placeholder documents that older app versions
+  // wrote into the notifications collection for preference reminders.
+  Future<void> deletePreferenceReminderPlaceholders(String userID) async {
+    const types = [
+      'daily_mood_reminder',
+      'breathing_reminder',
+      'weekly_summary',
+      'motivational_quote',
+    ];
+    final batch = _firestore.batch();
+    for (final type in types) {
+      batch.delete(_firestore.collection(_collection).doc('${type}_$userID'));
+    }
     await batch.commit();
   }
 

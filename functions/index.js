@@ -339,7 +339,10 @@ exports.createAdminNotificationOnSignup = onDocumentCreated(
     const data = event.data?.data();
     if (!data || data.role === 'admin') return null;
 
-    const name = data.userName || data.name || 'A new user';
+    const rawName = data.userName || data.name;
+    const name = (rawName && rawName !== 'User')
+      ? rawName
+      : (data.userEmail || 'A new user');
     await createNotificationForEnabledAdmins({
       type: 'new_signup',
       prefKey: 'newSignups',
@@ -811,137 +814,3 @@ exports.cleanupOrphanedUsers = onSchedule('every day 02:00', async (context) => 
   }
 });
 
-// Scheduled function to send FCM reminders at each user's configured reminder time.
-// Runs every minute so any HH:MM value is matched exactly.
-// Deduplicates using lastReminderSentDate so each user gets at most one batch per day.
-exports.sendScheduledReminders = onSchedule(
-  {
-    schedule: 'every 1 minutes',
-    timeZone: MALAYSIA_TIME_ZONE,
-  },
-  async () => {
-    const db = getFirestore();
-    const now = new Date();
-
-    // Current HH:MM and date in Malaysia timezone
-    const timeParts = new Intl.DateTimeFormat('en-US', {
-      timeZone: MALAYSIA_TIME_ZONE,
-      hour: '2-digit',
-      minute: '2-digit',
-      weekday: 'long',
-      hour12: false,
-    }).formatToParts(now);
-    const tv = Object.fromEntries(timeParts.map((p) => [p.type, p.value]));
-    const currentTimeStr = `${tv.hour}:${tv.minute}`;
-    const todayKey = dateKey(now);
-    const isSunday = tv.weekday === 'Sunday';
-
-    // Find users whose saved reminder time matches this exact minute
-    let usersSnapshot;
-    try {
-      usersSnapshot = await db
-        .collection('users')
-        .where('settings.reminderTime', '==', currentTimeStr)
-        .get();
-    } catch (e) {
-      console.error('sendScheduledReminders query error:', e.message);
-      return null;
-    }
-
-    if (usersSnapshot.empty) return null;
-
-    const sendTasks = [];
-
-    for (const userDoc of usersSnapshot.docs) {
-      const data = userDoc.data();
-
-      // Only active regular users
-      if (data.role !== 'user' || data.isDisabled === true) continue;
-
-      const fcmToken = data?.fcmToken;
-      if (!fcmToken) continue;
-
-      // Skip if already sent today
-      if (data.lastReminderSentDate === todayKey) continue;
-
-      const prefs = data?.settings?.notificationPrefs || {};
-
-      const messages = [];
-      if (prefs.dailyMoodReminder) {
-        messages.push({
-          title: '😊 How are you feeling?',
-          body: 'Take a moment to log your mood today.',
-        });
-      }
-      if (prefs.breathingReminder) {
-        messages.push({
-          title: '🌿 Time to breathe',
-          body: 'A short breathing exercise can help reduce stress.',
-        });
-      }
-      if (prefs.motivationalQuotes) {
-        const quotes = [
-          'You are stronger than you think. Keep going! 💪',
-          'Every day is a fresh start. Make it count! ☀️',
-          'Be kind to yourself — you deserve it. 🌸',
-          'Small steps still move you forward. 🚶‍♀️',
-          'Your mental health matters. Take care of you. 💛',
-        ];
-        messages.push({
-          title: '💛 Daily Inspiration',
-          body: quotes[now.getDay() % quotes.length],
-        });
-      }
-      // Weekly summary only fires on Sundays
-      if (prefs.weeklySummary && isSunday) {
-        messages.push({
-          title: '📊 Your Weekly Summary',
-          body: 'Check out your mood trends from this week!',
-        });
-      }
-
-      if (messages.length === 0) continue;
-
-      const uid = userDoc.id;
-
-      // Send all enabled notifications then mark as sent for today
-      sendTasks.push(
-        Promise.all(
-          messages.map((msg) =>
-            getMessaging()
-              .send({
-                token: fcmToken,
-                notification: { title: msg.title, body: msg.body },
-                android: {
-                  priority: 'high',
-                  notification: {
-                    channelId: 'mindmate_reminders',
-                    clickAction: 'FLUTTER_NOTIFICATION_CLICK',
-                  },
-                },
-                apns: { payload: { aps: { sound: 'default' } } },
-              })
-              .catch(async (e) => {
-                console.error(`Reminder FCM error for ${uid}:`, e.message);
-                // Clear stale token so future queries skip this user
-                if (e.code === 'messaging/registration-token-not-registered') {
-                  await db.collection('users').doc(uid).update({ fcmToken: null });
-                }
-              })
-          )
-        ).then(() =>
-          db.collection('users').doc(uid).update({ lastReminderSentDate: todayKey })
-        )
-      );
-    }
-
-    if (sendTasks.length > 0) {
-      await Promise.all(sendTasks);
-      console.log(
-        `sendScheduledReminders: ${sendTasks.length} user(s) notified at ${currentTimeStr} (${todayKey})`
-      );
-    }
-
-    return null;
-  }
-);

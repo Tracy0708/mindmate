@@ -156,12 +156,14 @@ class AdminViewModel extends ChangeNotifier {
     );
   }
 
-  Future<void> deleteUser(String userId) async {
+  Future<bool> deleteUser(String userId) async {
     try {
       await _adminService.deleteUser(userId);
+      return true;
     } catch (e) {
       _errorMessage = "Failed to delete user: $e";
       notifyListeners();
+      return false;
     }
   }
 

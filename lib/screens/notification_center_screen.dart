@@ -133,7 +133,17 @@ class NotificationCenterScreen extends StatelessWidget {
                   );
                 }
 
-                final notifications = snapshot.data ?? [];
+                // Exclude preference-reminder placeholder documents — these are
+                // configuration records, not received notifications.
+                const reminderTypes = {
+                  'daily_mood_reminder',
+                  'breathing_reminder',
+                  'weekly_summary',
+                  'motivational_quote',
+                };
+                final notifications = (snapshot.data ?? [])
+                    .where((n) => !reminderTypes.contains(n.notificationType))
+                    .toList();
 
                 if (notifications.isEmpty) {
                   return const Center(

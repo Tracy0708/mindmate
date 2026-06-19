@@ -275,18 +275,19 @@ class LocalNotificationService {
         id: weeklySummaryId,
         title: '📊 Your Weekly Summary',
         body: 'Check out your mood trends from this week!',
-        hour: 10,
-        minute: 0,
+        hour: hour,
+        minute: minute,
       );
     }
 
     if (motivational) {
+      // +5 min offset so it doesn't fire simultaneously with the daily mood reminder.
       await scheduleDailyNotification(
         id: motivationalId,
         title: '💛 Daily Inspiration',
         body: _getMotivationalQuote(),
-        hour: 8,
-        minute: 0,
+        hour: (minute + 5 >= 60) ? (hour + 1) % 24 : hour,
+        minute: (minute + 5) % 60,
       );
     }
   }
