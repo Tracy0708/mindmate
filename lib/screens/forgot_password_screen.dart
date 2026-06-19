@@ -185,7 +185,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                 color: AppColors.textDark)),
         const SizedBox(height: 12),
         Text(
-          'We\'ve sent a password reset link to\n${_emailController.text.trim()}',
+          'If ${_emailController.text.trim()} is registered with MindMate, you\'ll receive a reset link shortly.',
           textAlign: TextAlign.center,
           style: const TextStyle(
               color: AppColors.textMedium, fontSize: 14, height: 1.5),

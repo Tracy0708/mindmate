@@ -56,7 +56,9 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
     }
 
     final vm = Provider.of<EmotionViewModel>(context, listen: false);
-    final wasLoggedToday = vm.hasLoggedToday;
+    // Use todaysLog != null (actual Firestore record) rather than hasLoggedToday,
+    // which is set to true on skip to suppress the dialog but doesn't mean a log exists.
+    final wasLoggedToday = vm.todaysLog != null;
     final success = await vm.submitEmotion(
       emotionType: _selectedMood!,
       intensity: _selectedIntensity,
@@ -70,6 +72,7 @@ class _EmotionTrackingScreenState extends State<EmotionTrackingScreen>
         final streakAch = await gamVm.checkStreakMilestones(vm.streak);
         final logAch = await gamVm.checkLogMilestones(vm.totalLogCount);
         await gamVm.fetchUserStats();
+        await gamVm.fetchHistory();
 
         final allAch = [...streakAch, ...logAch];
         if (allAch.isNotEmpty && mounted) {

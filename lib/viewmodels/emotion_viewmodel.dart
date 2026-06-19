@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async';
 import 'dart:developer' as developer;
 import '../models/emotion_log.dart';
 import '../models/activity.dart';
@@ -110,14 +111,16 @@ class EmotionViewModel extends ChangeNotifier {
       );
 
       // NF6: Save to Firestore
-      await _emotionService.logEmotion(log);
+      await _emotionService.logEmotion(log)
+          .timeout(const Duration(seconds: 15));
       _todaysLog = log;
       _hasLoggedToday = true;
 
       developer.log('Emotion saved: $emotionType', name: 'EmotionVM');
 
       // NF7: Check for recent mood trend
-      _recentLogs = await _emotionService.getRecentLogs(userId);
+      _recentLogs = await _emotionService.getRecentLogs(userId)
+          .timeout(const Duration(seconds: 10));
       _showChatbotPrompt = _emotionService.detectNegativeTrend(_recentLogs);
 
       // NF8: Get personalized activity recommendation
@@ -125,9 +128,12 @@ class EmotionViewModel extends ChangeNotifier {
           _emotionService.getRecommendedActivity(emotionType);
 
       // Update streak and check streak milestones
-      _streak = await _emotionService.getStreak(userId);
-      _logCount = await _emotionService.getLogCount(userId, days: 30);
-      _totalLogCount = await _emotionService.getLogCount(userId, days: 365);
+      _streak = await _emotionService.getStreak(userId)
+          .timeout(const Duration(seconds: 10));
+      _logCount = await _emotionService.getLogCount(userId, days: 30)
+          .timeout(const Duration(seconds: 10));
+      _totalLogCount = await _emotionService.getLogCount(userId, days: 365)
+          .timeout(const Duration(seconds: 10));
 
       // NOTE: Streak/milestone badges are awarded by the calling screen via
       // GamificationViewModel (guarded by !wasLoggedToday) so they fire once
@@ -152,6 +158,13 @@ class EmotionViewModel extends ChangeNotifier {
       _isSubmitting = false;
       notifyListeners();
       return true;
+    } on TimeoutException {
+      developer.log('Emotion save timed out', name: 'EmotionVM');
+      _errorMessage =
+          'Connection timed out. Please check your internet and try again.';
+      _isSubmitting = false;
+      notifyListeners();
+      return false;
     } catch (e) {
       // EF1: Handle save failure
       developer.log('Error saving emotion: $e', name: 'EmotionVM');

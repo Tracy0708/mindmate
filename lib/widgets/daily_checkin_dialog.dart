@@ -57,7 +57,16 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
     final vm = Provider.of<EmotionViewModel>(context, listen: false);
     final wasLoggedToday = vm.hasLoggedToday;
     final success = await vm.submitEmotion(emotionType: _selectedMood!, intensity: _selectedIntensity, notes: _noteController.text.isNotEmpty ? _noteController.text : null);
-    if (!mounted || !success) return;
+    if (!mounted) return;
+    if (!success) {
+      InteractiveMessageService.showError(
+        context,
+        title: 'Save failed',
+        message: vm.errorMessage ?? 'Please check your connection and try again.',
+        onRetry: _submit,
+      );
+      return;
+    }
 
     // Capture isMixedMood before any further awaits
     final isMixed = vm.todaysLog?.isMixedMood == true;
@@ -68,6 +77,7 @@ class _DailyCheckinDialogState extends State<DailyCheckinDialog> {
       final streakAch = await gamVm.checkStreakMilestones(vm.streak);
       final logAch = await gamVm.checkLogMilestones(vm.totalLogCount);
       await gamVm.fetchUserStats();
+      await gamVm.fetchHistory();
 
       if (mounted) {
         final allAch = [...streakAch, ...logAch];
