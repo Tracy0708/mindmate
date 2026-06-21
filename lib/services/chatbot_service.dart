@@ -62,7 +62,10 @@ class ChatbotService {
     });
 
     // 2. Call Gemini via Firebase Cloud Function
-    final callable = FirebaseFunctions.instance.httpsCallable('getChatbotResponse');
+    final callable = FirebaseFunctions.instance.httpsCallable(
+      'getChatbotResponse',
+      options: HttpsCallableOptions(timeout: const Duration(seconds: 15)),
+    );
     final result = await callable.call({'sessionId': sessionID, 'message': content});
     final String botResponse = result.data['response'] as String;
     final bool crisisDetected = result.data['crisisDetected'] == true;
